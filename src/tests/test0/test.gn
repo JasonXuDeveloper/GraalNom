@@ -1,0 +1,11 @@
+class Test
+{
+	public static fun Main() : Void
+	{
+		Int a = 10;
+		Int b = 20;
+		Int c = 30;
+		(a+b). ToString().Print();
+		(a-c).ToString().Print();
+	}
+}
