@@ -9,7 +9,7 @@ import java.util.Map;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.runtime.NomContext;
-import com.nom.graalnom.runtime.NomString;
+import com.nom.graalnom.runtime.datatypes.NomString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 

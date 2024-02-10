@@ -1,5 +1,6 @@
 package com.nom.graalnom;
 
+import com.nom.graalnom.parser.ByteCodeReader;
 import com.nom.graalnom.runtime.NomContext;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -7,6 +8,12 @@ import com.oracle.truffle.api.debug.DebuggerTags;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @TruffleLanguage.Registration(id = NomLanguage.ID, name = "GraalNom",
         defaultMimeType = NomLanguage.MIME_TYPE,
@@ -26,7 +33,41 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     }
 
     @Override
-    protected CallTarget parse(ParsingRequest request) {
+    protected CallTarget parse(ParsingRequest request) throws Exception {
+        String filePath = request.getSource().getCharacters().toString();
+        Path manifestPath = Path.of(filePath);
+        Path dirPath = manifestPath.getParent();
+        //load manifest file in manifestPath
+        String manifest = Files.readString(manifestPath);
+        manifest = manifest.strip();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        var builder = factory.newDocumentBuilder();
+        var doc = builder.parse(new InputSource(new StringReader(manifest)));
+        //load name from <mainclass name = "xxx" />
+        var mainClass = doc.getElementsByTagName("mainclass").item(0).getAttributes().getNamedItem("name").getNodeValue();
+        //load all <nomclass qname = "xxx" file = "xxx" />
+        var nomClasses = doc.getElementsByTagName("nomclass");
+        for (int i = 0; i < nomClasses.getLength(); i++) {
+            var nomClass = nomClasses.item(i);
+            //get info
+            var qname = nomClass.getAttributes().getNamedItem("qname").getNodeValue();
+            var file = nomClass.getAttributes().getNamedItem("file").getNodeValue();
+            file = dirPath.resolve(file).toString();
+
+            //load bytecode
+            ByteCodeReader.ReadBytecodeFile(file);
+        }
+
+        //TODO load NomClass from NomContext
+
+        //TODO get main method
+
+        //TODO resolve dependencies
+
+        //TODO parse AST nodes
+
+        //TODO create call node
+
         return null;
     }
 }

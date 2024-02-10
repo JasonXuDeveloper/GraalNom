@@ -14,13 +14,14 @@ public class NomContext {
     @CompilerDirectives.CompilationFinal
     private TruffleLanguage.Env env;
 
-
-    public static List<NomConstant> constants = new java.util.ArrayList<>(1);
-
     public NomContext(NomLanguage language, TruffleLanguage.Env env) {
         this.language = language;
         this.env = env;
     }
+
+
+
+    public static List<NomConstant> constants = new java.util.ArrayList<>(1);
 
     public static void PrintConstant(long constant, boolean resolve) {
         System.out.print("$" + constant);

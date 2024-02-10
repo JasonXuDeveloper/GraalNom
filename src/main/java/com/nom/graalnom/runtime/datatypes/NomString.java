@@ -1,4 +1,4 @@
-package com.nom.graalnom.runtime;
+package com.nom.graalnom.runtime.datatypes;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.NomLanguage;
