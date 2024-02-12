@@ -10,6 +10,7 @@ import java.util.Map;
 import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.datatypes.NomString;
+import com.nom.graalnom.runtime.reflections.NomClass;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
@@ -31,7 +32,7 @@ public class ByteCodeReader {
             while (s.available() > 0) {
                 int b = s.read();//need to use int to get 0-255, I HATE JAVA
                 BytecodeTopElementType nextType = BytecodeTopElementType.fromValue(b);
-                long localConstId;
+                long localConstId = 0;
                 switch (nextType) {
                     case StringConstant:
                         localConstId = s.readLong();
@@ -82,14 +83,31 @@ public class ByteCodeReader {
                                 GetGlobalId(constants, s.readLong()),
                                 TryGetGlobalId(constants, localConstId)));
                         break;
+                    case Class:
+                        ReadClass(s, constants);
+                        break;
                     case null:
                     default:
                         throw new IllegalArgumentException("unknown type (" + b + "): " + nextType);
                 }
+                System.out.println("Read " + nextType + " " + localConstId + " -> ");
+                NomContext.constants.get(constants.get(localConstId).intValue()).Print(true);
+                System.out.println();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static NomClass ReadClass(LittleEndianDataInputStream s, Map<Long, Long> constants) throws Exception {
+        long nameId = GetGlobalId(constants, s.readLong());
+        long typeArgsId = GetGlobalId(constants, s.readLong());
+        byte visibility = s.readByte();
+        byte flags = s.readByte();
+        long superInterfacesId = GetGlobalId(constants, s.readLong());
+        long superClassId = GetGlobalId(constants, s.readLong());
+        NomClass cls = new NomClass(nameId, typeArgsId, superClassId, superInterfacesId);
+        return null;
     }
 
     private static long TryGetGlobalId(Map<Long, Long> constants, long id) {

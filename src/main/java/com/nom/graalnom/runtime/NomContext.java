@@ -2,14 +2,21 @@ package com.nom.graalnom.runtime;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.constants.*;
+import com.nom.graalnom.runtime.datatypes.NomString;
+import com.nom.graalnom.runtime.reflections.NomClass;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
 import java.util.List;
+import java.util.Map;
 
 public class NomContext {
+    public static List<NomConstant> constants = new java.util.ArrayList<>(1);
+
+    public static Map<String, NomClass> classes = new java.util.HashMap<>();
+
     private final NomLanguage language;
     @CompilerDirectives.CompilationFinal
     private TruffleLanguage.Env env;
@@ -20,9 +27,6 @@ public class NomContext {
     }
 
 
-
-    public static List<NomConstant> constants = new java.util.ArrayList<>(1);
-
     public static void PrintConstant(long constant, boolean resolve) {
         System.out.print("$" + constant);
         if (resolve && constant > 0) {
@@ -30,8 +34,7 @@ public class NomContext {
             var c = constants.get((int) constant);
             if (c != null) {
                 c.Print(resolve);
-            }
-            else {
+            } else {
                 System.out.print("null");
             }
             System.out.print(")");
@@ -41,6 +44,17 @@ public class NomContext {
     public static long GetConstantId() {
         constants.add(null);
         return constants.size() - 1;
+    }
+
+    public static NomStringConstant GetString(long constant) {
+        if (constant == 0) {
+            return new NomStringConstant(NomString.create(""));
+        }
+        var cnstnt = constants.get((int) constant);
+        if (cnstnt == null || cnstnt.Type != NomConstantType.CTString) {
+            throw new RuntimeException();
+        }
+        return (NomStringConstant) cnstnt;
     }
 
     public static long AddString(TruffleString string, long cid) {
@@ -67,7 +81,7 @@ public class NomContext {
         return cid;
     }
 
-    public static long AddSuperInterfaceList(List<Pair<Long,Long>> entries, long cid) {
+    public static long AddSuperInterfaceList(List<Pair<Long, Long>> entries, long cid) {
         if (cid == 0) {
             cid = GetConstantId();
         }
