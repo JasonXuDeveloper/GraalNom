@@ -49,8 +49,8 @@ public class NomClassConstant extends NomConstant{
     @Override
     public void Print(boolean resolve) {
         System.out.print("Class ");
-        NomContext.PrintConstant(Library, resolve);
+        NomContext.constants.PrintConstant(Library, resolve);
         System.out.print("::");
-        NomContext.PrintConstant(Name, resolve);
+        NomContext.constants.PrintConstant(Name, resolve);
     }
 }

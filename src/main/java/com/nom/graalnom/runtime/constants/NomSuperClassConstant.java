@@ -34,9 +34,9 @@ public class NomSuperClassConstant extends NomConstant{
     @Override
     public void Print(boolean resolve) {
         System.out.print("SuperClass ");
-        NomContext.PrintConstant(SuperClass, resolve);
+        NomContext.constants.PrintConstant(SuperClass, resolve);
         System.out.print("<");
-        NomContext.PrintConstant(Arguments, resolve);
+        NomContext.constants.PrintConstant(Arguments, resolve);
         System.out.print(">");
     }
 }

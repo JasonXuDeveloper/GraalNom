@@ -11,6 +11,8 @@ import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.reflections.NomClass;
+import com.nom.graalnom.runtime.reflections.NomTypedField;
+import com.nom.graalnom.runtime.reflections.Visibility;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
@@ -37,18 +39,18 @@ public class ByteCodeReader {
                     case StringConstant:
                         localConstId = s.readLong();
                         TruffleString str = NomString.create(s);
-                        constants.put(localConstId, NomContext.AddString(str, TryGetGlobalId(constants, localConstId)));
+                        constants.put(localConstId, NomContext.constants.AddString(str, TryGetGlobalId(constants, localConstId)));
                         break;
                     case ClassConstant:
                         localConstId = s.readLong();
-                        constants.put(localConstId, NomContext.AddClass(
+                        constants.put(localConstId, NomContext.constants.AddClass(
                                 GetGlobalId(constants, s.readLong()),
                                 GetGlobalId(constants, s.readLong()),
                                 TryGetGlobalId(constants, localConstId)));
                         break;
                     case SuperClass:
                         localConstId = s.readLong();
-                        constants.put(localConstId, NomContext.AddSuperClass(
+                        constants.put(localConstId, NomContext.constants.AddSuperClass(
                                 GetGlobalId(constants, s.readLong()),
                                 GetGlobalId(constants, s.readLong()),
                                 TryGetGlobalId(constants, localConstId)));
@@ -63,20 +65,20 @@ public class ByteCodeReader {
                                     GetGlobalId(constants, s.readLong()),
                                     GetGlobalId(constants, s.readLong())));
                         }
-                        constants.put(localConstId, NomContext.AddSuperInterfaceList(
+                        constants.put(localConstId, NomContext.constants.AddSuperInterfaceList(
                                 args,
                                 TryGetGlobalId(constants, localConstId)));
                         break;
                     case ClassTypeConstant:
                         localConstId = s.readLong();
-                        constants.put(localConstId, NomContext.AddClassType(
+                        constants.put(localConstId, NomContext.constants.AddClassType(
                                 GetGlobalId(constants, s.readLong()),
                                 GetGlobalId(constants, s.readLong()),
                                 TryGetGlobalId(constants, localConstId)));
                         break;
                     case MethodConstant:
                         localConstId = s.readLong();
-                        constants.put(localConstId, NomContext.AddMethod(
+                        constants.put(localConstId, NomContext.constants.AddMethod(
                                 GetGlobalId(constants, s.readLong()),
                                 GetGlobalId(constants, s.readLong()),
                                 GetGlobalId(constants, s.readLong()),
@@ -91,7 +93,7 @@ public class ByteCodeReader {
                         throw new IllegalArgumentException("unknown type (" + b + "): " + nextType);
                 }
                 System.out.println("Read " + nextType + " " + localConstId + " -> ");
-                NomContext.constants.get(constants.get(localConstId).intValue()).Print(true);
+                NomContext.constants.Get(constants.get(localConstId).intValue()).Print(true);
                 System.out.println();
             }
         } catch (Exception e) {
@@ -107,7 +109,60 @@ public class ByteCodeReader {
         long superInterfacesId = GetGlobalId(constants, s.readLong());
         long superClassId = GetGlobalId(constants, s.readLong());
         NomClass cls = new NomClass(nameId, typeArgsId, superClassId, superInterfacesId);
-        return null;
+        long methodCount = s.readLong();
+        while (methodCount > 0) {
+            //ReadMethod(cls);
+            methodCount--;
+        }
+        long fieldCount = s.readLong();
+        while (fieldCount > 0) {
+            ReadField(s, cls, constants);
+            fieldCount--;
+        }
+        long staticMethodCount = s.readLong();
+        while (staticMethodCount > 0) {
+            //ReadMethod(cls);
+            staticMethodCount--;
+        }
+        return cls;
+    }
+
+    private static void ReadStaticMethod(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants) throws Exception {
+        if (s.read() != BytecodeInternalElementType.StaticMethod.getValue()) {
+            throw new IllegalArgumentException("Expected static method, but did not encounter static method marker");
+        }
+        long name = GetGlobalId(constants, s.readLong());
+        long typeArgs = GetGlobalId(constants, s.readLong());
+        long returnType = GetGlobalId(constants, s.readLong());
+        long argTypes = GetGlobalId(constants, s.readLong());
+        String nameStr = NomContext.constants.GetString(name).GetText().toString();
+        boolean isFinal = s.readBoolean();
+        int regCount = s.readInt();
+        String qNameStr = cls.GetName().toString() + "." + nameStr;
+        NomStaticMethod meth = cls.AddStaticMethod(nameStr, qNameStr, typeArgs, returnType, argTypes, regCount);
+        long instructionCount = s.readLong();
+        while (instructionCount > 0) {
+            /*
+            auto instr = ReadInstruction();
+            if (NomVerbose)
+            {
+                instr->Print(true);
+            }
+            meth->AddInstruction(instr);
+             */
+            instructionCount--;
+        }
+    }
+
+    private static void ReadField(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants) throws Exception {
+        if (s.read() != BytecodeInternalElementType.Field.getValue()) {
+            throw new IllegalArgumentException("Expected field, but did not encounter field marker");
+        }
+        long name = GetGlobalId(constants, s.readLong());
+        long type = GetGlobalId(constants, s.readLong());
+        byte visibility = s.readByte();
+        byte flags = s.readByte();
+        cls.AddField(new NomTypedField(cls, name, type, Visibility.fromValue(visibility), (flags & 1) == 1, (flags & 2) == 2));
     }
 
     private static long TryGetGlobalId(Map<Long, Long> constants, long id) {
@@ -120,7 +175,7 @@ public class ByteCodeReader {
 
     private static long GetGlobalId(Map<Long, Long> constants, long id) {
         if (!constants.containsKey(id)) {
-            constants.put(id, NomContext.GetConstantId());
+            constants.put(id, NomContext.constants.GetConstantId());
         }
 
         return constants.get(id);

@@ -47,9 +47,9 @@ public class NomSuperInterfacesConstant extends NomConstant {
                 System.out.print(",");
             }
             first = false;
-            NomContext.PrintConstant(entry.getLeft(), resolve);
+            NomContext.constants.PrintConstant(entry.getLeft(), resolve);
             System.out.print("<");
-            NomContext.PrintConstant(entry.getRight(), resolve);
+            NomContext.constants.PrintConstant(entry.getRight(), resolve);
             System.out.print(">");
         }
         System.out.print(")");

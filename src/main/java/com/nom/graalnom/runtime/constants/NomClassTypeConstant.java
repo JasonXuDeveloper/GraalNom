@@ -39,9 +39,9 @@ public class NomClassTypeConstant extends NomConstant {
     public void Print(boolean resolve)
     {
         System.out.print("ClassType ");
-        NomContext.PrintConstant(cls, resolve);
+        NomContext.constants.PrintConstant(cls, resolve);
         System.out.print("<");
-        NomContext.PrintConstant(args, resolve);
+        NomContext.constants.PrintConstant(args, resolve);
         System.out.print(">");
     }
 }

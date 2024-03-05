@@ -42,7 +42,7 @@ public class NomTypedField extends NomField {
 
     @Override
     public TruffleString GetName() {
-        return NomContext.GetString(Name).GetText();
+        return NomContext.constants.GetString(Name).GetText();
     }
 
     @Override

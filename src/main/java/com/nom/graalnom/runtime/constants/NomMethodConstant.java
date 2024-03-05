@@ -69,13 +69,13 @@ public class NomMethodConstant extends NomConstant{
     @Override
     public void Print(boolean resolve) {
         System.out.print("Method ");
-        NomContext.PrintConstant(classConstant, resolve);
+        NomContext.constants.PrintConstant(classConstant, resolve);
         System.out.print(".");
-        NomContext.PrintConstant(methodName, resolve);
+        NomContext.constants.PrintConstant(methodName, resolve);
         System.out.print("<");
-        NomContext.PrintConstant(typeArgs, resolve);
+        NomContext.constants.PrintConstant(typeArgs, resolve);
         System.out.print(">(");
-        NomContext.PrintConstant(argTypes, resolve);
+        NomContext.constants.PrintConstant(argTypes, resolve);
         System.out.print(")");
     }
 }
