@@ -133,7 +133,8 @@ public class ByteCodeReader {
             case Noop:
                 break;
             case ReturnVoid:
-                break;
+                System.out.println("ReturnVoid");
+                return new NomReturnNode(null);
             case EnsureCheckedMethod:
                 nameId = s.readLong();
                 receiverRegIndex = s.readInt();
@@ -156,26 +157,24 @@ public class ByteCodeReader {
                 System.out.println("InvokeCheckedInstance " +
                         methName +
                         " -> reg " + regIndex + " receiver " + receiverRegIndex);
-                if (NomContext.builtinFunctions.containsKey(methName)) {
+                if (method.Class() != null && NomContext.functionsObject.containsKey(method.Class())
+                        && NomContext.functionsObject.containsKey(method.Class())) {
+                    Map<String, NomFunction> clsFunctions = NomContext.functionsObject.get(method.Class());
+                    if (clsFunctions.containsKey(methName)) {
+                        NomFunction func = clsFunctions.get(methName);
+                        return NomWriteRegisterNodeGen.create(
+                                new NomInvokeNode(func, new NomExpressionNode[]{
+                                        NomReadRegisterNodeGen.create(receiverRegIndex)
+                                }), regIndex);
+                    }
+                } else if (NomContext.builtinFunctions.containsKey(methName)) {
                     NomFunction func = NomContext.builtinFunctions.get(methName);
                     return NomWriteRegisterNodeGen.create(
                             new NomInvokeNode(func, new NomExpressionNode[]{
                                     NomReadRegisterNodeGen.create(receiverRegIndex)
                             }), regIndex);
-                } else {
-                    if (method.Class() == null)
-                        throw new IllegalStateException("Class for " + method.MethodName() + " is null");
-                    if (NomContext.functionsObject.containsKey(method.Class())) {
-                        Map<String, NomFunction> clsFunctions = NomContext.functionsObject.get(method.Class());
-                        if (clsFunctions.containsKey(methName)) {
-                            NomFunction func = clsFunctions.get(methName);
-                            return NomWriteRegisterNodeGen.create(
-                                    new NomInvokeNode(func, new NomExpressionNode[]{
-                                            NomReadRegisterNodeGen.create(receiverRegIndex)
-                                    }), regIndex);
-                        }
-                    }
                 }
+
                 throw new IllegalStateException("Method " + methName + " not found");
             case BinOp:
                 BinOperator op = BinOperator.fromValue(s.readByte());
