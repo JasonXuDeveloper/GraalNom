@@ -41,7 +41,7 @@
 package com.nom.graalnom.runtime.nodes.controlflow;
 
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
-import com.nom.graalnom.runtime.nodes.expressions.NomExpressionNode;
+import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -57,7 +57,9 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @NodeInfo(shortName = "body")
 public final class NomFunctionBodyNode extends NomExpressionNode {
 
-    /** The body of the function. */
+    /**
+     * The body of the function.
+     */
     @Node.Child
     private NomStatementNode bodyNode;
 
@@ -98,5 +100,11 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
 //        nullTaken.enter();
 //        /* Return the default null value. */
 //        return NomNull.SINGLETON;
+    }
+
+    @Override
+    public String toString() {
+        return "Function Body: \n" +
+                "\t" + bodyNode.toString();
     }
 }

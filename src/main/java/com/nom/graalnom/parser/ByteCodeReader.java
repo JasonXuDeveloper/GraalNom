@@ -17,8 +17,10 @@ import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
-import com.nom.graalnom.runtime.nodes.expressions.NomLoadConstantNodeGen;
-import com.nom.graalnom.runtime.nodes.expressions.NomLongLiteralNode;
+import com.nom.graalnom.runtime.nodes.expression.NomLongLiteralNode;
+import com.nom.graalnom.runtime.nodes.local.NomReadRegisterNodeGen;
+import com.nom.graalnom.runtime.nodes.local.NomWriteRegisterNodeGen;
+import com.nom.graalnom.runtime.nodes.expression.binary.NomAddNodeGen;
 import com.nom.graalnom.runtime.reflections.*;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -28,7 +30,7 @@ import org.graalvm.collections.Pair;
 public class ByteCodeReader {
     public static int BYTECODE_VERSION = 2;
 
-    public static void ReadBytecodeFile(NomLanguage language, String filename) throws IllegalArgumentException {
+    public static void ReadBytecodeFile(NomLanguage language, String filename, Boolean debug) throws IllegalArgumentException {
         if (filename == null || !Files.exists(Paths.get(filename))) {
             throw new IllegalArgumentException("file not found");
         }
@@ -44,7 +46,8 @@ public class ByteCodeReader {
                 int b = s.read();//need to use int to get 0-255, I HATE JAVA
                 BytecodeTopElementType nextType = BytecodeTopElementType.fromValue(b);
                 long localConstId = -1;
-                System.out.println("Read " + nextType);
+                if (debug)
+                    System.out.println("Read " + nextType);
                 switch (nextType) {
                     case StringConstant:
                         localConstId = s.readLong();
@@ -104,11 +107,11 @@ public class ByteCodeReader {
                     default:
                         throw new IllegalArgumentException("unknown type (" + b + "): " + nextType);
                 }
-                if (constants.containsKey(localConstId)) {
+                if (constants.containsKey(localConstId) && debug) {
                     System.out.println("Local id -> Global id: " + localConstId + " -> " + constants.get(localConstId));
                     NomContext.constants.Get(constants.get(localConstId).intValue()).Print(true);
+                    System.out.println();
                 }
-                System.out.println();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -137,7 +140,7 @@ public class ByteCodeReader {
                 long longVal = s.readLong();
                 regIndex = s.readInt();
                 System.out.println("LoadIntConstant " + longVal + " -> reg " + regIndex);
-                return NomLoadConstantNodeGen.create(new NomLongLiteralNode(longVal), regIndex);
+                return NomWriteRegisterNodeGen.create(new NomLongLiteralNode(longVal), regIndex);
             case InvokeCheckedInstance:
                 nameId = s.readLong();
                 long typeArgsId = s.readLong();
@@ -153,7 +156,18 @@ public class ByteCodeReader {
                 int rightRegIndex = s.readInt();
                 regIndex = s.readInt();
                 System.out.println("BinOp " + op + " reg " + leftRegIndex + " reg " + rightRegIndex + " -> reg " + regIndex);
-                break;
+                switch (op) {
+                    case Add:
+                        return NomWriteRegisterNodeGen.create(
+                                NomAddNodeGen.create(
+                                        NomReadRegisterNodeGen.create(leftRegIndex),
+                                        NomReadRegisterNodeGen.create(rightRegIndex)
+                                ), regIndex);
+                    case null:
+                    default:
+                        return null;
+//                        throw new IllegalStateException("Unexpected value: " + op);
+                }
             case null:
             default:
                 throw new IllegalStateException("Unexpected value: " + opCode);
@@ -223,7 +237,8 @@ public class ByteCodeReader {
         String qNameStr = cls.GetName().toString() + "." + nameStr;
         NomStaticMethod meth = cls.AddStaticMethod(nameStr, qNameStr, typeArgs, returnType, argTypes, regCount);
         long instructionCount = s.readLong();
-        System.out.println("ReadStaticMethod " + qNameStr + " with " + instructionCount + " instructions");
+        System.out.println("ReadStaticMethod " + qNameStr + " with " + instructionCount +
+                " instructions that require " + regCount + " registers");
         List<NomStatementNode> instructions = new ArrayList<>();
         while (instructionCount > 0) {
             NomStatementNode instr = ReadInstruction(s, constants);
@@ -248,7 +263,11 @@ public class ByteCodeReader {
         for (int i = 0; i < regCount; i++) {
             builder.addSlot(FrameSlotKind.Illegal, "reg" + i, null);
         }
-        NomRootNode root = new NomRootNode(language, builder.build() , body, NomContext.constants.GetString(nameId).GetText());
+        NomRootNode root = new NomRootNode(language, builder.build(), body, NomContext.constants.GetString(nameId).GetText());
+
+        System.out.println();
+        System.out.println("RootNode: " + root);
+
         NomFunction func = new NomFunction(NomContext.constants.GetString(nameId).GetText(), root.getCallTarget());
         var clsFunctions = NomContext.functionsObject.computeIfAbsent(cls, k -> new HashMap<>());
         clsFunctions.put(NomContext.constants.GetString(nameId).GetText().toString(), func);

@@ -42,16 +42,12 @@ package com.nom.graalnom.runtime.nodes;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
-import com.nom.graalnom.runtime.nodes.expressions.*;
+import com.nom.graalnom.runtime.nodes.expression.*;
 import com.nom.graalnom.runtime.nodes.controlflow.*;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.*;
-import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The root of all Nom execution trees. It is a Truffle requirement that the tree root extends the
@@ -95,6 +91,6 @@ public class NomRootNode extends RootNode {
 
     @Override
     public String toString() {
-        return "root " + name;
+        return "Root (" + name + ")\n"+ bodyNode.toString();
     }
 }

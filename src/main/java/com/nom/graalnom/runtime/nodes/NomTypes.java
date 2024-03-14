@@ -8,6 +8,6 @@ import com.oracle.truffle.api.dsl.TypeSystem;
  * conversion methods for some types. In this class, we only cover types where the automatically
  * generated ones would not be sufficient.
  */
-@TypeSystem({long.class, boolean.class, float.class})
+@TypeSystem({long.class, boolean.class, double.class})
 public abstract class NomTypes {
 }

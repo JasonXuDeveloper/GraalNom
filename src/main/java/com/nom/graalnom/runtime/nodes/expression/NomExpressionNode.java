@@ -1,4 +1,4 @@
-package com.nom.graalnom.runtime.nodes.expressions;
+package com.nom.graalnom.runtime.nodes.expression;
 
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.NomTypes;
@@ -37,7 +37,7 @@ public abstract class NomExpressionNode extends NomStatementNode {
         return NomTypesGen.expectBoolean(executeGeneric(frame));
     }
 
-    public float executeFloat(VirtualFrame frame) throws UnexpectedResultException {
-        return NomTypesGen.expectFloat(executeGeneric(frame));
+    public double expectDouble(VirtualFrame frame) throws UnexpectedResultException {
+        return NomTypesGen.expectDouble(executeGeneric(frame));
     }
 }

@@ -4,6 +4,8 @@ import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.*;
 
+import java.util.Arrays;
+
 /**
  * A {@link NomStatementNode} that contains a block of other nodes to execute
  */
@@ -17,10 +19,13 @@ public final class NomBlockNode extends NomStatementNode implements BlockNode.El
      * Truffle from compiling big methods, so these methods might fail to compile with a compilation
      * bailout.
      */
-    @Child private BlockNode<NomStatementNode> block;
+    @Child
+    private BlockNode<NomStatementNode> block;
+    private final NomStatementNode[] bodyNodes;
 
     public NomBlockNode(NomStatementNode[] bodyNodes) {
-        this.block = bodyNodes.length > 0 ? BlockNode.create(bodyNodes, this) : null;
+        this.bodyNodes = bodyNodes;
+        this.block = this.bodyNodes.length > 0 ? BlockNode.create(bodyNodes, this) : null;
     }
 
     /**
@@ -44,7 +49,17 @@ public final class NomBlockNode extends NomStatementNode implements BlockNode.El
      */
     @Override
     public void executeVoid(VirtualFrame frame, NomStatementNode node, int index, int argument) {
-        System.out.println(node.getClass());
         node.executeVoid(frame);
+    }
+
+    @Override
+    public String toString() {
+        String blkStr = "empty block";
+        if (block != null) {
+            blkStr = String.join("\n\t",
+                    Arrays.stream(bodyNodes).map(Object::toString)
+                            .toArray(String[]::new));
+        }
+        return blkStr;
     }
 }

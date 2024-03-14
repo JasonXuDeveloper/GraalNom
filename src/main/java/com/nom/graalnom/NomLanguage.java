@@ -57,7 +57,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             file = dirPath.resolve(file).toString();
 
             //load bytecode
-            ByteCodeReader.ReadBytecodeFile(this, file);
+            ByteCodeReader.ReadBytecodeFile(this, file, false);
         }
 
         //TODO load NomClass from NomContext

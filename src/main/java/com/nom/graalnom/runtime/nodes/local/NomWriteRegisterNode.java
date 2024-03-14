@@ -1,6 +1,6 @@
-package com.nom.graalnom.runtime.nodes.expressions;
+package com.nom.graalnom.runtime.nodes.local;
 
-import com.nom.graalnom.runtime.nodes.expressions.NomExpressionNode;
+import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -15,7 +15,7 @@ import com.oracle.truffle.api.strings.TruffleString;
  */
 @NodeChild("valueNode")
 @NodeField(name = "regIndex", type = int.class)
-public abstract class NomLoadConstantNode extends NomExpressionNode {
+public abstract class NomWriteRegisterNode extends NomExpressionNode {
 
     /**
      * Returns the descriptor of the accessed local variable. The implementation of this method is
@@ -23,13 +23,10 @@ public abstract class NomLoadConstantNode extends NomExpressionNode {
      */
     protected abstract int getRegIndex();
 
+    protected abstract NomExpressionNode getValueNode();
+
     public final TruffleString getRegName() {
         return (TruffleString) getRootNode().getFrameDescriptor().getSlotName(getRegIndex());
-    }
-
-    @Override
-    public Object executeGeneric(VirtualFrame frame) {
-        return null;
     }
 
     /**
@@ -55,10 +52,10 @@ public abstract class NomLoadConstantNode extends NomExpressionNode {
         return value;
     }
 
-    @Specialization(guards = "isFloatOrIllegal(frame)")
-    protected float writeFloat(VirtualFrame frame, float value) {
+    @Specialization(guards = "isDoubleOrIllegal(frame)")
+    protected double writeDouble(VirtualFrame frame, float value) {
         /* Initialize type on first write of the local variable. No-op if kind is already Long. */
-        frame.getFrameDescriptor().setSlotKind(getRegIndex(), FrameSlotKind.Float);
+        frame.getFrameDescriptor().setSlotKind(getRegIndex(), FrameSlotKind.Double);
 
         frame.setFloat(getRegIndex(), value);
         return value;
@@ -74,7 +71,7 @@ public abstract class NomLoadConstantNode extends NomExpressionNode {
      * {@link Object}, it is guaranteed to never fail, i.e., once we are in this specialization the
      * node will never be re-specialized.
      */
-    @Specialization(replaces = {"writeLong", "writeBoolean", "writeFloat"})
+    @Specialization(replaces = {"writeLong", "writeBoolean", "writeDouble"})
     protected Object write(VirtualFrame frame, Object value) {
         /*
          * Regardless of the type before, the new and final type of the local variable is Object.
@@ -95,9 +92,9 @@ public abstract class NomLoadConstantNode extends NomExpressionNode {
      * Guard function that the local variable has the type {@code long}.
      *
      * @param frame The parameter seems unnecessary, but it is required: Without the parameter, the
-     *            Truffle DSL would not check the guard on every execution of the specialization.
-     *            Guards without parameters are assumed to be pure, but our guard depends on the
-     *            slot kind which can change.
+     *              Truffle DSL would not check the guard on every execution of the specialization.
+     *              Guards without parameters are assumed to be pure, but our guard depends on the
+     *              slot kind which can change.
      */
     protected boolean isLongOrIllegal(VirtualFrame frame) {
         final FrameSlotKind kind = frame.getFrameDescriptor().getSlotKind(getRegIndex());
@@ -109,8 +106,13 @@ public abstract class NomLoadConstantNode extends NomExpressionNode {
         return kind == FrameSlotKind.Boolean || kind == FrameSlotKind.Illegal;
     }
 
-    protected boolean isFloatOrIllegal(VirtualFrame frame) {
+    protected boolean isDoubleOrIllegal(VirtualFrame frame) {
         final FrameSlotKind kind = frame.getFrameDescriptor().getSlotKind(getRegIndex());
-        return kind == FrameSlotKind.Float || kind == FrameSlotKind.Illegal;
+        return kind == FrameSlotKind.Double || kind == FrameSlotKind.Illegal;
+    }
+
+    @Override
+    public String toString() {
+        return "WriteToReg(" + getRegIndex() + ", " + getValueNode().toString() + ")";
     }
 }

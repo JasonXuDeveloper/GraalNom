@@ -1,4 +1,4 @@
-package com.nom.graalnom.runtime.nodes.expressions;
+package com.nom.graalnom.runtime.nodes.expression;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -25,5 +25,10 @@ public final class NomLongLiteralNode extends NomExpressionNode {
     @Override
     public Object executeGeneric(VirtualFrame frame) {
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return "Long(" + value + ")";
     }
 }
