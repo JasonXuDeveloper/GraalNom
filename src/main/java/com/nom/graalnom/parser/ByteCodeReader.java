@@ -11,13 +11,18 @@ import java.util.Map;
 import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
+import com.nom.graalnom.runtime.builtins.NomToStringBuiltinFactory;
+import com.nom.graalnom.runtime.constants.NomMethodConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
+import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
+import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
 import com.nom.graalnom.runtime.nodes.expression.NomLongLiteralNode;
+import com.nom.graalnom.runtime.nodes.expression.binary.NomSubNodeGen;
 import com.nom.graalnom.runtime.nodes.local.NomReadRegisterNodeGen;
 import com.nom.graalnom.runtime.nodes.local.NomWriteRegisterNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.binary.NomAddNodeGen;
@@ -45,6 +50,7 @@ public class ByteCodeReader {
             while (s.available() > 0) {
                 int b = s.read();//need to use int to get 0-255, I HATE JAVA
                 BytecodeTopElementType nextType = BytecodeTopElementType.fromValue(b);
+                if (nextType == BytecodeTopElementType.None) return;
                 long localConstId = -1;
                 if (debug)
                     System.out.println("Read " + nextType);
@@ -101,8 +107,6 @@ public class ByteCodeReader {
                     case Class:
                         ReadClass(s, constants, language);
                         break;
-                    case None:
-                        return;
                     case null:
                     default:
                         throw new IllegalArgumentException("unknown type (" + b + "): " + nextType);
@@ -146,10 +150,32 @@ public class ByteCodeReader {
                 long typeArgsId = s.readLong();
                 regIndex = s.readInt();
                 receiverRegIndex = s.readInt();
+                NomMethodConstant method = NomContext.constants.GetMethod(GetGlobalId(constants, nameId));
+                String methName = method.MethodName().toString();
                 System.out.println("InvokeCheckedInstance " +
-                        NomContext.constants.GetMethod(GetGlobalId(constants, nameId)).MethodName() +
-                        " -> reg " + regIndex + " reg receiver " + receiverRegIndex);
-                break;
+                        methName +
+                        " -> reg " + regIndex + " receiver " + receiverRegIndex);
+                if (NomContext.builtinFunctions.containsKey(methName)) {
+                    NomFunction func = NomContext.builtinFunctions.get(methName);
+                    return NomWriteRegisterNodeGen.create(
+                            new NomInvokeNode(func, new NomExpressionNode[]{
+                                    NomReadRegisterNodeGen.create(receiverRegIndex)
+                            }), regIndex);
+                } else {
+                    if (method.Class() == null)
+                        throw new IllegalStateException("Class for " + method.MethodName() + " is null");
+                    if (NomContext.functionsObject.containsKey(method.Class())) {
+                        Map<String, NomFunction> clsFunctions = NomContext.functionsObject.get(method.Class());
+                        if (clsFunctions.containsKey(methName)) {
+                            NomFunction func = clsFunctions.get(methName);
+                            return NomWriteRegisterNodeGen.create(
+                                    new NomInvokeNode(func, new NomExpressionNode[]{
+                                            NomReadRegisterNodeGen.create(receiverRegIndex)
+                                    }), regIndex);
+                        }
+                    }
+                }
+                throw new IllegalStateException("Method " + methName + " not found");
             case BinOp:
                 BinOperator op = BinOperator.fromValue(s.readByte());
                 int leftRegIndex = s.readInt();
@@ -160,6 +186,12 @@ public class ByteCodeReader {
                     case Add:
                         return NomWriteRegisterNodeGen.create(
                                 NomAddNodeGen.create(
+                                        NomReadRegisterNodeGen.create(leftRegIndex),
+                                        NomReadRegisterNodeGen.create(rightRegIndex)
+                                ), regIndex);
+                    case Subtract:
+                        return NomWriteRegisterNodeGen.create(
+                                NomSubNodeGen.create(
                                         NomReadRegisterNodeGen.create(leftRegIndex),
                                         NomReadRegisterNodeGen.create(rightRegIndex)
                                 ), regIndex);
@@ -238,7 +270,7 @@ public class ByteCodeReader {
         NomStaticMethod meth = cls.AddStaticMethod(nameStr, qNameStr, typeArgs, returnType, argTypes, regCount);
         long instructionCount = s.readLong();
         System.out.println("ReadStaticMethod " + qNameStr + " with " + instructionCount +
-                " instructions that require " + regCount + " registers");
+                " instructions that require " + regCount + " registers, typeArgs " + typeArgs + ", returnType " + returnType + ", argTypes " + argTypes);
         List<NomStatementNode> instructions = new ArrayList<>();
         while (instructionCount > 0) {
             NomStatementNode instr = ReadInstruction(s, constants);
@@ -267,6 +299,7 @@ public class ByteCodeReader {
 
         System.out.println();
         System.out.println("RootNode: " + root);
+        System.out.println();
 
         NomFunction func = new NomFunction(NomContext.constants.GetString(nameId).GetText(), root.getCallTarget());
         var clsFunctions = NomContext.functionsObject.computeIfAbsent(cls, k -> new HashMap<>());

@@ -37,7 +37,7 @@ public abstract class NomExpressionNode extends NomStatementNode {
         return NomTypesGen.expectBoolean(executeGeneric(frame));
     }
 
-    public double expectDouble(VirtualFrame frame) throws UnexpectedResultException {
+    public double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
         return NomTypesGen.expectDouble(executeGeneric(frame));
     }
 }

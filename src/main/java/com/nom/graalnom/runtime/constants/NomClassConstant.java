@@ -14,6 +14,10 @@ public class NomClassConstant extends NomConstant{
         this.Name = name;
     }
 
+    public String GetName() {
+        return NomContext.constants.GetString(Name).GetText().toString();
+    }
+
     /*
     const NomClass* NomClassConstant::GetClass()
 		{

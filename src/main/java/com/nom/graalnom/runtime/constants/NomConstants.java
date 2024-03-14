@@ -48,6 +48,14 @@ public class NomConstants {
         return (NomMethodConstant) cnstnt;
     }
 
+    public NomClassConstant GetClass(long constant) {
+        var cnstnt = constants.get((int) constant);
+        if (cnstnt == null || cnstnt.Type != NomConstantType.CTClass) {
+            return null;
+        }
+        return (NomClassConstant) cnstnt;
+    }
+
     public long AddString(TruffleString string, long cid) {
         if (cid == 0) {
             cid = GetConstantId();
