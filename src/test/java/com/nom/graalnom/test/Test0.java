@@ -2,6 +2,7 @@ package com.nom.graalnom.test;
 
 import com.nom.graalnom.NomLanguage;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 import org.junit.Test;
 
 import java.nio.file.Path;
@@ -14,7 +15,9 @@ public class Test0 {
         //to absolute path
         path = path.toAbsolutePath();
         //create a new context
-        Context context = Context.create();
-        context.eval(NomLanguage.ID, path.toString());
+        try(Context context = Context.create()){
+            Value ret = context.eval(NomLanguage.ID, path.toString());
+            assert ret.isNull();
+        }
     }
 }

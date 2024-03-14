@@ -40,71 +40,46 @@
  */
 package com.nom.graalnom.runtime.nodes.controlflow;
 
-import com.nom.graalnom.runtime.nodes.*;
 import com.nom.graalnom.runtime.datatypes.NomNull;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 /**
- * The body of a user-defined Nom function. This is the node referenced by a {@link NomRootNode} for
- * user-defined functions. It handles the return value of a function: the {@link NomReturnNode return
- * statement} throws an {@link NomReturnException exception} with the return value. This node catches
- * the exception. If the method ends without an explicit {@code return}, return the
- * {@link NomNull#SINGLETON default null value}.
+ * Implementation of the Nom return statement. We need to unwind an unknown number of interpreter
+ * frames that are between this {@link NomReturnNode} and the {@link NomFunctionBodyNode} of the
+ * method we are exiting. This is done by throwing an {@link NomReturnException exception} that is
+ * caught by the {@link NomFunctionBodyNode#executeGeneric function body}. The exception transports
+ * the return value.
  */
-@NodeInfo(shortName = "body")
-public final class NomFunctionBodyNode extends NomExpressionNode {
+@NodeInfo(shortName = "return", description = "The node implementing a return statement")
+public final class NomReturnNode extends NomStatementNode {
 
-    /**
-     * The body of the function.
-     */
     @Node.Child
-    private NomStatementNode bodyNode;
+    private NomExpressionNode valueNode;
 
-    /**
-     * Profiling information, collected by the interpreter, capturing whether the function had an
-     * {@link NomReturnNode explicit return statement}. This allows the compiler to generate better
-     * code.
-     */
-    private final BranchProfile exceptionTaken = BranchProfile.create();
-    private final BranchProfile nullTaken = BranchProfile.create();
-
-    public NomFunctionBodyNode(NomStatementNode bodyNode) {
-        this.bodyNode = bodyNode;
+    public NomReturnNode(NomExpressionNode valueNode) {
+        this.valueNode = valueNode;
     }
 
     @Override
-    public Object executeGeneric(VirtualFrame frame) {
-        try {
-            /* Execute the function body. */
-            bodyNode.executeVoid(frame);
-
-        } catch (NomReturnException ex) {
+    public void executeVoid(VirtualFrame frame) {
+        Object result;
+        if (valueNode != null) {
+            result = valueNode.executeGeneric(frame);
+        } else {
             /*
-             * In the interpreter, record profiling information that the function has an explicit
-             * return.
+             * Return statement that was not followed by an expression, so return the SL null value.
              */
-            exceptionTaken.enter();
-            /* The exception transports the actual return value. */
-            return ex.getResult();
+            result = NomNull.SINGLETON;
         }
-
-        /*
-         * In the interpreter, record profiling information that the function ends without an
-         * explicit return.
-         */
-        nullTaken.enter();
-        /* Return the default null value. */
-        return NomNull.SINGLETON;
+        throw new NomReturnException(result);
     }
 
     @Override
     public String toString() {
-        return "Function Body: \n" +
-                "\t" + bodyNode.toString();
+        return "Return(" + valueNode.toString() + ")";
     }
 }

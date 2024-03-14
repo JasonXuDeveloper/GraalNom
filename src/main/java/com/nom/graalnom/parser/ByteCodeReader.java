@@ -19,6 +19,7 @@ import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
+import com.nom.graalnom.runtime.nodes.controlflow.NomReturnNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
 import com.nom.graalnom.runtime.nodes.expression.NomLongLiteralNode;
