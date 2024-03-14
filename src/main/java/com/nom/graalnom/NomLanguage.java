@@ -2,6 +2,8 @@ package com.nom.graalnom;
 
 import com.nom.graalnom.parser.ByteCodeReader;
 import com.nom.graalnom.runtime.NomContext;
+import com.nom.graalnom.runtime.datatypes.NomFunction;
+import com.nom.graalnom.runtime.reflections.NomClass;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.debug.DebuggerTags;
@@ -55,19 +57,27 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             file = dirPath.resolve(file).toString();
 
             //load bytecode
-            ByteCodeReader.ReadBytecodeFile(file);
+            ByteCodeReader.ReadBytecodeFile(this, file);
         }
 
         //TODO load NomClass from NomContext
+        NomClass main = NomContext.classes.get(mainClass);
 
         //TODO get main method
+        NomFunction mainFunc = null;
+        for(var method : main.StaticMethods) {
+            if (method.name.equals("Main")) {
+                mainFunc = NomContext.functionsObject.get(main).get(method.name);
+                break;
+            }
+        }
 
         //TODO resolve dependencies
 
-        //TODO parse AST nodes
+        if(mainFunc == null) {
+            throw new Exception("Main method not found");
+        }
 
-        //TODO create call node
-
-        return null;
+        return mainFunc.getCallTarget();
     }
 }

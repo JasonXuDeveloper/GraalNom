@@ -33,14 +33,19 @@ public class NomConstants {
     }
 
     public NomStringConstant GetString(long constant) {
-        if (constant == 0) {
-            return new NomStringConstant(NomString.create(""));
-        }
         var cnstnt = constants.get((int) constant);
         if (cnstnt == null || cnstnt.Type != NomConstantType.CTString) {
             throw new RuntimeException();
         }
         return (NomStringConstant) cnstnt;
+    }
+
+    public NomMethodConstant GetMethod(long constant) {
+        var cnstnt = constants.get((int) constant);
+        if (cnstnt == null || cnstnt.Type != NomConstantType.CTMethod) {
+            throw new RuntimeException();
+        }
+        return (NomMethodConstant) cnstnt;
     }
 
     public long AddString(TruffleString string, long cid) {

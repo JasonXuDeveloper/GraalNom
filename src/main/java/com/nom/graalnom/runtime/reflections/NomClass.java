@@ -4,17 +4,18 @@ import com.nom.graalnom.runtime.NomContext;
 
 import java.util.List;
 
-public class NomClass {
+public class NomClass extends NomInterface {
     public List<NomTypedField> Fields;
     public List<NomTypedField> AllFields;
     public long SuperClass;
     public NomClass SuperClassRef;
 
+    public List<NomStaticMethod> StaticMethods;
+
 /*
     std::vector<NomLambda*> Lambdas;
     std::vector<NomRecord*> Structs;
 
-    std::vector<NomStaticMethod*> StaticMethods;
     std::vector<NomConstructor*> Constructors;
 
     void AddStaticMethod(NomStaticMethod* method)
@@ -42,7 +43,11 @@ public class NomClass {
     }
      */
     public NomClass(long name, long typeArgs, long superClass, long superInterfaces) {
-
+        super(name);
+        this.SuperClass = superClass;
+        this.Fields = new java.util.ArrayList<>();
+        this.AllFields = new java.util.ArrayList<>();
+        this.StaticMethods = new java.util.ArrayList<>();
     }
 
     public static void RegisterClass(String name, NomClass cls) {
@@ -53,8 +58,17 @@ public class NomClass {
         return NomContext.classes.get(name);
     }
 
-    public void AddField(NomTypedField field) {
+
+    public NomTypedField AddField(long name, long type, Visibility visibility, boolean isReadOnly, boolean isVolatile) {
+        NomTypedField field = new NomTypedField(this, name, type, visibility, isReadOnly, isVolatile);
         Fields.add(field);
+        return field;
+    }
+
+    public NomStaticMethod AddStaticMethod(String name, String qname, long typeArgs, long returnType, long argTypes, int regCount) {
+        NomStaticMethod staticMethod = new NomStaticMethod(name, this, qname, returnType, typeArgs, argTypes, regCount, false);
+        StaticMethods.add(staticMethod);
+        return staticMethod;
     }
 
     /*
