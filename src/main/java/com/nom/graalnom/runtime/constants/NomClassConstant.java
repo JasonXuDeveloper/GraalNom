@@ -2,7 +2,7 @@ package com.nom.graalnom.runtime.constants;
 
 import com.nom.graalnom.runtime.NomContext;
 
-public class NomClassConstant extends NomConstant{
+public class NomClassConstant extends NomConstant {
     private final long Library;
     private final long Name;
 
@@ -56,5 +56,10 @@ public class NomClassConstant extends NomConstant{
         NomContext.constants.PrintConstant(Library, resolve);
         System.out.print("::");
         NomContext.constants.PrintConstant(Name, resolve);
+    }
+
+    @Override
+    public String toString() {
+        return NomContext.constants.GetString(Library).GetText().toString() + "::" + NomContext.constants.GetString(Name).GetText().toString();
     }
 }

@@ -1,13 +1,17 @@
 package com.nom.graalnom.runtime.constants;
 
-import com.nom.graalnom.runtime.datatypes.NomString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
+import java.util.Collections;
 import java.util.List;
 
 public class NomConstants {
     private final List<NomConstant> constants = new java.util.ArrayList<>(1);
+
+    public final List<NomConstant> Constants() {
+        return Collections.unmodifiableList(constants);
+    }
 
     public NomConstant Get(int index) {
         return constants.get(index);

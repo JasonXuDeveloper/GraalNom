@@ -6,7 +6,7 @@ import com.nom.graalnom.runtime.reflections.NomClass;
 import com.oracle.truffle.api.strings.TruffleString;
 
 public class NomMethodConstant extends NomConstant {
-    public final long classConstant;
+    private final long classConstant;
     private final long methodName;
     private final long typeArgs;
     private final long argTypes;

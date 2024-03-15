@@ -18,4 +18,9 @@ public class NomStringConstant extends NomConstant{
     public void Print(boolean resolve) {
         System.out.print("\"" + Text + "\"");
     }
+
+    @Override
+    public String toString() {
+        return Text.toString();
+    }
 }

@@ -139,10 +139,10 @@ public class ByteCodeReader {
                 return new NomReturnNode(null);
             }
             case EnsureCheckedMethod -> {
-                nameId = s.readLong();
+                nameId = GetGlobalId(constants, s.readLong());
                 receiverRegIndex = s.readInt();
                 System.out.println("EnsureCheckedMethod " +
-                        NomContext.constants.GetString(GetGlobalId(constants, nameId)).GetText() +
+                        NomContext.constants.GetString(nameId).GetText() +
                         " -> reg " + receiverRegIndex);
                 //can be omitted since method check already exists in invoke
             }
@@ -170,20 +170,24 @@ public class ByteCodeReader {
                 return NomWriteRegisterNodeGen.create(new NomNullLiteralNode(), regIndex);
             }
             case LoadStringConstant -> {
-                nameId = s.readLong();
+                nameId = GetGlobalId(constants, s.readLong());
                 regIndex = s.readInt();
-                System.out.println("LoadStringConstant " + NomContext.constants.GetString(GetGlobalId(constants, nameId)).GetText() + " -> reg " + regIndex);
+                System.out.println("LoadStringConstant " +
+                        NomContext.constants.GetString(nameId).GetText() + " -> reg " + regIndex);
                 return NomWriteRegisterNodeGen.create(
                         new NomStringLiteralNode(
                                 NomContext.constants.
-                                        GetString(GetGlobalId(constants, nameId)).GetText()), regIndex);
+                                        GetString(nameId).GetText()), regIndex);
             }
             case InvokeCheckedInstance -> {
-                nameId = s.readLong();
-                typeArgsId = s.readLong();
+                nameId = GetGlobalId(constants, s.readLong());
+                typeArgsId = GetGlobalId(constants, s.readLong());
                 regIndex = s.readInt();
                 receiverRegIndex = s.readInt();
-                NomMethodConstant method = NomContext.constants.GetMethod(GetGlobalId(constants, nameId));
+                NomMethodConstant method = NomContext.constants.GetMethod(nameId);
+                method.Print(true);
+                System.out.println();
+                //TODO typechecks on output and input
                 NomFunction func = NomContext.getMethod(method);
                 if (func != null) {
                     System.out.println("InvokeCheckedInstance " +
@@ -198,10 +202,10 @@ public class ByteCodeReader {
                 throw new IllegalStateException("Method " + method.ClassTypeConstant().Class().GetName() + "." + method.MethodName().toString() + " not found");
             }
             case CallCheckedStatic -> {
-                nameId = s.readLong();
+                nameId = GetGlobalId(constants, s.readLong());
                 typeArgsId = s.readLong();
                 regIndex = s.readInt();
-                NomMethodConstant staticMethod = NomContext.constants.GetMethod(GetGlobalId(constants, nameId));
+                NomMethodConstant staticMethod = NomContext.constants.GetMethod(nameId);
                 NomFunction staticFunc = NomContext.getMethod(staticMethod);
                 if (staticFunc != null) {
                     System.out.println("CallCheckedStatic " +
@@ -287,9 +291,9 @@ public class ByteCodeReader {
             throw new IllegalArgumentException("Expected static method, but did not encounter static method marker");
         }
         long nameId = GetGlobalId(constants, s.readLong());
-        long typeArgs = GetGlobalId(constants, s.readLong());
+        long typeArgs = GetGlobalId(constants, s.readLong());//type that contains the method
         long returnType = GetGlobalId(constants, s.readLong());
-        long argTypes = GetGlobalId(constants, s.readLong());
+        long argTypes = GetGlobalId(constants, s.readLong());//type of the argument
         String nameStr = NomContext.constants.GetString(nameId).GetText().toString();
         int regCount = s.readInt();
         String qNameStr = cls.GetName().toString() + "." + nameStr;

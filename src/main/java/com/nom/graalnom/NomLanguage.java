@@ -76,7 +76,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
 
         //TODO get main method
         NomFunction mainFunc = null;
-        for(var method : main.StaticMethods) {
+        for (var method : main.StaticMethods) {
             if (method.name.equals("Main")) {
                 mainFunc = NomContext.functionsObject.get(main).get(method.name);
                 break;
@@ -85,10 +85,19 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
 
         //TODO resolve dependencies
 
-        if(mainFunc == null) {
+        if (mainFunc == null) {
             throw new Exception("Main method not found");
         }
 
+        System.out.println("Constants:");
+        for (var constant : NomContext.constants.Constants()) {
+            System.out.println("Global Id: " +
+                    NomContext.constants.Constants()
+                            .indexOf(constant) + " " +
+                    (constant != null ? constant.getClass().getSimpleName() : "null"));
+        }
+
+        System.out.println();
         System.out.println("Output:");
         return mainFunc.getCallTarget();
     }
