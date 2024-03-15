@@ -35,6 +35,10 @@ public class NomClassTypeConstant extends NomConstant {
         this.args = args;
     }
 
+    public NomClassConstant Class() {
+        return NomContext.constants.GetClass(cls);
+    }
+
     @Override
     public void Print(boolean resolve)
     {

@@ -104,7 +104,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "Function Body: \n" +
-                "\t" + bodyNode.toString();
+        return "Body([ \n" +
+                "\t" + bodyNode.toString()+ "\n])";
     }
 }

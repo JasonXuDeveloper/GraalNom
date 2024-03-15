@@ -56,6 +56,14 @@ public class NomConstants {
         return (NomClassConstant) cnstnt;
     }
 
+    public NomClassTypeConstant GetClassType(long constant) {
+        var cnstnt = constants.get((int) constant);
+        if (cnstnt == null || cnstnt.Type != NomConstantType.CTClassType) {
+            return null;
+        }
+        return (NomClassTypeConstant) cnstnt;
+    }
+
     public long AddString(TruffleString string, long cid) {
         if (cid == 0) {
             cid = GetConstantId();

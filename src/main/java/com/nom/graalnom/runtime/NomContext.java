@@ -8,6 +8,10 @@ import com.nom.graalnom.runtime.builtins.NomToStringBuiltinFactory;
 import com.nom.graalnom.runtime.constants.*;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomString;
+import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
+import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
+import com.nom.graalnom.runtime.nodes.local.NomReadRegisterNodeGen;
+import com.nom.graalnom.runtime.nodes.local.NomWriteRegisterNodeGen;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
@@ -86,5 +90,19 @@ public class NomContext {
      */
     public PrintWriter getOutput() {
         return output;
+    }
+
+    public static NomFunction getMethod(NomMethodConstant method) {
+        String methName = method.MethodName().toString();
+        if (method.Class() != null && NomContext.functionsObject.containsKey(method.Class())) {
+            Map<String, NomFunction> clsFunctions = NomContext.functionsObject.get(method.Class());
+            if (clsFunctions.containsKey(methName)) {
+                return clsFunctions.get(methName);
+            }
+        } else if (NomContext.builtinFunctions.containsKey(methName)) {
+            return NomContext.builtinFunctions.get(methName);
+        }
+
+        return null;
     }
 }

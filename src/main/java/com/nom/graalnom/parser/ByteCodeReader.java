@@ -11,7 +11,6 @@ import java.util.Map;
 import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
-import com.nom.graalnom.runtime.builtins.NomToStringBuiltinFactory;
 import com.nom.graalnom.runtime.constants.NomMethodConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomString;
@@ -22,11 +21,12 @@ import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomReturnNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
-import com.nom.graalnom.runtime.nodes.expression.NomLongLiteralNode;
-import com.nom.graalnom.runtime.nodes.expression.binary.NomSubNodeGen;
+import com.nom.graalnom.runtime.nodes.expression.binary.*;
+import com.nom.graalnom.runtime.nodes.expression.literal.*;
+import com.nom.graalnom.runtime.nodes.expression.NomNoopNode;
+import com.nom.graalnom.runtime.nodes.local.NomReadRegisterNode;
 import com.nom.graalnom.runtime.nodes.local.NomReadRegisterNodeGen;
 import com.nom.graalnom.runtime.nodes.local.NomWriteRegisterNodeGen;
-import com.nom.graalnom.runtime.nodes.expression.binary.NomAddNodeGen;
 import com.nom.graalnom.runtime.reflections.*;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -56,26 +56,26 @@ public class ByteCodeReader {
                 if (debug)
                     System.out.println("Read " + nextType);
                 switch (nextType) {
-                    case StringConstant:
+                    case StringConstant -> {
                         localConstId = s.readLong();
                         TruffleString str = NomString.create(s);
                         constants.put(localConstId, NomContext.constants.AddString(str, TryGetGlobalId(constants, localConstId)));
-                        break;
-                    case ClassConstant:
+                    }
+                    case ClassConstant -> {
                         localConstId = s.readLong();
                         constants.put(localConstId, NomContext.constants.AddClass(
                                 GetGlobalId(constants, s.readLong()),
                                 GetGlobalId(constants, s.readLong()),
                                 TryGetGlobalId(constants, localConstId)));
-                        break;
-                    case SuperClass:
+                    }
+                    case SuperClass -> {
                         localConstId = s.readLong();
                         constants.put(localConstId, NomContext.constants.AddSuperClass(
                                 GetGlobalId(constants, s.readLong()),
                                 GetGlobalId(constants, s.readLong()),
                                 TryGetGlobalId(constants, localConstId)));
-                        break;
-                    case CTSuperInterfaceList:
+                    }
+                    case CTSuperInterfaceList -> {
                         localConstId = s.readLong();
                         long count = s.readLong();
                         List<Pair<Long, Long>> args = new ArrayList<>();
@@ -88,15 +88,15 @@ public class ByteCodeReader {
                         constants.put(localConstId, NomContext.constants.AddSuperInterfaceList(
                                 args,
                                 TryGetGlobalId(constants, localConstId)));
-                        break;
-                    case ClassTypeConstant:
+                    }
+                    case ClassTypeConstant -> {
                         localConstId = s.readLong();
                         constants.put(localConstId, NomContext.constants.AddClassType(
                                 GetGlobalId(constants, s.readLong()),
                                 GetGlobalId(constants, s.readLong()),
                                 TryGetGlobalId(constants, localConstId)));
-                        break;
-                    case MethodConstant:
+                    }
+                    case MethodConstant -> {
                         localConstId = s.readLong();
                         constants.put(localConstId, NomContext.constants.AddMethod(
                                 GetGlobalId(constants, s.readLong()),
@@ -104,13 +104,9 @@ public class ByteCodeReader {
                                 GetGlobalId(constants, s.readLong()),
                                 GetGlobalId(constants, s.readLong()),
                                 TryGetGlobalId(constants, localConstId)));
-                        break;
-                    case Class:
-                        ReadClass(s, constants, language);
-                        break;
-                    case null:
-                    default:
-                        throw new IllegalArgumentException("unknown type (" + b + "): " + nextType);
+                    }
+                    case Class -> ReadClass(s, constants, language);
+                    case null, default -> throw new IllegalArgumentException("unknown type (" + b + "): " + nextType);
                 }
                 if (constants.containsKey(localConstId) && debug) {
                     System.out.println("Local id -> Global id: " + localConstId + " -> " + constants.get(localConstId));
@@ -127,89 +123,119 @@ public class ByteCodeReader {
         int opCodeVal = s.read();
         OpCode opCode = OpCode.fromValue(opCodeVal);
         long nameId;
+        long typeArgsId;
         int regIndex;//output register
         int receiverRegIndex;
         switch (opCode) {
-            case Noop:
-                break;
-            case ReturnVoid:
+            case Noop -> {
+                return new NomNoopNode();
+            }
+            case Return -> {
+                System.out.println("Return");
+                return new NomReturnNode(NomReadRegisterNodeGen.create(s.readInt()));
+            }
+            case ReturnVoid -> {
                 System.out.println("ReturnVoid");
                 return new NomReturnNode(null);
-            case EnsureCheckedMethod:
+            }
+            case EnsureCheckedMethod -> {
                 nameId = s.readLong();
                 receiverRegIndex = s.readInt();
                 System.out.println("EnsureCheckedMethod " +
                         NomContext.constants.GetString(GetGlobalId(constants, nameId)).GetText() +
                         " -> reg " + receiverRegIndex);
-                break;
-            case LoadIntConstant:
+                //can be omitted since method check already exists in invoke
+            }
+            case LoadIntConstant -> {
                 long longVal = s.readLong();
                 regIndex = s.readInt();
                 System.out.println("LoadIntConstant " + longVal + " -> reg " + regIndex);
                 return NomWriteRegisterNodeGen.create(new NomLongLiteralNode(longVal), regIndex);
-            case InvokeCheckedInstance:
+            }
+            case LoadFloatConstant -> {
+                double floatVal = s.readDouble();
+                regIndex = s.readInt();
+                System.out.println("LoadFloatConstant " + floatVal + " -> reg " + regIndex);
+                return NomWriteRegisterNodeGen.create(new NomDoubleLiteralNode(floatVal), regIndex);
+            }
+            case LoadBoolConstant -> {
+                boolean boolVal = s.readBoolean();
+                regIndex = s.readInt();
+                System.out.println("LoadBoolConstant " + boolVal + " -> reg " + regIndex);
+                return NomWriteRegisterNodeGen.create(new NomBoolLiteralNode(boolVal), regIndex);
+            }
+            case LoadNullConstant -> {
+                regIndex = s.readInt();
+                System.out.println("LoadNullConstant -> reg " + regIndex);
+                return NomWriteRegisterNodeGen.create(new NomNullLiteralNode(), regIndex);
+            }
+            case LoadStringConstant -> {
                 nameId = s.readLong();
-                long typeArgsId = s.readLong();
+                regIndex = s.readInt();
+                System.out.println("LoadStringConstant " + NomContext.constants.GetString(GetGlobalId(constants, nameId)).GetText() + " -> reg " + regIndex);
+                return NomWriteRegisterNodeGen.create(
+                        new NomStringLiteralNode(
+                                NomContext.constants.
+                                        GetString(GetGlobalId(constants, nameId)).GetText()), regIndex);
+            }
+            case InvokeCheckedInstance -> {
+                nameId = s.readLong();
+                typeArgsId = s.readLong();
                 regIndex = s.readInt();
                 receiverRegIndex = s.readInt();
                 NomMethodConstant method = NomContext.constants.GetMethod(GetGlobalId(constants, nameId));
-                String methName = method.MethodName().toString();
-                System.out.println("InvokeCheckedInstance " +
-                        methName +
-                        " -> reg " + regIndex + " receiver " + receiverRegIndex);
-                if (method.Class() != null && NomContext.functionsObject.containsKey(method.Class())
-                        && NomContext.functionsObject.containsKey(method.Class())) {
-                    Map<String, NomFunction> clsFunctions = NomContext.functionsObject.get(method.Class());
-                    if (clsFunctions.containsKey(methName)) {
-                        NomFunction func = clsFunctions.get(methName);
-                        return NomWriteRegisterNodeGen.create(
-                                new NomInvokeNode(func, new NomExpressionNode[]{
-                                        NomReadRegisterNodeGen.create(receiverRegIndex)
-                                }), regIndex);
-                    }
-                } else if (NomContext.builtinFunctions.containsKey(methName)) {
-                    NomFunction func = NomContext.builtinFunctions.get(methName);
+                NomFunction func = NomContext.getMethod(method);
+                if (func != null) {
+                    System.out.println("InvokeCheckedInstance " +
+                            method.ClassTypeConstant().Class().GetName() + "." + func.getName().toString() +
+                            " -> reg " + regIndex + " receiver " + receiverRegIndex);
                     return NomWriteRegisterNodeGen.create(
                             new NomInvokeNode(func, new NomExpressionNode[]{
                                     NomReadRegisterNodeGen.create(receiverRegIndex)
                             }), regIndex);
                 }
 
-                throw new IllegalStateException("Method " + methName + " not found");
-            case BinOp:
+                throw new IllegalStateException("Method " + method.ClassTypeConstant().Class().GetName() + "." + method.MethodName().toString() + " not found");
+            }
+            case CallCheckedStatic -> {
+                nameId = s.readLong();
+                typeArgsId = s.readLong();
+                regIndex = s.readInt();
+                NomMethodConstant staticMethod = NomContext.constants.GetMethod(GetGlobalId(constants, nameId));
+                NomFunction staticFunc = NomContext.getMethod(staticMethod);
+                if (staticFunc != null) {
+                    System.out.println("CallCheckedStatic " +
+                            staticMethod.ClassTypeConstant().Class().GetName() + "." + staticFunc.getName().toString() +
+                            " -> reg " + regIndex);
+                    return NomWriteRegisterNodeGen.create(
+                            new NomInvokeNode(staticFunc, new NomExpressionNode[0]), regIndex);
+                }
+            }
+            case BinOp -> {
                 BinOperator op = BinOperator.fromValue(s.readByte());
                 int leftRegIndex = s.readInt();
                 int rightRegIndex = s.readInt();
                 regIndex = s.readInt();
                 System.out.println("BinOp " + op + " reg " + leftRegIndex + " reg " + rightRegIndex + " -> reg " + regIndex);
-                switch (op) {
-                    case Add:
-                        return NomWriteRegisterNodeGen.create(
-                                NomAddNodeGen.create(
-                                        NomReadRegisterNodeGen.create(leftRegIndex),
-                                        NomReadRegisterNodeGen.create(rightRegIndex)
-                                ), regIndex);
-                    case Subtract:
-                        return NomWriteRegisterNodeGen.create(
-                                NomSubNodeGen.create(
-                                        NomReadRegisterNodeGen.create(leftRegIndex),
-                                        NomReadRegisterNodeGen.create(rightRegIndex)
-                                ), regIndex);
-                    case null:
-                    default:
-                        return null;
+                NomReadRegisterNode left = NomReadRegisterNodeGen.create(leftRegIndex);
+                NomReadRegisterNode right = NomReadRegisterNodeGen.create(rightRegIndex);
+                return switch (op) {
+                    case Add -> NomWriteRegisterNodeGen.create(NomAddNodeGen.create(left, right), regIndex);
+                    case Subtract -> NomWriteRegisterNodeGen.create(NomSubNodeGen.create(left, right), regIndex);
+                    case Multiply -> NomWriteRegisterNodeGen.create(NomMulNodeGen.create(left, right), regIndex);
+                    case Divide -> NomWriteRegisterNodeGen.create(NomDivNodeGen.create(left, right), regIndex);
+                    case Mod -> NomWriteRegisterNodeGen.create(NomModNodeGen.create(left, right), regIndex);
+                    case null, default -> null;
 //                        throw new IllegalStateException("Unexpected value: " + op);
-                }
-            case null:
-            default:
-                throw new IllegalStateException("Unexpected value: " + opCode);
+                };
+            }
+            case null, default -> throw new IllegalStateException("Unexpected value: " + opCode);
         }
         return null;
     }
 
     public static NomClass ReadClass(LittleEndianDataInputStream s, Map<Long, Long> constants, NomLanguage language) throws Exception {
-        long lId = s.readLong();
-        long nameId = GetGlobalId(constants, lId);
+        long nameId = GetGlobalId(constants, s.readLong());
         long typeArgsId = GetGlobalId(constants, s.readLong());
         byte visibility = s.readByte();
         byte flags = s.readByte();
@@ -295,15 +321,18 @@ public class ByteCodeReader {
         for (int i = 0; i < regCount; i++) {
             builder.addSlot(FrameSlotKind.Illegal, "reg" + i, null);
         }
-        NomRootNode root = new NomRootNode(language, builder.build(), body, NomContext.constants.GetString(nameId).GetText());
+
+        TruffleString methName = NomString.create(qNameStr);
+        NomRootNode root = new NomRootNode(language, builder.build(), body, methName);
 
         System.out.println();
-        System.out.println("RootNode: " + root);
+        System.out.println("Parsed Interpreter Nodes: (size=" + instructions.size() + ")");
+        System.out.println(root);
         System.out.println();
 
-        NomFunction func = new NomFunction(NomContext.constants.GetString(nameId).GetText(), root.getCallTarget());
+        NomFunction func = new NomFunction(methName, root.getCallTarget());
         var clsFunctions = NomContext.functionsObject.computeIfAbsent(cls, k -> new HashMap<>());
-        clsFunctions.put(NomContext.constants.GetString(nameId).GetText().toString(), func);
+        clsFunctions.put(nameStr, func);
         return meth;
     }
 

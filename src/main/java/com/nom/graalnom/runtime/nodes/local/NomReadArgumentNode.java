@@ -40,6 +40,7 @@
  */
 package com.nom.graalnom.runtime.nodes.local;
 
+import com.nom.graalnom.runtime.datatypes.NomNull;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -75,7 +76,7 @@ public class NomReadArgumentNode extends NomExpressionNode {
             /* In the interpreter, record profiling information that the branch was used. */
             outOfBoundsTaken.enter();
             /* Use the default null value. */
-            return 0;
+            return NomNull.SINGLETON;
         }
     }
 }

@@ -36,7 +36,7 @@ public final class NomBlockNode extends NomStatementNode implements BlockNode.El
     @Override
     public void executeVoid(VirtualFrame frame) {
         if (this.block != null) {
-            this.block.executeVoid(frame, BlockNode.NO_ARGUMENT);
+            this.block.executeVoid(frame, frame.getArguments().length);
         }
     }
 
@@ -56,7 +56,7 @@ public final class NomBlockNode extends NomStatementNode implements BlockNode.El
     public String toString() {
         String blkStr = "empty block";
         if (block != null) {
-            blkStr = String.join("\n\t",
+            blkStr = String.join(",\n\t",
                     Arrays.stream(bodyNodes).map(Object::toString)
                             .toArray(String[]::new));
         }

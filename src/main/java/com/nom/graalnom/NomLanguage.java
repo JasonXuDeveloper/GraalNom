@@ -89,7 +89,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             throw new Exception("Main method not found");
         }
 
-        System.out.println("Result:");
+        System.out.println("Output:");
         return mainFunc.getCallTarget();
     }
 

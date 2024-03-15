@@ -91,6 +91,6 @@ public class NomRootNode extends RootNode {
 
     @Override
     public String toString() {
-        return "Root (" + name + ")\n"+ bodyNode.toString();
+        return "Root(" + name + ")\n"+ bodyNode.toString();
     }
 }
