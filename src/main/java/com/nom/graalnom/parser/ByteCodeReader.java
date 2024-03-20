@@ -26,6 +26,8 @@ import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
 import com.nom.graalnom.runtime.nodes.expression.binary.*;
 import com.nom.graalnom.runtime.nodes.expression.literal.*;
 import com.nom.graalnom.runtime.nodes.expression.NomNoopNode;
+import com.nom.graalnom.runtime.nodes.expression.unary.NomNegateNodeGen;
+import com.nom.graalnom.runtime.nodes.expression.unary.NomNotNodeGen;
 import com.nom.graalnom.runtime.nodes.local.*;
 import com.nom.graalnom.runtime.reflections.*;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -157,49 +159,37 @@ public class ByteCodeReader {
                 args.add(ReadFromFrame(curMethod, s.readInt()));
             }
             case Return -> {
-//                System.out.println("Return");
                 return new NomReturnNode(ReadFromFrame(curMethod, s.readInt()));
             }
             case ReturnVoid -> {
-//                System.out.println("ReturnVoid");
                 return new NomReturnNode(null);
             }
             case EnsureCheckedMethod -> {
                 nameId = GetGlobalId(constants, s.readLong());
                 receiverRegIndex = s.readInt();
-//                System.out.println("EnsureCheckedMethod " +
-//                        NomContext.constants.GetString(nameId).GetText() +
-//                        " -> reg " + receiverRegIndex);
-                //can be omitted since method check already exists in invoke
             }
             case LoadIntConstant -> {
                 long longVal = s.readLong();
                 regIndex = s.readInt();
-//                System.out.println("LoadIntConstant " + longVal + " -> reg " + regIndex);
                 return WriteToFrame(curMethodArgCount, regIndex, new NomLongLiteralNode(longVal));
             }
             case LoadFloatConstant -> {
                 double floatVal = s.readDouble();
                 regIndex = s.readInt();
-//                System.out.println("LoadFloatConstant " + floatVal + " -> reg " + regIndex);
                 return WriteToFrame(curMethodArgCount, regIndex, new NomDoubleLiteralNode(floatVal));
             }
             case LoadBoolConstant -> {
                 boolean boolVal = s.readBoolean();
                 regIndex = s.readInt();
-//                System.out.println("LoadBoolConstant " + boolVal + " -> reg " + regIndex);
                 return WriteToFrame(curMethodArgCount, regIndex, new NomBoolLiteralNode(boolVal));
             }
             case LoadNullConstant -> {
                 regIndex = s.readInt();
-//                System.out.println("LoadNullConstant -> reg " + regIndex);
                 return WriteToFrame(curMethodArgCount, regIndex, new NomNullLiteralNode());
             }
             case LoadStringConstant -> {
                 nameId = GetGlobalId(constants, s.readLong());
                 regIndex = s.readInt();
-//                System.out.println("LoadStringConstant " +
-//                        NomContext.constants.GetString(nameId).GetText() + " -> reg " + regIndex);
                 return WriteToFrame(curMethodArgCount, regIndex, new NomStringLiteralNode(
                         NomContext.constants.
                                 GetString(nameId).GetText()));
@@ -210,10 +200,6 @@ public class ByteCodeReader {
                 regIndex = s.readInt();
                 receiverRegIndex = s.readInt();
                 NomMethodConstant method = NomContext.constants.GetMethod(nameId);
-                //TODO typechecks on output and input
-//                System.out.println("InvokeCheckedInstance " +
-//                        method.QualifiedMethodName() +
-//                        " -> reg " + regIndex + " receiver " + receiverRegIndex);
                 NomExpressionNode[] methArgs = new NomExpressionNode[args.size() + 1];
                 methArgs[0] = ReadFromFrame(curMethod, receiverRegIndex);
                 for (int i = 0; i < args.size(); i++) {
@@ -230,9 +216,6 @@ public class ByteCodeReader {
                 typeArgsId = s.readLong();
                 regIndex = s.readInt();
                 NomStaticMethodConstant staticMethod = NomContext.constants.GetStaticMethod(nameId);
-//                System.out.println("CallCheckedStatic " +
-//                        staticMethod.QualifiedMethodName() +
-//                        " -> reg " + regIndex);
                 NomExpressionNode[] methArgs = new NomExpressionNode[args.size()];
                 for (int i = 0; i < args.size(); i++) {
                     methArgs[i] = args.get(i);
@@ -248,7 +231,6 @@ public class ByteCodeReader {
                 int leftRegIndex = s.readInt();
                 int rightRegIndex = s.readInt();
                 regIndex = s.readInt();
-//                System.out.println("BinOp " + op + " reg " + leftRegIndex + " reg " + rightRegIndex + " -> reg " + regIndex);
                 NomExpressionNode left = ReadFromFrame(curMethod, leftRegIndex);
                 NomExpressionNode right = ReadFromFrame(curMethod, rightRegIndex);
                 return switch (op) {
@@ -257,8 +239,19 @@ public class ByteCodeReader {
                     case Multiply -> WriteToFrame(curMethodArgCount, regIndex, NomMulNodeGen.create(left, right));
                     case Divide -> WriteToFrame(curMethodArgCount, regIndex, NomDivNodeGen.create(left, right));
                     case Mod -> WriteToFrame(curMethodArgCount, regIndex, NomModNodeGen.create(left, right));
-                    case null, default -> null;
-//                        throw new IllegalStateException("Unexpected value: " + op);
+                    case null, default -> throw new IllegalStateException("Unexpected value: " + op);
+                };
+            }
+            case UnaryOp -> {
+                UnaryOperator op = UnaryOperator.fromValue(s.readByte());
+                receiverRegIndex = s.readInt();
+                regIndex = s.readInt();
+                return switch (op) {
+                    case Negate ->
+                            WriteToFrame(curMethodArgCount, regIndex, NomNegateNodeGen.create(ReadFromFrame(curMethod, receiverRegIndex)));
+                    case Not ->
+                            WriteToFrame(curMethodArgCount, regIndex, NomNotNodeGen.create(ReadFromFrame(curMethod, receiverRegIndex)));
+                    case null -> throw new IllegalStateException("Unexpected value: " + null);
                 };
             }
             case null, default -> throw new IllegalStateException("Unexpected value: " + opCode);

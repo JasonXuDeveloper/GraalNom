@@ -10,6 +10,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class TestCases {
+    private void PrintConstants() {
+        System.out.println();
+        System.out.println("Constants:");
+        for (var constant : NomContext.constants.Constants()) {
+            System.out.println("Global Id: " +
+                    NomContext.constants.Constants()
+                            .indexOf(constant) + " " +
+                    (constant != null ? constant.getClass().getSimpleName() : "null"));
+        }
+
+    }
+
     @Test
     public void Test0() {
         Path path = Paths.get("src/tests/Test.manifest");
@@ -18,18 +30,8 @@ public class TestCases {
         //create a new context
         try (Context context = Context.create()) {
             Value ret = context.eval(NomLanguage.ID, path.toString());
-
-            System.out.println();
-            System.out.println("Constants:");
-            for (var constant : NomContext.constants.Constants()) {
-                System.out.println("Global Id: " +
-                        NomContext.constants.Constants()
-                                .indexOf(constant) + " " +
-                        (constant != null ? constant.getClass().getSimpleName() : "null"));
-            }
-
-            assert ret.isNumber();
-            assert ret.asInt() == 100;
+            assert ret.isBoolean();
+            assert !ret.asBoolean();
         }
     }
 }

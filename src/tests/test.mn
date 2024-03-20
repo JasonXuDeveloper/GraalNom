@@ -1,12 +1,12 @@
 class Test
 {
-	public static fun Main() : Int
+	public static fun Main() : Bool
 	{
 		Int a = 1;
 		Int b = 90;
 		Int c = 30;
 		Func(a,b,c);
-		return 100;
+		return !true;
 	}
 
 	public static fun Func(Int a, Int b, Int c) : Void
@@ -24,7 +24,7 @@ class Test
 
 	public static fun Func3(Int a, Int b, Int c) : Void
 	{
-		(a+b). ToString().Print();
-		(a-c).ToString().Print();
+		((-a)+b). ToString().Print();
+		(a-(-c)).ToString().Print();
 	}
 }
