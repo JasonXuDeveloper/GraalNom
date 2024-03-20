@@ -21,11 +21,28 @@ public final class NomBlockNode extends NomStatementNode implements BlockNode.El
      */
     @Child
     private BlockNode<NomStatementNode> block;
-    private final NomStatementNode[] bodyNodes;
+    private NomStatementNode[] bodyNodes;
+
+    public int bodyNodeCount() {
+        return bodyNodes.length;
+    }
 
     public NomBlockNode(NomStatementNode[] bodyNodes) {
         this.bodyNodes = bodyNodes;
         this.block = this.bodyNodes.length > 0 ? BlockNode.create(bodyNodes, this) : null;
+    }
+
+    public void append(NomStatementNode[] bodyNodes) {
+        if (this.block == null) {
+            this.bodyNodes = bodyNodes;
+            this.block = this.bodyNodes.length > 0 ? BlockNode.create(bodyNodes, this) : null;
+        } else {
+            NomStatementNode[] nodes = new NomStatementNode[this.bodyNodes.length + bodyNodes.length];
+            System.arraycopy(this.bodyNodes, 0, nodes, 0, this.bodyNodes.length);
+            System.arraycopy(bodyNodes, 0, nodes, this.bodyNodes.length, bodyNodes.length);
+            this.bodyNodes = nodes;
+            this.block = this.bodyNodes.length > 0 ? BlockNode.create(bodyNodes, this) : null;
+        }
     }
 
     /**
@@ -52,7 +69,6 @@ public final class NomBlockNode extends NomStatementNode implements BlockNode.El
         node.executeVoid(frame);
     }
 
-    @Override
     public String toString() {
         String blkStr = "";
         if (block != null) {

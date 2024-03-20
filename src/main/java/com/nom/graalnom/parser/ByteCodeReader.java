@@ -20,6 +20,7 @@ import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
+import com.nom.graalnom.runtime.nodes.controlflow.NomIfNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomReturnNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
@@ -142,6 +143,9 @@ public class ByteCodeReader {
     }
 
     private static final List<NomExpressionNode> args = new ArrayList<>();
+    private static int curBlockIndex = 0;
+    private static boolean endOfBlock = false;
+    private static final List<NomBlockNode> blocks = new ArrayList<>();
 
     public static NomStatementNode ReadInstruction(NomStaticMethod curMethod, LittleEndianDataInputStream s, Map<Long, Long> constants) throws Exception {
         int opCodeVal = s.read();
@@ -159,9 +163,11 @@ public class ByteCodeReader {
                 args.add(ReadFromFrame(curMethod, s.readInt()));
             }
             case Return -> {
+                endOfBlock = true;
                 return new NomReturnNode(ReadFromFrame(curMethod, s.readInt()));
             }
             case ReturnVoid -> {
+                endOfBlock = true;
                 return new NomReturnNode(null);
             }
             case EnsureCheckedMethod -> {
@@ -239,6 +245,15 @@ public class ByteCodeReader {
                     case Multiply -> WriteToFrame(curMethodArgCount, regIndex, NomMulNodeGen.create(left, right));
                     case Divide -> WriteToFrame(curMethodArgCount, regIndex, NomDivNodeGen.create(left, right));
                     case Mod -> WriteToFrame(curMethodArgCount, regIndex, NomModNodeGen.create(left, right));
+                    case And -> WriteToFrame(curMethodArgCount, regIndex, NomAndNodeGen.create(left, right));
+                    case Or -> WriteToFrame(curMethodArgCount, regIndex, NomOrNodeGen.create(left, right));
+                    case GreaterThan ->
+                            WriteToFrame(curMethodArgCount, regIndex, NomGreaterThanNodeGen.create(left, right));
+                    case GreaterOrEqualTo ->
+                            WriteToFrame(curMethodArgCount, regIndex, NomGreaterOrEqualNodeGen.create(left, right));
+                    case LessThan -> WriteToFrame(curMethodArgCount, regIndex, NomLessThanNodeGen.create(left, right));
+                    case LessOrEqualTo ->
+                            WriteToFrame(curMethodArgCount, regIndex, NomLessOrEqualNodeGen.create(left, right));
                     case null, default -> throw new IllegalStateException("Unexpected value: " + op);
                 };
             }
@@ -253,6 +268,87 @@ public class ByteCodeReader {
                             WriteToFrame(curMethodArgCount, regIndex, NomNotNodeGen.create(ReadFromFrame(curMethod, receiverRegIndex)));
                     case null -> throw new IllegalStateException("Unexpected value: " + null);
                 };
+            }
+            case PhiNode -> {
+                int incoming = s.readInt();// how many branches jumps here
+                int regCount = s.readInt();//mapped registers types
+                while (regCount > 0) {
+                    int reg = s.readInt();
+                    long typeId = GetGlobalId(constants, s.readLong());
+                    regCount--;
+                }
+                endOfBlock = false;
+            }
+            case Branch -> {
+                int target = s.readInt();
+                int incoming = s.readInt();
+                List<NomExpressionNode> instructions = new ArrayList<>();
+                while (incoming > 0) {
+                    int to = s.readInt();
+                    int from = s.readInt();
+                    instructions
+                            .add(WriteToFrame(curMethodArgCount, to,
+                                    ReadFromFrame(curMethod, from)));
+                    incoming--;
+                }
+                //which block to jump to (target + 1 since the beginning of the body is a block)
+                int blockIndex = target + 1;
+
+                while (blocks.size() <= blockIndex) {
+                    blocks.add(new NomBlockNode(new NomStatementNode[0]));
+                }
+                NomBlockNode ret = blocks.get(blockIndex);
+                ret.append(instructions.toArray(new NomStatementNode[0]));
+                endOfBlock = true;
+                return ret;
+            }
+            case CondBranch -> {
+                int condRegIndex = s.readInt();
+                int thenTarget = s.readInt();
+                int elseTarget = s.readInt();
+                int thenCount = s.readInt();
+                int elseCount = s.readInt();
+                List<NomExpressionNode> thenInstructions = new ArrayList<>();
+                List<NomExpressionNode> elseInstructions = new ArrayList<>();
+                while (thenCount > 0) {
+                    int to = s.readInt();
+                    int from = s.readInt();
+                    thenInstructions
+                            .add(WriteToFrame(curMethodArgCount, to,
+                                    ReadFromFrame(curMethod, from)));
+                    thenCount--;
+                }
+
+                while (elseCount > 0) {
+                    int to = s.readInt();
+                    int from = s.readInt();
+                    elseInstructions
+                            .add(WriteToFrame(curMethodArgCount, to,
+                                    ReadFromFrame(curMethod, from)));
+                    elseCount--;
+                }
+
+                int thenBlockIndex = thenTarget + 1;
+                int elseBlockIndex = elseTarget + 1;
+
+                while (blocks.size() <= thenBlockIndex) {
+                    blocks.add(new NomBlockNode(new NomStatementNode[0]));
+                }
+
+                while (blocks.size() <= elseBlockIndex) {
+                    blocks.add(new NomBlockNode(new NomStatementNode[0]));
+                }
+
+                NomBlockNode thenBlock = blocks.get(thenBlockIndex);
+                NomBlockNode elseBlock = blocks.get(elseBlockIndex);
+
+                thenBlock.append(thenInstructions.toArray(new NomStatementNode[0]));
+                elseBlock.append(elseInstructions.toArray(new NomStatementNode[0]));
+
+                endOfBlock = true;
+                return new NomIfNode(
+                        ReadFromFrame(curMethod, condRegIndex),
+                        thenBlock, elseBlock);
             }
             case null, default -> throw new IllegalStateException("Unexpected value: " + opCode);
         }
@@ -347,24 +443,28 @@ public class ByteCodeReader {
         System.out.println("ReadStaticMethod " + qNameStr + " with " + instructionCount +
                 " instructions that require " + regCount + " registers, typeArgs " + typeArgs + ", returnType " + returnType + ", argTypes " + argTypes);
         List<NomStatementNode> instructions = new ArrayList<>();
+        curBlockIndex = 0;
+        blocks.clear();
+        args.clear();
+        blocks.add(new NomBlockNode(new NomStatementNode[0]));
+        endOfBlock = false;
+//        int idx = 0;
         while (instructionCount > 0) {
+//            System.out.print(idx++);
+//            System.out.print(' ');
             NomStatementNode instr = ReadInstruction(meth, s, constants);
             instructionCount--;
             if (instr == null) {
                 continue;
             }
             instructions.add(instr);
-            /*
-            if (NomVerbose)
-            {
-                instr->Print(true);
+            if (endOfBlock) {
+                blocks.get(curBlockIndex).append(instructions.toArray(new NomStatementNode[0]));
+                instructions.clear();
+                curBlockIndex++;
             }
-             */
-            //        if(instruction.GetOpCode() == OpCode.PhiNode){
-            //            phiNodes.add((PhiNode)instruction);
-            //        }
         }
-        NomBlockNode block = new NomBlockNode(instructions.toArray(new NomStatementNode[0]));
+        NomBlockNode block = blocks.getFirst();
         NomFunctionBodyNode body = new NomFunctionBodyNode(block);
         FrameDescriptor.Builder builder = FrameDescriptor.newBuilder();
         for (int i = 0; i < regCount; i++) {
@@ -374,7 +474,7 @@ public class ByteCodeReader {
         TruffleString methName = NomString.create(qNameStr);
         NomRootNode root = new NomRootNode(language, builder.build(), body, methName, argCount);
 
-        System.out.println("Parsed Interpreter Nodes: (size=" + instructions.size() + ")");
+        System.out.println("Parsed Interpreter Nodes: (size=" + block.bodyNodeCount() + ")");
         System.out.println(root);
         System.out.println();
 

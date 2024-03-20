@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="ISO - 8859 - 1" ?>
 <nomlibrary name = "Test" major="1" minor="0" revision="0" build="0" fversion="2" >
-<mainclass name = "Test_0" />
+<mainclass name = "SimpleTest_0" />
 <dependencies>
 </dependencies>
 <classes>
-<nomclass qname="Test_0" file="Test_0.mnil"/>
+<nomclass qname="SimpleTest_0" file="SimpleTest_0.mnil"/>
+<nomclass qname="BranchTest_0" file="BranchTest_0.mnil"/>
 </classes>
 <interfaces>
 </interfaces>

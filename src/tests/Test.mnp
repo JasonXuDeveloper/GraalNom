@@ -1,1 +1,47 @@
-﻿<?xml version="1.0" encoding="utf-8"?><project name="Test" mainclass="Test" major="1" minor="0" revision="0" build="0"><files><file name="test.mn" /></files></project>
+<?xml version="1.0" encoding="utf-8" standalone="no"?><project build="0" mainclass="SimpleTest" major="1" minor="0" name="Test" revision="0">
+                                        
+    
+    
+    
+    
+    
+    
+    
+    
+    <files>
+                                                                                
+        
+        
+        
+        
+        
+        
+        
+        
+
+        
+        
+        
+        
+        <file name="simple.mn"/>
+        <file name="branch.mn"/>
+
+    
+    
+    
+    
+    
+    
+    
+    
+    </files>
+                                    
+
+
+
+
+
+
+
+
+</project>

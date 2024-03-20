@@ -26,10 +26,4 @@ public abstract class NomAddNode extends NomBinaryNode {
     protected double doDouble(double left, long right) {
         return left + right;
     }
-
-
-    @Fallback
-    protected Object typeError(Object left, Object right) {
-        throw new RuntimeException("Type error: " + left.getClass() + " + " + right.getClass());
-    }
 }

@@ -1,0 +1,45 @@
+class BranchTest
+{
+	public static fun Main() : Bool
+	{
+		Int a = 10;
+		Int b = 256;
+		Int c = 1024;
+		return Branch1(a,b,c) && Branch2(a,b,c);
+	}
+
+	public static fun Branch1(Int a, Int b, Int c) : Bool
+    {
+        if(a > b)
+        {
+            if(a > c)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if(b > c)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static fun Branch2(Int a, Int b, Int c) : Bool
+    {
+        if(a > b)
+        {
+            return !Branch1(a,b,c);
+        }
+
+
+        return Branch1(a,b,c);
+    }
+}
