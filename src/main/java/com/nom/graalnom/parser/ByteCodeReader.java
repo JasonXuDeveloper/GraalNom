@@ -1,12 +1,12 @@
 package com.nom.graalnom.parser;
 
 import java.io.FileInputStream;
+import java.math.BigInteger;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.security.MessageDigest;
+import java.util.*;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.NomLanguage;
@@ -39,9 +39,20 @@ import org.graalvm.collections.Pair;
 public class ByteCodeReader {
     public static int BYTECODE_VERSION = 2;
 
-    public static void ReadBytecodeFile(NomLanguage language, String filename, Boolean debug) throws IllegalArgumentException {
-        if (filename == null || !Files.exists(Paths.get(filename))) {
+    private static final HashSet<String> loadedFiles = new HashSet<>();
+
+    public static void ReadBytecodeFile(NomLanguage language, String filename, Boolean debug) throws Exception {
+        Path path = Paths.get(filename);
+        if (!Files.exists(path)) {
             throw new IllegalArgumentException("file not found");
+        }
+
+        byte[] data = Files.readAllBytes(path);
+        byte[] hash = MessageDigest.getInstance("MD5").digest(data);
+        String checksum = new BigInteger(1, hash).toString(16);
+
+        if (loadedFiles.contains(checksum)) {
+            return;
         }
 
         try (FileInputStream fs = new FileInputStream(filename)) {
@@ -140,10 +151,11 @@ public class ByteCodeReader {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        loadedFiles.add(checksum);
     }
 
     private static final List<NomExpressionNode> args = new ArrayList<>();
-    private static int curBlockIndex = 0;
     private static boolean endOfBlock = false;
     private static final List<NomBlockNode> blocks = new ArrayList<>();
 
@@ -443,7 +455,7 @@ public class ByteCodeReader {
         System.out.println("ReadStaticMethod " + qNameStr + " with " + instructionCount +
                 " instructions that require " + regCount + " registers, typeArgs " + typeArgs + ", returnType " + returnType + ", argTypes " + argTypes);
         List<NomStatementNode> instructions = new ArrayList<>();
-        curBlockIndex = 0;
+        int curBlockIndex = 0;
         blocks.clear();
         args.clear();
         blocks.add(new NomBlockNode(new NomStatementNode[0]));
