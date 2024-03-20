@@ -49,6 +49,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.*;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 /**
  * The root of all Nom execution trees. It is a Truffle requirement that the tree root extends the
  * class {@link RootNode}. This class is used for both builtin and user-defined functions. For
@@ -68,10 +71,13 @@ public class NomRootNode extends RootNode {
      */
     private final TruffleString name;
 
-    public NomRootNode(NomLanguage language, FrameDescriptor frameDescriptor, NomExpressionNode bodyNode, TruffleString name) {
+    private final int argCount;
+
+    public NomRootNode(NomLanguage language, FrameDescriptor frameDescriptor, NomExpressionNode bodyNode, TruffleString name, int argCount) {
         super(language, frameDescriptor);
         this.bodyNode = bodyNode;
         this.name = name;
+        this.argCount = argCount;
     }
 
     @Override
@@ -91,6 +97,15 @@ public class NomRootNode extends RootNode {
 
     @Override
     public String toString() {
-        return "Root(" + name + ")\n"+ bodyNode.toString();
+        StringBuilder arg = new StringBuilder("(");
+        for (int i = 0; i < argCount; i++) {
+            arg.append("arg").append(i);
+            if (i < argCount - 1) {
+                arg.append(", ");
+            }
+        }
+        arg.append(")");
+        return "func " + name + arg +
+                ":\n{" + bodyNode.toString() + "}";
     }
 }

@@ -54,9 +54,9 @@ public final class NomBlockNode extends NomStatementNode implements BlockNode.El
 
     @Override
     public String toString() {
-        String blkStr = "empty block";
+        String blkStr = "";
         if (block != null) {
-            blkStr = String.join(",\n\t",
+            blkStr = String.join("\n\t",
                     Arrays.stream(bodyNodes).map(Object::toString)
                             .toArray(String[]::new));
         }

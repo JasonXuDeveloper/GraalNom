@@ -1,0 +1,30 @@
+class Test
+{
+	public static fun Main() : Int
+	{
+		Int a = 1;
+		Int b = 90;
+		Int c = 30;
+		Func(a,b,c);
+		return 100;
+	}
+
+	public static fun Func(Int a, Int b, Int c) : Void
+	{
+		(a+b). ToString().Print();
+		(a-c).ToString().Print();
+		Func2((b*3+3-2)/4,c*2).ToString().Print();
+	}
+
+	public static fun Func2(Int b, Int c) : Int
+	{
+		Func3(0,b,c);
+		return (b / c) % c;
+	}
+
+	public static fun Func3(Int a, Int b, Int c) : Void
+	{
+		(a+b). ToString().Print();
+		(a-c).ToString().Print();
+	}
+}

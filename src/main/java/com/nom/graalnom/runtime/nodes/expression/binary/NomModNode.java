@@ -31,13 +31,4 @@ public abstract class NomModNode extends NomBinaryNode {
     @Fallback
     protected Object typeError(Object left, Object right) {
         throw new RuntimeException("Type error: " + left.getClass() + " % " + right.getClass());
-    }
-
-    protected abstract NomExpressionNode getLeftNode();
-    protected abstract NomExpressionNode getRightNode();
-
-    @Override
-    public String toString() {
-        return "Div(" + getLeftNode().toString() + ", " + getRightNode().toString() + ")";
-    }
-}
+    }}

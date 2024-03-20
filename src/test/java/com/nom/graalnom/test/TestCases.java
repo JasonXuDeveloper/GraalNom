@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 public class TestCases {
     @Test
     public void Test0() {
-        Path path = Paths.get("src/tests/test0/Test.manifest");
+        Path path = Paths.get("src/tests/Test.manifest");
         //to absolute path
         path = path.toAbsolutePath();
         //create a new context

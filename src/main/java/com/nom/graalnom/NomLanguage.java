@@ -124,7 +124,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         TruffleString name = NomString.create(lookupNodeInfo(builtinBodyNode.getClass()).shortName());
 
         /* Wrap the builtin in a RootNode. Truffle requires all AST to start with a RootNode. */
-        NomRootNode rootNode = new NomRootNode(this, new FrameDescriptor(), builtinBodyNode, name);
+        NomRootNode rootNode = new NomRootNode(this, new FrameDescriptor(), builtinBodyNode, name, argumentCount);
 
         /*
          * Register the builtin function in the builtin registry. Call targets for builtins may be

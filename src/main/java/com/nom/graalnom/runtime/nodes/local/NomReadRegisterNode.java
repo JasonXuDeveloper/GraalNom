@@ -107,6 +107,6 @@ public abstract class NomReadRegisterNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "ReadFromReg(" + getRegIndex() + ")";
+        return "reg[" + getRegIndex() + "]";
     }
 }

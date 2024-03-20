@@ -139,21 +139,22 @@ public class ByteCodeReader {
         }
     }
 
-    private static final List<NomReadRegisterNode> args = new ArrayList<>();
+    private static final List<NomExpressionNode> args = new ArrayList<>();
 
     public static NomStatementNode ReadInstruction(NomStaticMethod curMethod, LittleEndianDataInputStream s, Map<Long, Long> constants) throws Exception {
         int opCodeVal = s.read();
         OpCode opCode = OpCode.fromValue(opCodeVal);
         long nameId;
-        long typeArgsId;
+        long typeArgsId;//generic type arguments
         int regIndex;//output register
-        int receiverRegIndex;
+        int receiverRegIndex;//this instance register
+        int curMethodArgCount = curMethod.ArgCount();//how many arguments (register offset)
         switch (opCode) {
             case Noop -> {
                 return new NomNoopNode();
             }
             case Argument -> {
-                args.add(NomReadRegisterNodeGen.create(s.readInt()));
+                args.add(ReadFromFrame(curMethod, s.readInt()));
             }
             case Return -> {
 //                System.out.println("Return");
@@ -175,34 +176,33 @@ public class ByteCodeReader {
                 long longVal = s.readLong();
                 regIndex = s.readInt();
 //                System.out.println("LoadIntConstant " + longVal + " -> reg " + regIndex);
-                return NomWriteRegisterNodeGen.create(new NomLongLiteralNode(longVal), regIndex);
+                return WriteToFrame(curMethodArgCount, regIndex, new NomLongLiteralNode(longVal));
             }
             case LoadFloatConstant -> {
                 double floatVal = s.readDouble();
                 regIndex = s.readInt();
 //                System.out.println("LoadFloatConstant " + floatVal + " -> reg " + regIndex);
-                return NomWriteRegisterNodeGen.create(new NomDoubleLiteralNode(floatVal), regIndex);
+                return WriteToFrame(curMethodArgCount, regIndex, new NomDoubleLiteralNode(floatVal));
             }
             case LoadBoolConstant -> {
                 boolean boolVal = s.readBoolean();
                 regIndex = s.readInt();
 //                System.out.println("LoadBoolConstant " + boolVal + " -> reg " + regIndex);
-                return NomWriteRegisterNodeGen.create(new NomBoolLiteralNode(boolVal), regIndex);
+                return WriteToFrame(curMethodArgCount, regIndex, new NomBoolLiteralNode(boolVal));
             }
             case LoadNullConstant -> {
                 regIndex = s.readInt();
 //                System.out.println("LoadNullConstant -> reg " + regIndex);
-                return NomWriteRegisterNodeGen.create(new NomNullLiteralNode(), regIndex);
+                return WriteToFrame(curMethodArgCount, regIndex, new NomNullLiteralNode());
             }
             case LoadStringConstant -> {
                 nameId = GetGlobalId(constants, s.readLong());
                 regIndex = s.readInt();
 //                System.out.println("LoadStringConstant " +
 //                        NomContext.constants.GetString(nameId).GetText() + " -> reg " + regIndex);
-                return NomWriteRegisterNodeGen.create(
-                        new NomStringLiteralNode(
-                                NomContext.constants.
-                                        GetString(nameId).GetText()), regIndex);
+                return WriteToFrame(curMethodArgCount, regIndex, new NomStringLiteralNode(
+                        NomContext.constants.
+                                GetString(nameId).GetText()));
             }
             case InvokeCheckedInstance -> {
                 nameId = GetGlobalId(constants, s.readLong());
@@ -219,8 +219,9 @@ public class ByteCodeReader {
                 for (int i = 0; i < args.size(); i++) {
                     methArgs[i + 1] = args.get(i);
                 }
-                NomWriteRegisterNode ret = NomWriteRegisterNodeGen.create(
-                        new NomInvokeNode(method, NomContext::getMethod, methArgs), regIndex);
+                NomExpressionNode ret = WriteToFrame(
+                        curMethodArgCount, regIndex,
+                        new NomInvokeNode(method, NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -236,8 +237,9 @@ public class ByteCodeReader {
                 for (int i = 0; i < args.size(); i++) {
                     methArgs[i] = args.get(i);
                 }
-                NomWriteRegisterNode ret = NomWriteRegisterNodeGen.create(
-                        new NomInvokeNode(staticMethod, NomContext::getMethod, methArgs), regIndex);
+                NomExpressionNode ret = WriteToFrame(
+                        curMethodArgCount, regIndex,
+                        new NomInvokeNode(staticMethod, NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -250,11 +252,11 @@ public class ByteCodeReader {
                 NomExpressionNode left = ReadFromFrame(curMethod, leftRegIndex);
                 NomExpressionNode right = ReadFromFrame(curMethod, rightRegIndex);
                 return switch (op) {
-                    case Add -> NomWriteRegisterNodeGen.create(NomAddNodeGen.create(left, right), regIndex);
-                    case Subtract -> NomWriteRegisterNodeGen.create(NomSubNodeGen.create(left, right), regIndex);
-                    case Multiply -> NomWriteRegisterNodeGen.create(NomMulNodeGen.create(left, right), regIndex);
-                    case Divide -> NomWriteRegisterNodeGen.create(NomDivNodeGen.create(left, right), regIndex);
-                    case Mod -> NomWriteRegisterNodeGen.create(NomModNodeGen.create(left, right), regIndex);
+                    case Add -> WriteToFrame(curMethodArgCount, regIndex, NomAddNodeGen.create(left, right));
+                    case Subtract -> WriteToFrame(curMethodArgCount, regIndex, NomSubNodeGen.create(left, right));
+                    case Multiply -> WriteToFrame(curMethodArgCount, regIndex, NomMulNodeGen.create(left, right));
+                    case Divide -> WriteToFrame(curMethodArgCount, regIndex, NomDivNodeGen.create(left, right));
+                    case Mod -> WriteToFrame(curMethodArgCount, regIndex, NomModNodeGen.create(left, right));
                     case null, default -> null;
 //                        throw new IllegalStateException("Unexpected value: " + op);
                 };
@@ -271,9 +273,15 @@ public class ByteCodeReader {
             if (index < argCount) {
                 return new NomReadArgumentNode(index);
             }
+            index -= argCount;
         }
 
         return NomReadRegisterNodeGen.create(index);
+    }
+
+    private static NomExpressionNode WriteToFrame(int methodArgCnt, int index, NomExpressionNode value) {
+        index -= methodArgCnt;
+        return NomWriteRegisterNodeGen.create(value, index);
     }
 
     public static NomClass ReadClass(LittleEndianDataInputStream s, Map<Long, Long> constants, NomLanguage language) throws Exception {
@@ -337,6 +345,12 @@ public class ByteCodeReader {
         String qNameStr = cls.GetName().toString() + "." + nameStr;
         NomStaticMethod meth = cls.AddStaticMethod(nameStr, qNameStr, typeArgs, returnType, argTypes, regCount);
         long instructionCount = s.readLong();
+        NomTypeListConstant argsTypeList = NomContext.constants.GetTypeList(argTypes);
+        int argCount = 0;
+        if (argsTypeList != null) {
+            argCount = argsTypeList.Count();
+        }
+        regCount -= argCount;
         System.out.println("ReadStaticMethod " + qNameStr + " with " + instructionCount +
                 " instructions that require " + regCount + " registers, typeArgs " + typeArgs + ", returnType " + returnType + ", argTypes " + argTypes);
         List<NomStatementNode> instructions = new ArrayList<>();
@@ -365,7 +379,7 @@ public class ByteCodeReader {
         }
 
         TruffleString methName = NomString.create(qNameStr);
-        NomRootNode root = new NomRootNode(language, builder.build(), body, methName);
+        NomRootNode root = new NomRootNode(language, builder.build(), body, methName, argCount);
 
         System.out.println("Parsed Interpreter Nodes: (size=" + instructions.size() + ")");
         System.out.println(root);

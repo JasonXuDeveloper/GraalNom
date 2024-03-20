@@ -113,6 +113,6 @@ public abstract class NomWriteRegisterNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "WriteToReg(" + getRegIndex() + ", " + getValueNode().toString() + ")";
+        return "reg[" + getRegIndex() + "] = " + getValueNode().toString();
     }
 }

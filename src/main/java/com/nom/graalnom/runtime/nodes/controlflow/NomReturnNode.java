@@ -80,6 +80,6 @@ public final class NomReturnNode extends NomStatementNode {
 
     @Override
     public String toString() {
-        return "Return(" + (valueNode != null ? valueNode.toString() : "") + ")";
+        return "return " + (valueNode != null ? valueNode.toString() : "");
     }
 }

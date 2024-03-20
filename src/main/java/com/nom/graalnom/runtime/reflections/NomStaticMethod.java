@@ -1,5 +1,8 @@
 package com.nom.graalnom.runtime.reflections;
 
+import com.nom.graalnom.runtime.NomContext;
+import com.nom.graalnom.runtime.constants.NomTypeListConstant;
+
 import java.util.List;
 
 public class NomStaticMethod {
@@ -17,5 +20,14 @@ public class NomStaticMethod {
         this.regCount = (short)regcount;
         this.argTypesId = arguments;
 //        this.returnTypeBuf = new NomType(returnType);
+    }
+
+    public int ArgCount(){
+        NomTypeListConstant argsTypeList = NomContext.constants.GetTypeList(argTypesId);
+        if (argsTypeList != null) {
+            return argsTypeList.Count();
+        }
+
+        return 0;
     }
 }

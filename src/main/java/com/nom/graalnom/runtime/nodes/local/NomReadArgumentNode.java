@@ -82,6 +82,6 @@ public class NomReadArgumentNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "ReadFromArg(" + index + ")";
+        return "arg[" + index + "]";
     }
 }

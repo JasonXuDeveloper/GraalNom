@@ -108,7 +108,7 @@ public final class NomInvokeNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "Invoke(" + funcConst.QualifiedMethodName() + ", " + String.join(", ",
+        return funcConst.QualifiedMethodName() + "(" + String.join(", ",
                 Arrays.stream(argumentNodes).map(Object::toString)
                         .toArray(String[]::new)) + ")";
     }

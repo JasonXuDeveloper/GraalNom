@@ -32,12 +32,4 @@ public abstract class NomMulNode extends NomBinaryNode {
     protected Object typeError(Object left, Object right) {
         throw new RuntimeException("Type error: " + left.getClass() + " * " + right.getClass());
     }
-
-    protected abstract NomExpressionNode getLeftNode();
-    protected abstract NomExpressionNode getRightNode();
-
-    @Override
-    public String toString() {
-        return "Mul(" + getLeftNode().toString() + ", " + getRightNode().toString() + ")";
-    }
 }
