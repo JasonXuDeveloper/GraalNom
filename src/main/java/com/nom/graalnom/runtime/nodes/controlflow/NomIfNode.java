@@ -17,19 +17,19 @@ public final class NomIfNode extends NomStatementNode {
      * {@link #evaluateCondition executing the condition} can lead to a type error.
      */
     @Node.Child
-    private final NomExpressionNode conditionNode;
+    private NomExpressionNode conditionNode;
 
     /**
      * Statement (or {@link NomBlockNode block}) executed when the condition is true.
      */
     @Node.Child
-    private final NomBlockNode thenPartNode;
+    private NomBlockNode thenPartNode;
 
     /**
      * Statement (or {@link NomBlockNode block}) executed when the condition is false.
      */
     @Node.Child
-    private final NomBlockNode elsePartNode;
+    private NomBlockNode elsePartNode;
 
     /**
      * Profiling information, collected by the interpreter, capturing the profiling information of

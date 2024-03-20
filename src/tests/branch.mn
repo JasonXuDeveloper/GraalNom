@@ -25,11 +25,11 @@ class BranchTest
         {
             if(b > c)
             {
-                return true;
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     public static fun Branch2(Int a, Int b, Int c) : Bool

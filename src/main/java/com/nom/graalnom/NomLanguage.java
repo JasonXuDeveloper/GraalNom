@@ -71,10 +71,8 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             ByteCodeReader.ReadBytecodeFile(this, file, false);
         }
 
-        //TODO load NomClass from NomContext
         NomClass main = NomContext.classes.get(mainClass);
 
-        //TODO get main method
         NomFunction mainFunc = null;
         for (var method : main.StaticMethods) {
             if (method.name.equals("Main")) {

@@ -74,6 +74,9 @@ public class TestCases {
         //create a new context
         try (Context context = Context.create()) {
             Value ret = context.eval(NomLanguage.ID, path.toString());
+            System.out.println();
+            System.out.println("Return value:");
+            System.out.println(ret);
             assert ret.isBoolean();
             assert !ret.asBoolean();
         }
@@ -88,37 +91,11 @@ public class TestCases {
         //create a new context
         try (Context context = Context.create()) {
             Value ret = context.eval(NomLanguage.ID, path.toString());
+            System.out.println();
+            System.out.println("Return value:");
+            System.out.println(ret);
             assert ret.isBoolean();
-            assert ret.asBoolean() == BranchTestMainJava();
+            assert ret.asBoolean() == new BranchTestJavaImpl().BranchTestMainJava();
         }
-    }
-
-    private boolean BranchTestMainJava() {
-        int a = 10;
-        int b = 256;
-        int c = 1024;
-        return Branch1TestJava(a, b, c) && Branch2TestJava(a, b, c);
-    }
-
-    private boolean Branch1TestJava(int a, int b, int c) {
-        if (a > b) {
-            if (a > c) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            if (b > c) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean Branch2TestJava(int a, int b, int c) {
-        if (a > b) {
-            return !Branch1TestJava(a, b, c);
-        }
-        return Branch1TestJava(a, b, c);
     }
 }
