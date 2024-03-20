@@ -158,6 +158,12 @@ public class ByteCodeReader {
     private static final List<NomExpressionNode> args = new ArrayList<>();
     private static boolean endOfBlock = false;
     private static final List<NomBlockNode> blocks = new ArrayList<>();
+    private static NomBlockNode GetBlock(int index) {
+        while (blocks.size() <= index) {
+            blocks.add(new NomBlockNode(new NomStatementNode[0]));
+        }
+        return blocks.get(index);
+    }
 
     public static NomStatementNode ReadInstruction(NomStaticMethod curMethod, LittleEndianDataInputStream s, Map<Long, Long> constants) throws Exception {
         int opCodeVal = s.read();
@@ -306,10 +312,7 @@ public class ByteCodeReader {
                 //which block to jump to (target + 1 since the beginning of the body is a block)
                 int blockIndex = target + 1;
 
-                while (blocks.size() <= blockIndex) {
-                    blocks.add(new NomBlockNode(new NomStatementNode[0]));
-                }
-                NomBlockNode ret = blocks.get(blockIndex);
+                NomBlockNode ret = GetBlock(blockIndex);
                 ret.append(instructions.toArray(new NomStatementNode[0]));
                 endOfBlock = true;
                 return ret;
@@ -322,6 +325,7 @@ public class ByteCodeReader {
                 int elseCount = s.readInt();
                 List<NomExpressionNode> thenInstructions = new ArrayList<>();
                 List<NomExpressionNode> elseInstructions = new ArrayList<>();
+
                 while (thenCount > 0) {
                     int to = s.readInt();
                     int from = s.readInt();
@@ -343,16 +347,8 @@ public class ByteCodeReader {
                 int thenBlockIndex = thenTarget + 1;
                 int elseBlockIndex = elseTarget + 1;
 
-                while (blocks.size() <= thenBlockIndex) {
-                    blocks.add(new NomBlockNode(new NomStatementNode[0]));
-                }
-
-                while (blocks.size() <= elseBlockIndex) {
-                    blocks.add(new NomBlockNode(new NomStatementNode[0]));
-                }
-
-                NomBlockNode thenBlock = blocks.get(thenBlockIndex);
-                NomBlockNode elseBlock = blocks.get(elseBlockIndex);
+                NomBlockNode thenBlock = GetBlock(thenBlockIndex);
+                NomBlockNode elseBlock = GetBlock(elseBlockIndex);
 
                 thenBlock.append(thenInstructions.toArray(new NomStatementNode[0]));
                 elseBlock.append(elseInstructions.toArray(new NomStatementNode[0]));
