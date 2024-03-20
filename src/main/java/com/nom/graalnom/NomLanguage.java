@@ -89,14 +89,6 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             throw new Exception("Main method not found");
         }
 
-        System.out.println("Constants:");
-        for (var constant : NomContext.constants.Constants()) {
-            System.out.println("Global Id: " +
-                    NomContext.constants.Constants()
-                            .indexOf(constant) + " " +
-                    (constant != null ? constant.getClass().getSimpleName() : "null"));
-        }
-
         System.out.println();
         System.out.println("Output:");
         return mainFunc.getCallTarget();

@@ -52,6 +52,14 @@ public class NomConstants {
         return (NomMethodConstant) cnstnt;
     }
 
+    public NomStaticMethodConstant GetStaticMethod(long constant) {
+        var cnstnt = constants.get((int) constant);
+        if (cnstnt == null || cnstnt.Type != NomConstantType.CTStaticMethod) {
+            throw new RuntimeException();
+        }
+        return (NomStaticMethodConstant) cnstnt;
+    }
+
     public NomClassConstant GetClass(long constant) {
         var cnstnt = constants.get((int) constant);
         if (cnstnt == null || cnstnt.Type != NomConstantType.CTClass) {
@@ -66,6 +74,14 @@ public class NomConstants {
             return null;
         }
         return (NomClassTypeConstant) cnstnt;
+    }
+
+    public NomTypeListConstant GetTypeList(long constant) {
+        var cnstnt = constants.get((int) constant);
+        if (cnstnt == null || cnstnt.Type != NomConstantType.CTTypeList) {
+            return null;
+        }
+        return (NomTypeListConstant) cnstnt;
     }
 
     public long AddString(TruffleString string, long cid) {
@@ -113,6 +129,22 @@ public class NomConstants {
             cid = GetConstantId();
         }
         constants.set((int) cid, new NomMethodConstant(cls, name, typeArgs, argTypes));
+        return cid;
+    }
+
+    public long AddTypeList(List<Long> entries, long cid) {
+        if (cid == 0) {
+            cid = GetConstantId();
+        }
+        constants.set((int) cid, new NomTypeListConstant(entries));
+        return cid;
+    }
+
+    public long AddStaticMethod(long cls, long name, long typeArgs, long argTypes, long cid) {
+        if (cid == 0) {
+            cid = GetConstantId();
+        }
+        constants.set((int) cid, new NomStaticMethodConstant(cls, name, typeArgs, argTypes));
         return cid;
     }
 }

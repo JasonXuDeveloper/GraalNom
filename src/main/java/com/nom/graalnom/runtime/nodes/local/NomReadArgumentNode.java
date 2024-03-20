@@ -79,4 +79,9 @@ public class NomReadArgumentNode extends NomExpressionNode {
             return NomNull.SINGLETON;
         }
     }
+
+    @Override
+    public String toString() {
+        return "ReadFromArg(" + index + ")";
+    }
 }

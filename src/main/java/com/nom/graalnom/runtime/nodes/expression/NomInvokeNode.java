@@ -40,6 +40,7 @@
  */
 package com.nom.graalnom.runtime.nodes.expression;
 
+import com.nom.graalnom.runtime.constants.NomMethodConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -54,6 +55,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import java.util.Arrays;
+import java.util.function.Function;
 
 /**
  * The node for function invocation in SL. Since SL has first class functions, the {@link NomFunction
@@ -66,13 +68,15 @@ import java.util.Arrays;
 @NodeInfo(shortName = "invoke")
 public final class NomInvokeNode extends NomExpressionNode {
 
-    private NomFunction function;
+    private Function<NomMethodConstant, NomFunction> function;
+    private NomMethodConstant funcConst;
     @Node.Children
     private final NomExpressionNode[] argumentNodes;
     @Node.Child
     private InteropLibrary library;
 
-    public NomInvokeNode(NomFunction function, NomExpressionNode[] argumentNodes) {
+    public NomInvokeNode(NomMethodConstant funcConst, Function<NomMethodConstant, NomFunction> function, NomExpressionNode[] argumentNodes) {
+        this.funcConst = funcConst;
         this.function = function;
         this.argumentNodes = argumentNodes;
         this.library = InteropLibrary.getFactory().createDispatched(3);
@@ -95,7 +99,7 @@ public final class NomInvokeNode extends NomExpressionNode {
         }
 
         try {
-            return library.execute(function, argumentValues);
+            return library.execute(function.apply(funcConst), argumentValues);
         } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
             /* Execute was not successful. */
             throw new RuntimeException(e);
@@ -104,7 +108,7 @@ public final class NomInvokeNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "Invoke(" + function.getName().toString() + ", " + String.join(", ",
+        return "Invoke(" + funcConst.QualifiedMethodName() + ", " + String.join(", ",
                 Arrays.stream(argumentNodes).map(Object::toString)
                         .toArray(String[]::new)) + ")";
     }
