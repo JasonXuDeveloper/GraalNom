@@ -172,11 +172,11 @@ public class ByteCodeReader {
                 return new NomNoopNode();
             }
             case Argument -> {
-                args.add(ReadFromFrame(curMethod, s.readInt()));
+                args.add(ReadFromFrame(curMethodArgCount, s.readInt()));
             }
             case Return -> {
                 endOfBlock = true;
-                return new NomReturnNode(ReadFromFrame(curMethod, s.readInt()));
+                return new NomReturnNode(ReadFromFrame(curMethodArgCount, s.readInt()));
             }
             case ReturnVoid -> {
                 endOfBlock = true;
@@ -219,7 +219,7 @@ public class ByteCodeReader {
                 receiverRegIndex = s.readInt();
                 NomMethodConstant method = NomContext.constants.GetMethod(nameId);
                 NomExpressionNode[] methArgs = new NomExpressionNode[args.size() + 1];
-                methArgs[0] = ReadFromFrame(curMethod, receiverRegIndex);
+                methArgs[0] = ReadFromFrame(curMethodArgCount, receiverRegIndex);
                 for (int i = 0; i < args.size(); i++) {
                     methArgs[i + 1] = args.get(i);
                 }
@@ -249,8 +249,8 @@ public class ByteCodeReader {
                 int leftRegIndex = s.readInt();
                 int rightRegIndex = s.readInt();
                 regIndex = s.readInt();
-                NomExpressionNode left = ReadFromFrame(curMethod, leftRegIndex);
-                NomExpressionNode right = ReadFromFrame(curMethod, rightRegIndex);
+                NomExpressionNode left = ReadFromFrame(curMethodArgCount, leftRegIndex);
+                NomExpressionNode right = ReadFromFrame(curMethodArgCount, rightRegIndex);
                 return switch (op) {
                     case Add -> WriteToFrame(curMethodArgCount, regIndex, NomAddNodeGen.create(left, right));
                     case Subtract -> WriteToFrame(curMethodArgCount, regIndex, NomSubNodeGen.create(left, right));
@@ -274,10 +274,10 @@ public class ByteCodeReader {
                 receiverRegIndex = s.readInt();
                 regIndex = s.readInt();
                 return switch (op) {
-                    case Negate ->
-                            WriteToFrame(curMethodArgCount, regIndex, NomNegateNodeGen.create(ReadFromFrame(curMethod, receiverRegIndex)));
-                    case Not ->
-                            WriteToFrame(curMethodArgCount, regIndex, NomNotNodeGen.create(ReadFromFrame(curMethod, receiverRegIndex)));
+                    case Negate -> WriteToFrame(curMethodArgCount, regIndex,
+                            NomNegateNodeGen.create(ReadFromFrame(curMethodArgCount, receiverRegIndex)));
+                    case Not -> WriteToFrame(curMethodArgCount, regIndex,
+                            NomNotNodeGen.create(ReadFromFrame(curMethodArgCount, receiverRegIndex)));
                     case null -> throw new IllegalStateException("Unexpected value: " + null);
                 };
             }
@@ -300,7 +300,7 @@ public class ByteCodeReader {
                     int from = s.readInt();
                     instructions
                             .add(WriteToFrame(curMethodArgCount, to,
-                                    ReadFromFrame(curMethod, from)));
+                                    ReadFromFrame(curMethodArgCount, from)));
                     incoming--;
                 }
                 //which block to jump to (target + 1 since the beginning of the body is a block)
@@ -327,7 +327,7 @@ public class ByteCodeReader {
                     int from = s.readInt();
                     thenInstructions
                             .add(WriteToFrame(curMethodArgCount, to,
-                                    ReadFromFrame(curMethod, from)));
+                                    ReadFromFrame(curMethodArgCount, from)));
                     thenCount--;
                 }
 
@@ -336,7 +336,7 @@ public class ByteCodeReader {
                     int from = s.readInt();
                     elseInstructions
                             .add(WriteToFrame(curMethodArgCount, to,
-                                    ReadFromFrame(curMethod, from)));
+                                    ReadFromFrame(curMethodArgCount, from)));
                     elseCount--;
                 }
 
@@ -359,7 +359,7 @@ public class ByteCodeReader {
 
                 endOfBlock = true;
                 return new NomIfNode(
-                        ReadFromFrame(curMethod, condRegIndex),
+                        ReadFromFrame(curMethodArgCount, condRegIndex),
                         thenBlock, elseBlock);
             }
             case null, default -> throw new IllegalStateException("Unexpected value: " + opCode);
@@ -367,15 +367,11 @@ public class ByteCodeReader {
         return null;
     }
 
-    private static NomExpressionNode ReadFromFrame(NomStaticMethod methodConstant, int index) {
-        NomTypeListConstant argsTypeList = NomContext.constants.GetTypeList(methodConstant.argTypesId);
-        if (argsTypeList != null) {
-            int argCount = argsTypeList.Count();
-            if (index < argCount) {
-                return new NomReadArgumentNode(index);
-            }
-            index -= argCount;
+    private static NomExpressionNode ReadFromFrame(int methodArgCnt, int index) {
+        if (index < methodArgCnt) {
+            return new NomReadArgumentNode(index);
         }
+        index -= methodArgCnt;
 
         return NomReadRegisterNodeGen.create(index);
     }

@@ -75,7 +75,7 @@ public class TestCases {
         try (Context context = Context.create()) {
             Value ret = context.eval(NomLanguage.ID, path.toString());
             System.out.println();
-            System.out.println("Return value:");
+            System.out.println("Returned value:");
             System.out.println(ret);
             assert ret.isBoolean();
             assert !ret.asBoolean();
@@ -92,7 +92,7 @@ public class TestCases {
         try (Context context = Context.create()) {
             Value ret = context.eval(NomLanguage.ID, path.toString());
             System.out.println();
-            System.out.println("Return value:");
+            System.out.println("Returned value:");
             System.out.println(ret);
             assert ret.isBoolean();
             assert ret.asBoolean() == new BranchTestJavaImpl().BranchTestMainJava();
