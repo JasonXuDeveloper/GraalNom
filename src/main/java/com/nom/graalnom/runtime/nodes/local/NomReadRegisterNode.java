@@ -64,7 +64,7 @@ public abstract class NomReadRegisterNode extends NomExpressionNode {
      * Returns the descriptor of the accessed local variable. The implementation of this method is
      * created by the Truffle DSL based on the {@link NodeField} annotation on the class.
      */
-    protected abstract int getRegIndex();
+    public abstract int getRegIndex();
 
     @Specialization(guards = "frame.isLong(getRegIndex())")
     protected long readLong(VirtualFrame frame) {

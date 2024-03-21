@@ -21,6 +21,9 @@ public final class NomBranchNode extends NomStatementNode {
     public int getSuccessor() {
         return successor;
     }
+    public void setSuccessor(int successor) {
+        this.successor = successor;
+    }
 
     @Override
     public void executeVoid(VirtualFrame frame) {

@@ -21,9 +21,9 @@ public abstract class NomWriteRegisterNode extends NomExpressionNode {
      * Returns the descriptor of the accessed local variable. The implementation of this method is
      * created by the Truffle DSL based on the {@link NodeField} annotation on the class.
      */
-    protected abstract int getRegIndex();
+    public abstract int getRegIndex();
 
-    protected abstract NomExpressionNode getValueNode();
+    public abstract NomExpressionNode getValueNode();
 
     public final TruffleString getRegName() {
         return (TruffleString) getRootNode().getFrameDescriptor().getSlotName(getRegIndex());

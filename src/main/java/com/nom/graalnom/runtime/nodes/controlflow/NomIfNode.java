@@ -18,7 +18,7 @@ public final class NomIfNode extends NomStatementNode {
     @Child
     public NomBranchNode falseBranch;
     @Child
-    private NomExpressionNode conditionNode;
+    public NomExpressionNode conditionNode;
 
     private final CountingConditionProfile condition = CountingConditionProfile.create();
 
