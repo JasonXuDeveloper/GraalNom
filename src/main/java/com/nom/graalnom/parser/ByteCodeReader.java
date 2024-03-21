@@ -23,7 +23,6 @@ import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
 import com.nom.graalnom.runtime.nodes.expression.binary.*;
 import com.nom.graalnom.runtime.nodes.expression.literal.*;
-import com.nom.graalnom.runtime.nodes.expression.NomNoopNode;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNegateNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNotNodeGen;
 import com.nom.graalnom.runtime.nodes.local.*;
@@ -173,7 +172,7 @@ public class ByteCodeReader {
         int curMethodArgCount = curMethod.ArgCount();//how many arguments (register offset)
         switch (opCode) {
             case Noop -> {
-                return new NomNoopNode();
+                return null;
             }
             case Argument -> {
                 args.add(ReadFromFrame(curMethodArgCount, s.readInt()));

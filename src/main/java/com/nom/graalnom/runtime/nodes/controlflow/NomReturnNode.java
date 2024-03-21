@@ -58,7 +58,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public final class NomReturnNode extends NomStatementNode {
 
     @Node.Child
-    private NomExpressionNode valueNode;
+    public NomExpressionNode valueNode;
 
     public NomReturnNode(NomExpressionNode valueNode) {
         this.valueNode = valueNode;
@@ -66,16 +66,6 @@ public final class NomReturnNode extends NomStatementNode {
 
     @Override
     public void executeVoid(VirtualFrame frame) {
-        Object result;
-        if (valueNode != null) {
-            result = valueNode.executeGeneric(frame);
-        } else {
-            /*
-             * Return statement that was not followed by an expression, so return the SL null value.
-             */
-            result = NomNull.SINGLETON;
-        }
-        throw new NomReturnException(result);
     }
 
     @Override

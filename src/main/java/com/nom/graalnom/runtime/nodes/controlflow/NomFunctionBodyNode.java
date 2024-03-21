@@ -52,7 +52,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 /**
  * The body of a user-defined Nom function. This is the node referenced by a {@link NomRootNode} for
  * user-defined functions. It handles the return value of a function: the {@link NomReturnNode return
- * statement} throws an {@link NomReturnException exception} with the return value. This node catches
+ * statement} with the return value. This node catches
  * the exception. If the method ends without an explicit {@code return}, return the
  * {@link NomNull#SINGLETON default null value}.
  */
@@ -81,44 +81,37 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        try {
-            /* Execute the function body. */
-            while (true) {
-                if (curIndex >= bodyNodes.length) {
-                    throw new RuntimeException("Function body has no return statement");
+        /* Execute the function body. */
+        while (true) {
+            if (curIndex >= bodyNodes.length) {
+                throw new RuntimeException("Function body has no return statement");
+            }
+            NomBasicBlockNode block = bodyNodes[curIndex];
+            block.executeVoid(frame);
+            NomStatementNode stmt = block.getTerminatingNode();
+            if (stmt instanceof NomBranchNode br) {
+                for (NomStatementNode mapStmt : br.mappings) {
+                    mapStmt.executeVoid(frame);
                 }
-                NomBasicBlockNode block = bodyNodes[curIndex];
-                block.executeVoid(frame);
-                NomStatementNode stmt = block.getTerminatingNode();
-                if (stmt instanceof NomBranchNode br) {
-                    for (NomStatementNode mapStmt : br.mappings) {
+                curIndex = br.getSuccessor();
+            } else if (stmt instanceof NomIfNode condBr) {
+                if (condBr.cond(frame)) {
+                    for (NomStatementNode mapStmt : condBr.trueBranch.mappings) {
                         mapStmt.executeVoid(frame);
                     }
-                    curIndex = br.getSuccessor();
-                } else if (stmt instanceof NomIfNode condBr) {
-                    if (condBr.cond(frame)) {
-                        for (NomStatementNode mapStmt : condBr.trueBranch.mappings) {
-                            mapStmt.executeVoid(frame);
-                        }
-                        curIndex = condBr.getTrueSuccessor();
-                    } else {
-                        for (NomStatementNode mapStmt : condBr.falseBranch.mappings) {
-                            mapStmt.executeVoid(frame);
-                        }
-                        curIndex = condBr.getFalseSuccessor();
-                    }
+                    curIndex = condBr.getTrueSuccessor();
                 } else {
-                    throw new RuntimeException("Invalid terminating node");
+                    for (NomStatementNode mapStmt : condBr.falseBranch.mappings) {
+                        mapStmt.executeVoid(frame);
+                    }
+                    curIndex = condBr.getFalseSuccessor();
                 }
+            } else if (stmt instanceof NomReturnNode ret) {
+                if (ret.valueNode == null) return NomNull.SINGLETON;
+                return ret.valueNode.executeGeneric(frame);
+            } else {
+                throw new RuntimeException("Invalid terminating node");
             }
-        } catch (NomReturnException ex) {
-            /*
-             * In the interpreter, record profiling information that the function has an explicit
-             * return.
-             */
-            exceptionTaken.enter();
-            /* The exception transports the actual return value. */
-            return ex.getResult();
         }
     }
 
