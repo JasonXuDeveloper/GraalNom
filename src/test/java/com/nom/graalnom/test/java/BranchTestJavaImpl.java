@@ -1,4 +1,4 @@
-package com.nom.graalnom.test;
+package com.nom.graalnom.test.java;
 
 public class BranchTestJavaImpl {
     public boolean BranchTestMainJava() {

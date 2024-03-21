@@ -1,6 +1,7 @@
 package com.nom.graalnom.test;
 
 import com.nom.graalnom.NomLanguage;
+import com.nom.graalnom.test.java.*;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.AfterAll;
