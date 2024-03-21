@@ -45,11 +45,9 @@ import com.nom.graalnom.runtime.datatypes.NomNull;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.profiles.BranchProfile;
-
-import java.util.function.Function;
 
 /**
  * The body of a user-defined Nom function. This is the node referenced by a {@link NomRootNode} for
@@ -77,6 +75,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
     }
 
     @Override
+    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.MERGE_EXPLODE)
     public Object executeGeneric(VirtualFrame frame) {
         /* Execute the function body. */
         while (true) {

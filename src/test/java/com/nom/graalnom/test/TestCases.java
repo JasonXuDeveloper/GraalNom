@@ -1,132 +1,65 @@
 package com.nom.graalnom.test;
 
 import com.nom.graalnom.NomLanguage;
-import com.nom.graalnom.runtime.NomContext;
-import com.nom.graalnom.runtime.datatypes.NomFunction;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
-import org.junit.Test;
-import org.xml.sax.InputSource;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.BufferedInputStream;
-import java.io.StringReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
 public class TestCases {
-    private void PrintConstants() {
+    @BeforeAll
+    public static void SetUp() throws Exception {
+        TestUtil.Compile();
+        context = Context.create();
+        context.eval(NomLanguage.ID, GetTestString("", false));
+    }
+
+    @AfterAll
+    public static void TearDown() {
+        context.close();
+    }
+
+    private static Context context;
+
+    private static String GetTestString(String mainClassName, boolean invokeMain) {
+        return Paths.get("src/tests/Test.manifest").toAbsolutePath()
+                + "|" + mainClassName + "_0|" + invokeMain;
+    }
+
+    private static Value RunTest() {
+        String nameofCurrMethod = Thread.currentThread()
+                .getStackTrace()[2]
+                .getMethodName();
+        System.out.println(nameofCurrMethod + " output:");
+        Value ret = context.eval(NomLanguage.ID, GetTestString(nameofCurrMethod, true));
+        TestUtil.PrintClassMethods(TestUtil.GetClass(nameofCurrMethod));
         System.out.println();
-        System.out.println("Constants:");
-        for (var constant : NomContext.constants.Constants()) {
-            System.out.println("Global Id: " +
-                    NomContext.constants.Constants()
-                            .indexOf(constant) + " " +
-                    (constant != null ? constant.getClass().getSimpleName() : "null"));
-        }
-    }
-
-    private void PrintMainClassMethods() {
-        System.out.println();
-        System.out.println("Main Class Methods:");
-        Map<String, NomFunction> map = NomContext.functionsObject.get(NomContext.mainClass);
-        for (var method : map.values()) {
-            System.out.println(method.getCallTarget().getRootNode().toString());
-            System.out.println();
-        }
-    }
-
-    private static void Compile(String mainClass) throws Exception {
-        Path path = Paths.get("src/tests/Test.mnp");
-        //load manifest file in manifestPath
-        String manifest = Files.readString(path);
-        manifest = manifest.strip();
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        var builder = factory.newDocumentBuilder();
-        var doc = builder.parse(new InputSource(new StringReader(manifest)));
-        doc.getElementsByTagName("project").item(0).getAttributes().getNamedItem("mainclass").setNodeValue(mainClass);
-        //doc to string
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        transformer.setOutputProperty(OutputKeys.ENCODING, "utf-8");
-        DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(path.toFile());
-        transformer.transform(source, result);
-        //call shell
-        String[] cmd = {"sh", "compiler.sh", "-p ./src/tests", "--project Test"};
-        Process process = Runtime.getRuntime().exec(cmd);
-        int exitValue = process.waitFor();
-        if (exitValue != 0) {
-            // check for errors
-            BufferedInputStream bis = new BufferedInputStream(process.getErrorStream());
-            byte[] bytes = new byte[1000];
-            int bytesRead;
-            StringBuilder output = new StringBuilder();
-            while ((bytesRead = bis.read(bytes)) > 0) {
-                output.append(new String(bytes, 0, bytesRead));
-            }
-            System.out.println(output);
-            throw new RuntimeException("execution of script failed!");
-        }
+        System.out.println("Returned value:");
+        System.out.println(ret);
+        return ret;
     }
 
     @Test
-    public void SimpleTest() throws Exception {
-        Compile("SimpleTest");
-        Path path = Paths.get("src/tests/Test.manifest");
-        //to absolute path
-        path = path.toAbsolutePath();
-        //create a new context
-        try (Context context = Context.create()) {
-            Value ret = context.eval(NomLanguage.ID, path.toString());
-            PrintMainClassMethods();
-            System.out.println();
-            System.out.println("Returned value:");
-            System.out.println(ret);
-            assert ret.isBoolean();
-            assert !ret.asBoolean();
-        }
+    public void SimpleTest() {
+        Value ret = RunTest();
+        assert ret.isNumber();
+        assert ret.asLong() == 30;
     }
 
     @Test
-    public void BranchTest() throws Exception {
-        Compile("BranchTest");
-        Path path = Paths.get("src/tests/Test.manifest");
-        //to absolute path
-        path = path.toAbsolutePath();
-        //create a new context
-        try (Context context = Context.create()) {
-            Value ret = context.eval(NomLanguage.ID, path.toString());
-            PrintMainClassMethods();
-            System.out.println();
-            System.out.println("Returned value:");
-            System.out.println(ret);
-            assert ret.isBoolean();
-            assert ret.asBoolean() == new BranchTestJavaImpl().BranchTestMainJava();
-        }
+    public void BranchTest() {
+        Value ret = RunTest();
+        assert ret.isBoolean();
+        assert ret.asBoolean() == new BranchTestJavaImpl().BranchTestMainJava();
     }
 
     @Test
-    public void WhileTest() throws Exception {
-        Compile("WhileTest");
-        Path path = Paths.get("src/tests/Test.manifest");
-        //to absolute path
-        path = path.toAbsolutePath();
-        //create a new context
-        try (Context context = Context.create()) {
-            Value ret = context.eval(NomLanguage.ID, path.toString());
-            PrintMainClassMethods();
-            System.out.println();
-            System.out.println("Returned value:");
-            System.out.println(ret);
-            assert ret.isBoolean();
-            assert ret.asBoolean() == new WhileTestJavaImpl().WhileTestMainJava();
-        }
+    public void WhileTest() {
+        Value ret = RunTest();
+        assert ret.isBoolean();
+        assert ret.asBoolean() == new WhileTestJavaImpl().WhileTestMainJava();
     }
 }

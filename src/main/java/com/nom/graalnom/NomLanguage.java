@@ -6,6 +6,10 @@ import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
+import com.nom.graalnom.runtime.nodes.NomStatementNode;
+import com.nom.graalnom.runtime.nodes.controlflow.NomBasicBlockNode;
+import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
+import com.nom.graalnom.runtime.nodes.controlflow.NomReturnNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.local.NomReadArgumentNode;
 import com.nom.graalnom.runtime.reflections.NomClass;
@@ -25,6 +29,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,6 +45,8 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     public static final String ID = "nom";
     public static final String MIME_TYPE = "application/xml";
 
+    private static final HashSet<String> loadedManifests = new HashSet<>();
+
     @Override
     protected NomContext createContext(Env env) {
         return new NomContext(this, env);
@@ -47,32 +54,55 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
 
     @Override
     protected CallTarget parse(ParsingRequest request) throws Exception {
-        String filePath = request.getSource().getCharacters().toString();
-        Path manifestPath = Path.of(filePath);
-        Path dirPath = manifestPath.getParent();
-        //load manifest file in manifestPath
-        String manifest = Files.readString(manifestPath);
-        manifest = manifest.strip();
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        var builder = factory.newDocumentBuilder();
-        var doc = builder.parse(new InputSource(new StringReader(manifest)));
-        //load name from <mainclass name = "xxx" />
-        var mainClass = doc.getElementsByTagName("mainclass").item(0).getAttributes().getNamedItem("name").getNodeValue();
-        //load all <nomclass qname = "xxx" file = "xxx" />
-        var nomClasses = doc.getElementsByTagName("nomclass");
-        for (int i = 0; i < nomClasses.getLength(); i++) {
-            var nomClass = nomClasses.item(i);
-            //get info
-            var qname = nomClass.getAttributes().getNamedItem("qname").getNodeValue();
-            var file = nomClass.getAttributes().getNamedItem("file").getNodeValue();
-            file = dirPath.resolve(file).toString();
+        String req = request.getSource().getCharacters().toString();
+        String mainClass = null;
+        boolean invoke = true;
+        if (req.contains("|")) {
+            String[] parts = req.split("\\|");
+            req = parts[0];
+            mainClass = parts[1];
+            invoke = Boolean.parseBoolean(parts[2]);
+        }
+        if (!loadedManifests.contains(req)) {
+            loadedManifests.add(req);
+            Path manifestPath = Path.of(req);
+            Path dirPath = manifestPath.getParent();
+            //load manifest file in manifestPath
+            String manifest = Files.readString(manifestPath);
+            manifest = manifest.strip();
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            var builder = factory.newDocumentBuilder();
+            var doc = builder.parse(new InputSource(new StringReader(manifest)));
+            //load name from <mainclass name = "xxx" />
+            if (mainClass == null) {
+                mainClass = doc.getElementsByTagName("mainclass").item(0).getAttributes().getNamedItem("name").getNodeValue();
+            }
+            //load all <nomclass qname = "xxx" file = "xxx" />
+            var nomClasses = doc.getElementsByTagName("nomclass");
+            for (int i = 0; i < nomClasses.getLength(); i++) {
+                var nomClass = nomClasses.item(i);
+                //get info
+                var qname = nomClass.getAttributes().getNamedItem("qname").getNodeValue();
+                var file = nomClass.getAttributes().getNamedItem("file").getNodeValue();
+                file = dirPath.resolve(file).toString();
 
-            //load bytecode
-            ByteCodeReader.ReadBytecodeFile(this, file, false);
+                //load bytecode
+                ByteCodeReader.ReadBytecodeFile(this, file, false);
+            }
+        }
+
+        if (!invoke) {
+            return new NomRootNode(
+                    this, new FrameDescriptor(),
+                    new NomFunctionBodyNode(new NomBasicBlockNode[]{
+                            new NomBasicBlockNode(new NomStatementNode[]{
+                                    new NomReturnNode(null)
+                            }, "method entry")
+                    }),
+                    NomString.create("Invalid"), 0).getCallTarget();
         }
 
         NomClass main = NomContext.classes.get(mainClass);
-        NomContext.mainClass = main;
 
         NomFunction mainFunc = null;
         for (var method : main.StaticMethods) {
@@ -88,8 +118,6 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             throw new Exception("Main method not found");
         }
 
-        System.out.println();
-        System.out.println("Output:");
         return mainFunc.getCallTarget();
     }
 

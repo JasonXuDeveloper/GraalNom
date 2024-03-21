@@ -1,12 +1,12 @@
 class SimpleTest
 {
-	public static fun Main() : Bool
+	public static fun Main() : Int
 	{
 		Int a = 1;
 		Int b = 90;
 		Int c = 30;
 		Func(a,b,c);
-		return !true;
+		return c;
 	}
 
 	public static fun Func(Int a, Int b, Int c) : Void
