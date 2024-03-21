@@ -62,8 +62,10 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
     /**
      * The body of the function.
      */
-    @Node.Child
-    private NomStatementNode bodyNode;
+    @Node.Children
+    private NomBasicBlockNode[] bodyNodes;
+
+    private int curIndex;
 
     /**
      * Profiling information, collected by the interpreter, capturing whether the function had an
@@ -73,16 +75,42 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
     private final BranchProfile exceptionTaken = BranchProfile.create();
     private final BranchProfile nullTaken = BranchProfile.create();
 
-    public NomFunctionBodyNode(NomStatementNode bodyNode) {
-        this.bodyNode = bodyNode;
+    public NomFunctionBodyNode(NomBasicBlockNode[] bodyNodes) {
+        this.bodyNodes = bodyNodes;
     }
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
         try {
             /* Execute the function body. */
-            bodyNode.executeVoid(frame);
-
+            while (true) {
+                if (curIndex >= bodyNodes.length) {
+                    throw new RuntimeException("Function body has no return statement");
+                }
+                NomBasicBlockNode block = bodyNodes[curIndex];
+                block.executeVoid(frame);
+                NomStatementNode stmt = block.getTerminatingNode();
+                if (stmt instanceof NomBranchNode br) {
+                    for (NomStatementNode mapStmt : br.mappings) {
+                        mapStmt.executeVoid(frame);
+                    }
+                    curIndex = br.getSuccessor();
+                } else if (stmt instanceof NomIfNode condBr) {
+                    if (condBr.cond(frame)) {
+                        for (NomStatementNode mapStmt : condBr.trueBranch.mappings) {
+                            mapStmt.executeVoid(frame);
+                        }
+                        curIndex = condBr.getTrueSuccessor();
+                    } else {
+                        for (NomStatementNode mapStmt : condBr.falseBranch.mappings) {
+                            mapStmt.executeVoid(frame);
+                        }
+                        curIndex = condBr.getFalseSuccessor();
+                    }
+                } else {
+                    throw new RuntimeException("Invalid terminating node");
+                }
+            }
         } catch (NomReturnException ex) {
             /*
              * In the interpreter, record profiling information that the function has an explicit
@@ -92,19 +120,14 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
             /* The exception transports the actual return value. */
             return ex.getResult();
         }
-
-        /*
-         * In the interpreter, record profiling information that the function ends without an
-         * explicit return.
-         */
-        nullTaken.enter();
-        /* Return the default null value. */
-        return NomNull.SINGLETON;
     }
 
     @Override
     public String toString() {
-        return
-                "\n\t" + bodyNode.toString()+ "\n";
+        StringBuilder ret = new StringBuilder();
+        for (NomBasicBlockNode node : bodyNodes) {
+            ret.append("\n\t").append(node.toString()).append("\n");
+        }
+        return ret.toString();
     }
 }

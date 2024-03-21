@@ -72,6 +72,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         }
 
         NomClass main = NomContext.classes.get(mainClass);
+        NomContext.mainClass = main;
 
         NomFunction mainFunc = null;
         for (var method : main.StaticMethods) {

@@ -49,14 +49,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.*;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 /**
  * The root of all Nom execution trees. It is a Truffle requirement that the tree root extends the
  * class {@link RootNode}. This class is used for both builtin and user-defined functions. For
  * builtin functions, the {@link #bodyNode} is a subclass of {@link NomBuiltinNode}. For user-defined
- * functions, the {@link #bodyNode} is a {@link NomBlockNode}.
+ * functions, the {@link #bodyNode} is a {@link NomBasicBlockNode}.
  */
 @NodeInfo(language = "Nom", description = "The root of all Nom execution trees")
 public class NomRootNode extends RootNode {

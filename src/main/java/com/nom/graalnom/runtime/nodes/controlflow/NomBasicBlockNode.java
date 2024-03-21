@@ -7,10 +7,10 @@ import com.oracle.truffle.api.nodes.*;
 import java.util.Arrays;
 
 /**
- * A {@link NomStatementNode} that contains a block of other nodes to execute
+ * A {@link NomStatementNode} that contains a basic block of other nodes to execute
  */
 @NodeInfo(shortName = "block", description = "The node implementing a block of instructions")
-public final class NomBlockNode extends NomStatementNode implements BlockNode.ElementExecutor<NomStatementNode> {
+public final class NomBasicBlockNode extends NomStatementNode implements BlockNode.ElementExecutor<NomStatementNode> {
     /**
      * The block of child nodes. Using the block node allows Truffle to split the block into
      * multiple groups for compilation if the method is too big. This is an optional API.
@@ -21,15 +21,17 @@ public final class NomBlockNode extends NomStatementNode implements BlockNode.El
      */
     @Child
     private BlockNode<NomStatementNode> block;
-    private NomStatementNode[] bodyNodes;
+    public NomStatementNode[] bodyNodes;
 
     public int bodyNodeCount() {
         return bodyNodes.length;
     }
+    public String blockName;
 
-    public NomBlockNode(NomStatementNode[] bodyNodes) {
+    public NomBasicBlockNode(NomStatementNode[] bodyNodes, String blockName) {
         this.bodyNodes = bodyNodes;
         this.block = this.bodyNodes.length > 0 ? BlockNode.create(bodyNodes, this) : null;
+        this.blockName = blockName;
     }
 
     public void append(NomStatementNode[] bodyNodes) {
@@ -43,6 +45,13 @@ public final class NomBlockNode extends NomStatementNode implements BlockNode.El
             this.bodyNodes = nodes;
             this.block = this.bodyNodes.length > 0 ? BlockNode.create(bodyNodes, this) : null;
         }
+    }
+
+    public NomStatementNode getTerminatingNode() {
+        if (this.bodyNodes.length == 0) {
+            return null;
+        }
+        return this.bodyNodes[this.bodyNodes.length - 1];
     }
 
     /**
@@ -70,9 +79,9 @@ public final class NomBlockNode extends NomStatementNode implements BlockNode.El
     }
 
     public String toString() {
-        String blkStr = "";
+        String blkStr = "=== "+blockName+" ===\n\t";
         if (block != null) {
-            blkStr = String.join("\n\t",
+            blkStr += String.join("\n\t",
                     Arrays.stream(bodyNodes).map(Object::toString)
                             .toArray(String[]::new));
         }

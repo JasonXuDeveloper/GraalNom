@@ -33,6 +33,8 @@ public class NomContext {
 
     public static final Map<String, NomClass> classes = new java.util.HashMap<>();
 
+    public static NomClass mainClass;
+
     public static final Map<NomClass, Map<String, NomFunction>> functionsObject = new HashMap<>();
     public static final Map<String, NomFunction> builtinFunctions = new HashMap<>();
     private static final TruffleLanguage.ContextReference<NomContext> REFERENCE = TruffleLanguage.ContextReference.create(NomLanguage.class);

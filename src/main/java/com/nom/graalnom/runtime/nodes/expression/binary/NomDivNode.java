@@ -13,6 +13,11 @@ public abstract class NomDivNode extends NomBinaryNode {
     }
 
     @Specialization
+    protected long doLongOverflow(long left, long right) {
+        return left / right;
+    }
+
+    @Specialization
     protected double doDouble(double left, double right) {
         return left / right;
     }

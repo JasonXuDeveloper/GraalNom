@@ -3,8 +3,6 @@ package com.nom.graalnom.runtime.reflections;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.NomTypeListConstant;
 
-import java.util.List;
-
 public class NomStaticMethod {
     public String name;
     public String qName;

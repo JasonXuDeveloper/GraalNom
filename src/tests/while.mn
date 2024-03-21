@@ -1,0 +1,17 @@
+class WhileTest
+{
+    public static fun Main() : Bool
+    {
+        Int i = 3;
+        Int a = 10;
+        while(i > 0)
+        {
+            i = i - 1;
+            while(a > i)
+            {
+                a *= i;
+            }
+        }
+        return a > i;
+    }
+}

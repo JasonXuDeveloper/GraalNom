@@ -2,6 +2,7 @@ package com.nom.graalnom.test;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
+import com.nom.graalnom.runtime.datatypes.NomFunction;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.junit.Test;
@@ -18,6 +19,7 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class TestCases {
     private void PrintConstants() {
@@ -29,7 +31,16 @@ public class TestCases {
                             .indexOf(constant) + " " +
                     (constant != null ? constant.getClass().getSimpleName() : "null"));
         }
+    }
 
+    private void PrintMainClassMethods() {
+        System.out.println();
+        System.out.println("Main Class Methods:");
+        Map<String, NomFunction> map = NomContext.functionsObject.get(NomContext.mainClass);
+        for (var method : map.values()) {
+            System.out.println(method.getCallTarget().getRootNode().toString());
+            System.out.println();
+        }
     }
 
     private static void Compile(String mainClass) throws Exception {
@@ -74,6 +85,7 @@ public class TestCases {
         //create a new context
         try (Context context = Context.create()) {
             Value ret = context.eval(NomLanguage.ID, path.toString());
+            PrintMainClassMethods();
             System.out.println();
             System.out.println("Returned value:");
             System.out.println(ret);
@@ -91,11 +103,30 @@ public class TestCases {
         //create a new context
         try (Context context = Context.create()) {
             Value ret = context.eval(NomLanguage.ID, path.toString());
+            PrintMainClassMethods();
             System.out.println();
             System.out.println("Returned value:");
             System.out.println(ret);
             assert ret.isBoolean();
             assert ret.asBoolean() == new BranchTestJavaImpl().BranchTestMainJava();
+        }
+    }
+
+    @Test
+    public void WhileTest() throws Exception {
+        Compile("WhileTest");
+        Path path = Paths.get("src/tests/Test.manifest");
+        //to absolute path
+        path = path.toAbsolutePath();
+        //create a new context
+        try (Context context = Context.create()) {
+            Value ret = context.eval(NomLanguage.ID, path.toString());
+            PrintMainClassMethods();
+            System.out.println();
+            System.out.println("Returned value:");
+            System.out.println(ret);
+            assert ret.isBoolean();
+            assert ret.asBoolean() == new WhileTestJavaImpl().WhileTestMainJava();
         }
     }
 }
