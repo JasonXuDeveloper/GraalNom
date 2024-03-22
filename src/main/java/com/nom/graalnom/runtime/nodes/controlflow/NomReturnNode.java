@@ -50,12 +50,10 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 /**
  * Implementation of the Nom return statement. We need to unwind an unknown number of interpreter
  * frames that are between this {@link NomReturnNode} and the {@link NomFunctionBodyNode} of the
- * method we are exiting. This is done by throwing an {@link NomReturnException exception} that is
- * caught by the {@link NomFunctionBodyNode#executeGeneric function body}. The exception transports
- * the return value.
+ * method we are exiting. This is done by {@link NomFunctionBodyNode#executeGeneric function body checks the last node type and handle return}.
  */
 @NodeInfo(shortName = "return", description = "The node implementing a return statement")
-public final class NomReturnNode extends NomStatementNode {
+public final class NomReturnNode extends NomEndOfBasicBlockNode {
 
     @Node.Child
     public NomExpressionNode valueNode;

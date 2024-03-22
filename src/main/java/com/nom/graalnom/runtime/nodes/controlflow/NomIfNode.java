@@ -12,7 +12,7 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.CountingConditionProfile;
 
 @NodeInfo(shortName = "if", description = "The node implementing a conditional statement")
-public final class NomIfNode extends NomStatementNode {
+public final class NomIfNode extends NomEndOfBasicBlockNode {
     @Child
     public NomBranchNode trueBranch;
     @Child

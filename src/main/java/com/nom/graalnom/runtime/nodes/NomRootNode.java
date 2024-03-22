@@ -49,6 +49,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.*;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * The root of all Nom execution trees. It is a Truffle requirement that the tree root extends the
  * class {@link RootNode}. This class is used for both builtin and user-defined functions. For
@@ -104,5 +109,177 @@ public class NomRootNode extends RootNode {
         arg.append(")");
         return "func " + name + arg +
                 ":\n{" + bodyNode.toString() + "}";
+    }
+
+    public String toDotGraph() {
+        if (!(bodyNode instanceof NomFunctionBodyNode funcBodyNode)) {
+            throw new RuntimeException("RootNode bodyNode is not a NomFunctionBodyNode");
+        }
+
+        StringBuilder dot = new StringBuilder("digraph {\n");
+        dot.append("  rankdir=TB;\n");
+
+        NomBasicBlockNode[] bodyNodes = funcBodyNode.bodyNodes;
+        for (int i = 0; i < bodyNodes.length; i++) {
+            NomBasicBlockNode basicBlockNode = bodyNodes[i];
+            List<String> nodesInBlock = new ArrayList<>();
+            List<String> nodeNamesInBlock = new ArrayList<>();
+            StringBuilder nodeBuilder = new StringBuilder();
+            // all instructions in the block
+            nodeBuilder.append('b').append(i).append("_l0 [label=\"");
+            NomStatementNode[] nodes = basicBlockNode.bodyNodes;
+            for (int j = 0; j < nodes.length - 1; j++) {
+                NomStatementNode node = nodes[j];
+                nodeBuilder.append(node.toString()).append("\\").append("n");
+            }
+            nodeBuilder.append("\", shape=box]\n");
+
+            boolean hasL0 = !nodeBuilder.toString().contains("label=\"\"");
+            if (hasL0) {
+                nodeNamesInBlock.add("b" + i + "_l0");
+                nodesInBlock.add(nodeBuilder.toString());
+            }
+
+            //branch
+            if (basicBlockNode.getTerminatingNode() instanceof NomBranchNode branchNode) {
+                if(!hasL0){
+                    nodeBuilder = new StringBuilder();
+                    nodeBuilder.append('b')
+                            .append(i).append("_l0 [label=\"placeholder\", shape=box]\n");
+                    nodesInBlock.add(nodeBuilder.toString());
+                    nodeNamesInBlock.add("b" + i + "_l0");
+                }
+                //mappings
+                if (branchNode.mappings != null && branchNode.mappings.length > 0) {
+                    dot.append("  ")
+                            .append(nodeNamesInBlock.getLast()).append(" -> b")
+                            .append(i).append("_jmp\n");
+                    nodeBuilder = new StringBuilder();
+                    nodeBuilder.append('b')
+                            .append(i).append("_jmp [label=\"");
+                    for (NomStatementNode node : branchNode.mappings) {
+                        nodeBuilder.append(node.toString()).append("\\").append("n");
+                    }
+                    nodeBuilder.append("\", shape=box]\n");
+                    nodesInBlock.add(nodeBuilder.toString());
+                    nodeNamesInBlock.add("b" + i + "_jmp");
+                }
+
+                //last node jumps
+                dot.append("  ")
+                        .append(nodeNamesInBlock.getLast()).append(" -> b")
+                        .append(branchNode.getSuccessor()).append("_l0\n");
+            }
+            //condBranch
+            else if (basicBlockNode.getTerminatingNode() instanceof NomIfNode ifNode) {
+                //cond
+                if (hasL0) {
+                    dot.append("  ")
+                            .append(nodeNamesInBlock.getLast()).append(" -> b")
+                            .append(i).append("_cond\n");
+                    dot.append("  b")
+                            .append(i).append("_cond [label=\"")
+                            .append(ifNode.conditionNode.toString()).append("\", shape=diamond]\n");
+                    nodeNamesInBlock.add("b" + i + "_cond");
+                } else {
+                    dot.append("  b")
+                            .append(i).append("_l0 [label=\"")
+                            .append(ifNode.conditionNode.toString()).append("\", shape=diamond]\n");
+                    nodeNamesInBlock.add("b" + i + "_l0");
+                }
+                //true branch
+                NomBranchNode branchNode = ifNode.trueBranch;
+                //mappings
+                if (branchNode.mappings != null && branchNode.mappings.length > 0) {
+                    dot.append("  ")
+                            .append(nodeNamesInBlock.getLast()).append(" -> b")
+                            .append(i).append("_true [label=\"true\"]\n");
+                    nodeBuilder = new StringBuilder();
+                    nodeBuilder.append('b')
+                            .append(i).append("_true [label=\"");
+                    for (NomStatementNode node : branchNode.mappings) {
+                        nodeBuilder.append(node.toString()).append("\\").append("n");
+                    }
+                    nodeBuilder.append("\", shape=box]\n");
+                    nodesInBlock.add(nodeBuilder.toString());
+                    nodeNamesInBlock.add("b" + i + "_true");
+
+                    //last node jumps
+                    dot.append("  b")
+                            .append(i).append("_true -> b")
+                            .append(branchNode.getSuccessor()).append("_l0 \n");
+                } else {
+                    dot.append("  ")
+                            .append(nodeNamesInBlock.getLast()).append(" -> b")
+                            .append(branchNode.getSuccessor()).append("_l0 [label=\"true\"]\n");
+                }
+
+                //false branch
+                branchNode = ifNode.falseBranch;
+                //mappings
+                if (branchNode.mappings != null && branchNode.mappings.length > 0) {
+                    dot.append("  ")
+                            .append(nodeNamesInBlock.getLast()).append(" -> b")
+                            .append(i).append("_false [label=\"false\"]\n");
+                    nodeBuilder = new StringBuilder();
+                    nodeBuilder.append('b')
+                            .append(i).append("_false [label=\"");
+                    for (NomStatementNode node : branchNode.mappings) {
+                        nodeBuilder.append(node.toString()).append("\\").append("n");
+                    }
+                    nodeBuilder.append("\", shape=box]\n");
+                    nodesInBlock.add(nodeBuilder.toString());
+                    nodeNamesInBlock.add("b" + i + "_false");
+
+                    //last node jumps
+                    dot.append("  b")
+                            .append(i).append("_false -> b")
+                            .append(branchNode.getSuccessor()).append("_l0 \n");
+                } else {
+                    dot.append("  ")
+                            .append(nodeNamesInBlock.getLast()).append(" -> b")
+                            .append(branchNode.getSuccessor()).append("_l0 [label=\"false\"]\n");
+                }
+            } else if (basicBlockNode.getTerminatingNode() instanceof NomReturnNode returnNode) {
+                if (hasL0) {
+                    dot.append("  ")
+                            .append(nodeNamesInBlock.getLast()).append(" -> b")
+                            .append(i).append("_ret\n");
+                    nodeBuilder = new StringBuilder();
+                    nodeBuilder.append('b')
+                            .append(i).append("_ret [label=\"")
+                            .append(returnNode).append("\"]\n");
+                    nodesInBlock.add(nodeBuilder.toString());
+                    nodeNamesInBlock.add("b" + i + "_ret");
+                } else {
+                    nodeBuilder = new StringBuilder();
+                    nodeBuilder.append('b')
+                            .append(i).append("_l0 [label=\"")
+                            .append(returnNode).append("\"]\n");
+                    nodesInBlock.add(nodeBuilder.toString());
+                    nodeNamesInBlock.add("b" + i + "_l0");
+                }
+            }
+
+            //add nodes
+            for (String node : nodesInBlock) {
+                dot.append("  ").append(node);
+            }
+
+            //add cluster
+            dot.append("  subgraph cluster_b").append(i).append(" {\n");
+            dot.append("    label = \"").append(basicBlockNode.blockName).append("\";\n");
+            for (String nodeName : nodeNamesInBlock) {
+                dot.append("    ").append(nodeName).append(";\n");
+            }
+            dot.append("  }\n");
+        }
+
+        //method name
+        dot.append("  ").append("labelloc=\"t\"\n");
+        dot.append("  ").append("label=\"").append(name).append("\"\n");
+
+        dot.append("}");
+        return dot.toString();
     }
 }

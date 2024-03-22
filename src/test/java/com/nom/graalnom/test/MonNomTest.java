@@ -1,10 +1,13 @@
 package com.nom.graalnom.test;
 
+import org.junit.jupiter.api.Test;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+@Test
 @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
 @Target({java.lang.annotation.ElementType.METHOD})
-@interface MonNomSource {
+@interface MonNomTest {
     String filename();
 }

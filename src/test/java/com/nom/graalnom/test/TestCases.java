@@ -7,7 +7,6 @@ import org.graalvm.polyglot.Value;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.nio.file.Paths;
@@ -15,17 +14,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestCases {
-    private static final String compiledManifestPath = "src/tests/Test.manifest";
-    private static final String configManifestPath = "src/tests/Test.mnp";
+    private static final String testPath = "src/tests/";
+    private static final String compiledManifestPath = testPath + "Test.manifest";
+    private static final String configManifestPath = testPath + "Test.mnp";
 
     @BeforeAll
     public static void SetUp() throws Exception {
         //collect test files
         List<String> testFiles = new ArrayList<>();
         for (Method m : TestCases.class.getMethods()) {
-            if (m.isAnnotationPresent(MonNomSource.class) &&
-                    m.isAnnotationPresent(Test.class)) {
-                MonNomSource source = m.getAnnotation(MonNomSource.class);
+            if (m.isAnnotationPresent(MonNomTest.class)) {
+                MonNomTest source = m.getAnnotation(MonNomTest.class);
                 testFiles.add(source.filename());
             }
         }
@@ -75,31 +74,30 @@ public class TestCases {
         Value ret = context.eval(NomLanguage.ID,
                 GetTestString(nameofCurrMethod, true, debug, false));
         TestUtil.PrintClassMethods(TestUtil.GetClass(nameofCurrMethod));
+        TestUtil.ExportClassMethodsDotGraphs(TestUtil.GetClass(nameofCurrMethod),
+                Paths.get(testPath, "graphs", nameofCurrMethod).toString());
         System.out.println();
         System.out.println("Returned value:");
         System.out.println(ret);
         return ret;
     }
 
-    @Test
     @ByteCodeDebug
-    @MonNomSource(filename = "simple")
+    @MonNomTest(filename = "simple")
     public void SimpleTest() {
         Value ret = RunTest();
         assert ret.isNumber();
         assert ret.asLong() == 30;
     }
 
-    @Test
-    @MonNomSource(filename = "branch")
+    @MonNomTest(filename = "branch")
     public void BranchTest() {
         Value ret = RunTest();
         assert ret.isBoolean();
         assert ret.asBoolean() == new BranchTestJavaImpl().BranchTestMainJava();
     }
 
-    @Test
-    @MonNomSource(filename = "while")
+    @MonNomTest(filename = "while")
     public void WhileTest() {
         Value ret = RunTest();
         assert ret.isBoolean();

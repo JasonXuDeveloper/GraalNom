@@ -2,6 +2,7 @@ package com.nom.graalnom.test;
 
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
+import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import org.xml.sax.InputSource;
 
@@ -12,6 +13,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,9 +47,37 @@ public class TestUtil {
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static void ExportClassMethodsDotGraphs(NomClass cls, String directory) {
+        //create directory if not exists
+        File dir = new File(directory);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        System.out.println();
+        System.out.println(cls.GetName().toString() + " Class methods dot graphs:");
+        Map<String, NomFunction> map = NomContext.functionsObject.get(cls);
+        for (var method : map.values()) {
+            String dot = ((NomRootNode) method.getCallTarget().getRootNode()).toDotGraph();
+            String outputPath = Paths.get(directory, method.getName() + ".svg").toString();
+            //echo '$dot' | dot -Tsvg > $outputPath
+            String shellScript = "echo '" + dot + "' | dot -Tsvg > " + outputPath;
+            try {
+                ExecuteShell("sh","-c", shellScript);
+                System.out.println("Exported " + method.getName() + " to " + outputPath);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public static void Compile() throws Exception {
         //call shell
-        String[] cmd = {"sh", "compiler.sh", "-p ./src/tests", "--project Test"};
+        ExecuteShell("sh", "compiler.sh", "-p ./src/tests", "--project Test");
+    }
+
+    public static void ExecuteShell(String... cmd) throws Exception {
+        //call shell
         Process process = Runtime.getRuntime().exec(cmd);
         int exitValue = process.waitFor();
         if (exitValue != 0) {

@@ -63,7 +63,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
      * The body of the function.
      */
     @Node.Children
-    private NomBasicBlockNode[] bodyNodes;
+    public NomBasicBlockNode[] bodyNodes;
 
     private int curIndex;
 
@@ -84,7 +84,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
             }
             NomBasicBlockNode block = bodyNodes[curIndex];
             block.executeVoid(frame);
-            NomStatementNode stmt = block.getTerminatingNode();
+            NomEndOfBasicBlockNode stmt = block.getTerminatingNode();
             switch (stmt) {
                 case NomBranchNode br -> {
                     for (NomStatementNode mapStmt : br.mappings) {

@@ -8,7 +8,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import java.util.Arrays;
 import java.util.Collection;
 
-public final class NomBranchNode extends NomStatementNode {
+public final class NomBranchNode extends NomEndOfBasicBlockNode {
     private int successor;
     @Children
     public NomStatementNode[] mappings;

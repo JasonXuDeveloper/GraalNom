@@ -51,11 +51,11 @@ public final class NomBasicBlockNode extends NomStatementNode implements BlockNo
         }
     }
 
-    public NomStatementNode getTerminatingNode() {
+    public NomEndOfBasicBlockNode getTerminatingNode() {
         if (this.bodyNodes.length == 0) {
             return null;
         }
-        return this.bodyNodes[this.bodyNodes.length - 1];
+        return (NomEndOfBasicBlockNode)this.bodyNodes[this.bodyNodes.length - 1];
     }
 
     /**
