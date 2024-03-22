@@ -75,7 +75,7 @@ public class TestCases {
                 GetTestString(nameofCurrMethod, true, debug, false));
         TestUtil.PrintClassMethods(TestUtil.GetClass(nameofCurrMethod));
         TestUtil.ExportClassMethodsDotGraphs(TestUtil.GetClass(nameofCurrMethod),
-                Paths.get(testPath, "graphs", nameofCurrMethod).toString());
+                Paths.get(testPath, "graphs").toString());
         System.out.println();
         System.out.println("Returned value:");
         System.out.println(ret);

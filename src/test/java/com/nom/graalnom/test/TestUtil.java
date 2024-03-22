@@ -49,13 +49,14 @@ public class TestUtil {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void ExportClassMethodsDotGraphs(NomClass cls, String directory) {
+        directory = Paths.get(directory, cls.GetName().toString()).toString();
         //create directory if not exists
         File dir = new File(directory);
         if (!dir.exists()) {
             dir.mkdirs();
         }
         System.out.println();
-        System.out.println(cls.GetName().toString() + " Class methods dot graphs:");
+        System.out.println(cls.GetName().toString() + " Class methods control flow graphs:");
         Map<String, NomFunction> map = NomContext.functionsObject.get(cls);
         for (var method : map.values()) {
             String dot = ((NomRootNode) method.getCallTarget().getRootNode()).toDotGraph();
