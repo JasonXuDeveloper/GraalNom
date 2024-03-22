@@ -23,6 +23,7 @@ import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.json.JSONObject;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -55,17 +56,33 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     @Override
     protected CallTarget parse(ParsingRequest request) throws Exception {
         String req = request.getSource().getCharacters().toString();
+        String manifestPathStr = null;
         String mainClass = null;
-        boolean invoke = true;
-        if (req.contains("|")) {
-            String[] parts = req.split("\\|");
-            req = parts[0];
-            mainClass = parts[1];
-            invoke = Boolean.parseBoolean(parts[2]);
+        boolean invokeMain = true;
+        boolean debug = false;
+        boolean ignoreErrorBytecode = false;
+        //parse request
+        JSONObject jo = new JSONObject(req);
+        if (jo.has("manifestPath")) {
+            manifestPathStr = jo.getString("manifestPath");
         }
-        if (!loadedManifests.contains(req)) {
-            loadedManifests.add(req);
-            Path manifestPath = Path.of(req);
+        if (jo.has("mainClass")) {
+            mainClass = jo.getString("mainClass");
+        }
+        if (jo.has("invokeMain")) {
+            invokeMain = jo.getBoolean("invokeMain");
+        }
+        if (jo.has("debug")) {
+            debug = jo.getBoolean("debug");
+        }
+        if (jo.has("ignoreErrorBytecode")) {
+            ignoreErrorBytecode = jo.getBoolean("ignoreErrorBytecode");
+        }
+        //if we are debugging, even if we preloaded it we still curious what the bytecodereader does
+        if (!loadedManifests.contains(manifestPathStr) || debug) {
+            loadedManifests.add(manifestPathStr);
+            assert manifestPathStr != null;
+            Path manifestPath = Path.of(manifestPathStr);
             Path dirPath = manifestPath.getParent();
             //load manifest file in manifestPath
             String manifest = Files.readString(manifestPath);
@@ -87,11 +104,18 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
                 file = dirPath.resolve(file).toString();
 
                 //load bytecode
-                ByteCodeReader.ReadBytecodeFile(this, file, false);
+                try {
+                    ByteCodeReader.ReadBytecodeFile(this, file, debug);
+                } catch (Exception e) {
+                    if (!ignoreErrorBytecode) {
+                        throw e;
+                    }
+                    System.out.println("Error loading bytecode " + file + ": " + e.getMessage());
+                }
             }
         }
 
-        if (!invoke) {
+        if (!invokeMain) {
             return new NomRootNode(
                     this, new FrameDescriptor(),
                     new NomFunctionBodyNode(new NomBasicBlockNode[]{
@@ -103,6 +127,10 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         }
 
         NomClass main = NomContext.classes.get(mainClass);
+        //compatibility
+        if (main == null) {
+            main = NomContext.classes.get(mainClass + "_0");
+        }
 
         NomFunction mainFunc = null;
         for (var method : main.StaticMethods) {

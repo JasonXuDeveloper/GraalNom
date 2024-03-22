@@ -4,18 +4,42 @@ import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.test.java.*;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestCases {
+    private static final String compiledManifestPath = "src/tests/Test.manifest";
+    private static final String configManifestPath = "src/tests/Test.mnp";
+
     @BeforeAll
     public static void SetUp() throws Exception {
+        //collect test files
+        List<String> testFiles = new ArrayList<>();
+        for (Method m : TestCases.class.getMethods()) {
+            if (m.isAnnotationPresent(MonNomSource.class) &&
+                    m.isAnnotationPresent(Test.class)) {
+                MonNomSource source = m.getAnnotation(MonNomSource.class);
+                testFiles.add(source.filename());
+            }
+        }
+        if (testFiles.isEmpty()) {
+            throw new Exception("No test files found");
+        }
+        //inject config manifest
+        TestUtil.InjectFiles(configManifestPath, testFiles.toArray(new String[0]));
+        //compile bytecode
         TestUtil.Compile();
+        //load bytecode
         context = Context.create();
-        context.eval(NomLanguage.ID, GetTestString("", false));
+        context.eval(NomLanguage.ID,
+                GetTestString("", false, true, true));
     }
 
     @AfterAll
@@ -25,17 +49,31 @@ public class TestCases {
 
     private static Context context;
 
-    private static String GetTestString(String mainClassName, boolean invokeMain) {
-        return Paths.get("src/tests/Test.manifest").toAbsolutePath()
-                + "|" + mainClassName + "_0|" + invokeMain;
+    private static String GetTestString(String mainClassName, boolean invokeMain,
+                                        boolean debug, boolean ignoreErrorBytecode) {
+        JSONObject jo = new JSONObject();
+        jo.put("manifestPath", Paths.get(compiledManifestPath).toAbsolutePath());
+        jo.put("mainClass", mainClassName);
+        jo.put("invokeMain", invokeMain);
+        jo.put("debug", debug);
+        jo.put("ignoreErrorBytecode", debug);
+        return jo.toString(1);
     }
 
     private static Value RunTest() {
         String nameofCurrMethod = Thread.currentThread()
                 .getStackTrace()[2]
                 .getMethodName();
+        boolean debug;
+        try {
+            debug = TestCases.class.getMethod(nameofCurrMethod)
+                    .isAnnotationPresent(ByteCodeDebug.class);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
         System.out.println(nameofCurrMethod + " output:");
-        Value ret = context.eval(NomLanguage.ID, GetTestString(nameofCurrMethod, true));
+        Value ret = context.eval(NomLanguage.ID,
+                GetTestString(nameofCurrMethod, true, debug, false));
         TestUtil.PrintClassMethods(TestUtil.GetClass(nameofCurrMethod));
         System.out.println();
         System.out.println("Returned value:");
@@ -44,6 +82,8 @@ public class TestCases {
     }
 
     @Test
+    @ByteCodeDebug
+    @MonNomSource(filename = "simple")
     public void SimpleTest() {
         Value ret = RunTest();
         assert ret.isNumber();
@@ -51,6 +91,7 @@ public class TestCases {
     }
 
     @Test
+    @MonNomSource(filename = "branch")
     public void BranchTest() {
         Value ret = RunTest();
         assert ret.isBoolean();
@@ -58,6 +99,7 @@ public class TestCases {
     }
 
     @Test
+    @MonNomSource(filename = "while")
     public void WhileTest() {
         Value ret = RunTest();
         assert ret.isBoolean();

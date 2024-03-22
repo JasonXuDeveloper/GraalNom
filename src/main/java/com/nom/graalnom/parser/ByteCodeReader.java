@@ -32,12 +32,13 @@ import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
+@SuppressWarnings("unused")
 public class ByteCodeReader {
     public static int BYTECODE_VERSION = 2;
 
     private static final HashSet<String> loadedFiles = new HashSet<>();
 
-    public static void ReadBytecodeFile(NomLanguage language, String filename, Boolean debug) throws Exception {
+    public static void ReadBytecodeFile(NomLanguage language, String filename, boolean debug) throws Exception {
         Path path = Paths.get(filename);
         if (!Files.exists(path)) {
             throw new IllegalArgumentException("file not found");
@@ -135,7 +136,7 @@ public class ByteCodeReader {
                                 GetGlobalId(constants, s.readLong()),
                                 TryGetGlobalId(constants, localConstId)));
                     }
-                    case Class -> ReadClass(s, constants, language);
+                    case Class -> ReadClass(s, constants, language, debug);
                     case null, default -> throw new IllegalArgumentException("unknown type (" + b + "): " + nextType);
                 }
                 if (constants.containsKey(localConstId) && debug) {
@@ -162,7 +163,7 @@ public class ByteCodeReader {
         return blocks.get(index);
     }
 
-    public static NomStatementNode ReadInstruction(NomStaticMethod curMethod, LittleEndianDataInputStream s, Map<Long, Long> constants) throws Exception {
+    public static NomStatementNode ReadInstruction(NomStaticMethod curMethod, LittleEndianDataInputStream s, Map<Long, Long> constants, boolean debug) throws Exception {
         int opCodeVal = s.read();
         OpCode opCode = OpCode.fromValue(opCodeVal);
         long nameId;
@@ -170,13 +171,14 @@ public class ByteCodeReader {
         int regIndex;//output register
         int receiverRegIndex;//this instance register
         int curMethodArgCount = curMethod.ArgCount();//how many arguments (register offset)
+        if (debug) {
+            System.out.println("Read " + opCode);
+        }
         switch (opCode) {
             case Noop -> {
                 return null;
             }
-            case Argument -> {
-                args.add(ReadFromFrame(curMethodArgCount, s.readInt()));
-            }
+            case Argument -> args.add(ReadFromFrame(curMethodArgCount, s.readInt()));
             case Return -> {
                 endOfBlock = true;
                 return new NomReturnNode(ReadFromFrame(curMethodArgCount, s.readInt()));
@@ -367,7 +369,7 @@ public class ByteCodeReader {
         return NomWriteRegisterNodeGen.create(value, index);
     }
 
-    public static NomClass ReadClass(LittleEndianDataInputStream s, Map<Long, Long> constants, NomLanguage language) throws Exception {
+    public static void ReadClass(LittleEndianDataInputStream s, Map<Long, Long> constants, NomLanguage language, boolean debug) throws Exception {
         long nameId = GetGlobalId(constants, s.readLong());
         long typeArgsId = GetGlobalId(constants, s.readLong());
         byte visibility = s.readByte();
@@ -388,7 +390,7 @@ public class ByteCodeReader {
         }
         long staticMethodCount = s.readLong();
         while (staticMethodCount > 0) {
-            ReadStaticMethod(s, cls, constants, language);
+            ReadStaticMethod(s, cls, constants, language, debug);
             staticMethodCount--;
         }
         /*
@@ -412,10 +414,9 @@ public class ByteCodeReader {
 				handler->ReadClass(cls);
 			}
          */
-        return cls;
     }
 
-    public static NomStaticMethod ReadStaticMethod(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants, NomLanguage language) throws Exception {
+    public static void ReadStaticMethod(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants, NomLanguage language, boolean debug) throws Exception {
         if (s.read() != BytecodeInternalElementType.StaticMethod.getValue()) {
             throw new IllegalArgumentException("Expected static method, but did not encounter static method marker");
         }
@@ -440,11 +441,8 @@ public class ByteCodeReader {
         args.clear();
         blocks.add(new NomBasicBlockNode(new NomStatementNode[0], "method entry"));
         endOfBlock = false;
-//        int idx = 0;
         while (instructionCount > 0) {
-//            System.out.print(idx++);
-//            System.out.print(' ');
-            NomStatementNode instr = ReadInstruction(meth, s, constants);
+            NomStatementNode instr = ReadInstruction(meth, s, constants, debug);
             instructionCount--;
             if (instr == null) {
                 continue;
@@ -468,10 +466,9 @@ public class ByteCodeReader {
         NomFunction func = new NomFunction(methName, root.getCallTarget());
         var clsFunctions = NomContext.functionsObject.computeIfAbsent(cls, k -> new HashMap<>());
         clsFunctions.put(nameStr, func);
-        return meth;
     }
 
-    public static NomTypedField ReadField(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants) throws Exception {
+    public static void ReadField(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants) throws Exception {
         if (s.read() != BytecodeInternalElementType.Field.getValue()) {
             throw new IllegalArgumentException("Expected field, but did not encounter field marker");
         }
@@ -479,7 +476,7 @@ public class ByteCodeReader {
         long type = GetGlobalId(constants, s.readLong());
         byte visibility = s.readByte();
         byte flags = s.readByte();
-        return cls.AddField(name, type, Visibility.fromValue(visibility), (flags & 1) == 1, (flags & 2) == 2);
+        cls.AddField(name, type, Visibility.fromValue(visibility), (flags & 1) == 1, (flags & 2) == 2);
     }
 
     public static long TryGetGlobalId(Map<Long, Long> constants, long id) {

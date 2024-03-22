@@ -3,8 +3,19 @@ package com.nom.graalnom.test;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.reflections.NomClass;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedInputStream;
+import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 public class TestUtil {
@@ -52,4 +63,30 @@ public class TestUtil {
         }
     }
 
+    public static void InjectFiles(String manifestPath, String... files) throws Exception {
+        Path path = Paths.get(manifestPath);
+        //load manifest file in manifestPath
+        String manifest = Files.readString(path);
+        manifest = manifest.strip();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        var builder = factory.newDocumentBuilder();
+        var doc = builder.parse(new InputSource(new StringReader(manifest)));
+        var filesNode = doc.getElementsByTagName("files")
+                .item(0);
+        filesNode.setTextContent("");
+        for (var file : files) {
+            var node = doc.createElement("file");
+            String f = file;
+            if (!f.endsWith(".mn"))
+                f += ".mn";
+            node.setAttribute("name", f);
+            filesNode.appendChild(node);
+        }
+        //doc to string
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.ENCODING, "utf-8");
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(path.toFile());
+        transformer.transform(source, result);
+    }
 }
