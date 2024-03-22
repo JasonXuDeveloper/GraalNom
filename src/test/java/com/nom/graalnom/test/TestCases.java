@@ -103,4 +103,10 @@ public class TestCases {
         assert ret.isBoolean();
         assert ret.asBoolean() == new WhileTestJavaImpl().WhileTestMainJava();
     }
+
+    @MonNomTest(filename = "mini")
+    public void MiniTest() {
+        Value ret = RunTest();
+        assert ret.isNull();
+    }
 }

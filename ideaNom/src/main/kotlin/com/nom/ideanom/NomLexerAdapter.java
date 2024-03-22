@@ -4,6 +4,6 @@ import com.intellij.lexer.FlexAdapter;
 
 public class NomLexerAdapter extends FlexAdapter {
     public NomLexerAdapter() {
-        super(new NomLexer(null));
+        super(new _NomLexer(null));
     }
 }

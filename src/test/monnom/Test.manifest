@@ -7,6 +7,7 @@
 <nomclass qname="SimpleTest_0" file="SimpleTest_0.mnil"/>
 <nomclass qname="BranchTest_0" file="BranchTest_0.mnil"/>
 <nomclass qname="WhileTest_0" file="WhileTest_0.mnil"/>
+<nomclass qname="MiniTest_0" file="MiniTest_0.mnil"/>
 </classes>
 <interfaces>
 </interfaces>

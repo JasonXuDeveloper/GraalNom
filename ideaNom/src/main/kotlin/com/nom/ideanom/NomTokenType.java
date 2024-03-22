@@ -8,9 +8,4 @@ public class NomTokenType extends IElementType {
     public NomTokenType(@NonNls @NotNull String debugName) {
         super(debugName, NomLanguage.INSTANCE);
     }
-
-    @Override
-    public String toString() {
-        return "NomTokenType." + super.toString();
-    }
 }

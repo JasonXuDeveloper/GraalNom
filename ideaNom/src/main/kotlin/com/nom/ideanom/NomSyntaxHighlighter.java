@@ -12,23 +12,35 @@ import com.intellij.psi.tree.IElementType;
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
 public class NomSyntaxHighlighter extends SyntaxHighlighterBase {
-    public static final TextAttributesKey SEPARATOR =
-            createTextAttributesKey("SIMPLE_SEPARATOR", DefaultLanguageHighlighterColors.OPERATION_SIGN);
-    public static final TextAttributesKey KEY =
-            createTextAttributesKey("SIMPLE_KEY", DefaultLanguageHighlighterColors.KEYWORD);
-    public static final TextAttributesKey VALUE =
-            createTextAttributesKey("SIMPLE_VALUE", DefaultLanguageHighlighterColors.STRING);
+    public static final TextAttributesKey OPERATOR =
+            createTextAttributesKey("Operator", DefaultLanguageHighlighterColors.OPERATION_SIGN);
+    public static final TextAttributesKey KEYWORDS =
+            createTextAttributesKey("Keywords", DefaultLanguageHighlighterColors.KEYWORD);
+    public static final TextAttributesKey IDENTIFIER =
+            createTextAttributesKey("Identifier", DefaultLanguageHighlighterColors.IDENTIFIER);
+    public static final TextAttributesKey COMMA =
+            createTextAttributesKey("Comma", DefaultLanguageHighlighterColors.COMMA);
+    public static final TextAttributesKey ClassName =
+            createTextAttributesKey("ClassName", DefaultLanguageHighlighterColors.CLASS_NAME);
     public static final TextAttributesKey COMMENT =
-            createTextAttributesKey("SIMPLE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
+            createTextAttributesKey("Comment", DefaultLanguageHighlighterColors.LINE_COMMENT);
+    public static final TextAttributesKey STRING =
+            createTextAttributesKey("String", DefaultLanguageHighlighterColors.STRING);
+    public static final TextAttributesKey CONSTANTS =
+            createTextAttributesKey("Constant", DefaultLanguageHighlighterColors.CONSTANT);
     public static final TextAttributesKey BAD_CHARACTER =
-            createTextAttributesKey("SIMPLE_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER);
+            createTextAttributesKey("Bad Character", HighlighterColors.BAD_CHARACTER);
 
 
     private static final TextAttributesKey[] BAD_CHAR_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
-    private static final TextAttributesKey[] SEPARATOR_KEYS = new TextAttributesKey[]{SEPARATOR};
-    private static final TextAttributesKey[] KEY_KEYS = new TextAttributesKey[]{KEY};
-    private static final TextAttributesKey[] VALUE_KEYS = new TextAttributesKey[]{VALUE};
+    private static final TextAttributesKey[] OPERATOR_KEYS = new TextAttributesKey[]{OPERATOR};
+    private static final TextAttributesKey[] IDENTIFIER_KEYS = new TextAttributesKey[]{IDENTIFIER};
+    private static final TextAttributesKey[] COMMA_KEYS = new TextAttributesKey[]{COMMA};
+    private static final TextAttributesKey[] CLASSNAME_KEYS = new TextAttributesKey[]{ClassName};
     private static final TextAttributesKey[] COMMENT_KEYS = new TextAttributesKey[]{COMMENT};
+    private static final TextAttributesKey[] STRING_KEYS = new TextAttributesKey[]{STRING};
+    private static final TextAttributesKey[] KEYWORDS_KEYS = new TextAttributesKey[]{KEYWORDS};
+    private static final TextAttributesKey[] CONSTANTS_KEYS = new TextAttributesKey[]{CONSTANTS};
     private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
 
     @NotNull
@@ -39,21 +51,71 @@ public class NomSyntaxHighlighter extends SyntaxHighlighterBase {
 
     @Override
     public TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
-        if (tokenType.equals(NomTypes.SEPARATOR)) {
-            return SEPARATOR_KEYS;
-        }
-        if (tokenType.equals(NomTypes.KEY)) {
-            return KEY_KEYS;
-        }
-        if (tokenType.equals(NomTypes.VALUE)) {
-            return VALUE_KEYS;
-        }
         if (tokenType.equals(NomTypes.COMMENT)) {
             return COMMENT_KEYS;
         }
         if (tokenType.equals(TokenType.BAD_CHARACTER)) {
             return BAD_CHAR_KEYS;
         }
+        if (tokenType.equals(NomTypes.ADDSUBOP)) {
+            return OPERATOR_KEYS;
+        }
+        if (tokenType.equals(NomTypes.IDENT)) {
+            return IDENTIFIER_KEYS;
+        }
+        if (tokenType.equals(NomTypes.COMMA)) {
+            return COMMA_KEYS;
+        }
+        if (tokenType.equals(NomTypes.DECLIDENT)) {
+            return CLASSNAME_KEYS;
+        }
+        if (tokenType.equals(NomTypes.STRING)) {
+            return STRING_KEYS;
+        }
+        if (tokenType.equals(NomTypes.INT) ||
+                tokenType.equals(NomTypes.FLOAT) ||
+                tokenType.equals(NomTypes.NUL)
+        ) {
+            return CONSTANTS_KEYS;
+        }
+        if (tokenType.equals(NomTypes.PUBLIC) ||
+                tokenType.equals(NomTypes.PRIVATE) ||
+                tokenType.equals(NomTypes.PROTECTED) ||
+                tokenType.equals(NomTypes.INTERNAL) ||
+                tokenType.equals(NomTypes.INTERNAL_PROT) ||
+                tokenType.equals(NomTypes.STATIC) ||
+                tokenType.equals(NomTypes.ABSTRACT) ||
+                tokenType.equals(NomTypes.PARTIAL) ||
+                tokenType.equals(NomTypes.EXPANDO) ||
+                tokenType.equals(NomTypes.FINAL) ||
+                tokenType.equals(NomTypes.VIRTUAL) ||
+                tokenType.equals(NomTypes.READONLY) ||
+                tokenType.equals(NomTypes.OVERRIDE) ||
+                tokenType.equals(NomTypes.INTERFACE) ||
+                tokenType.equals(NomTypes.CLASS) ||
+                tokenType.equals(NomTypes.FUN) ||
+                tokenType.equals(NomTypes.RETURN) ||
+                tokenType.equals(NomTypes.IFNULL) ||
+                tokenType.equals(NomTypes.IFOBJ) ||
+                tokenType.equals(NomTypes.IF) ||
+                tokenType.equals(NomTypes.ELSE) ||
+                tokenType.equals(NomTypes.ELSEIF) ||
+                tokenType.equals(NomTypes.WHILE) ||
+                tokenType.equals(NomTypes.FOR) ||
+                tokenType.equals(NomTypes.FOREACH) ||
+                tokenType.equals(NomTypes.BREAK) ||
+                tokenType.equals(NomTypes.CONTINUE) ||
+                tokenType.equals(NomTypes.SUPER) ||
+                tokenType.equals(NomTypes.CONSTRUCT) ||
+                tokenType.equals(NomTypes.NEW) ||
+                tokenType.equals(NomTypes.LET) ||
+                tokenType.equals(NomTypes.LETVAR) ||
+                tokenType.equals(NomTypes.TRUE) ||
+                tokenType.equals(NomTypes.FALSE)
+        ) {
+            return KEYWORDS_KEYS;
+        }
+
         return EMPTY_KEYS;
     }
 }

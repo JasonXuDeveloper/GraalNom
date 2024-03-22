@@ -11,10 +11,241 @@
   elementTypeHolderClass="com.nom.ideanom.NomTypes"
   elementTypeClass="com.nom.ideanom.NomElementType"
   tokenTypeClass="com.nom.ideanom.NomTokenType"
+
+  tokens = [
+    WHITE_SPACE = "regexp:[ \t\r\n]+"
+    STRING = "regexp:\"[^\"]*\""
+    FLOAT = "regexp:([0-9]+)?\\.[0-9]+"
+    INT = "regexp:[0-9]+"
+    TRUE  = "true"
+    FALSE  = "false"
+
+    USING_TKN = "using"
+    ABSTRACT = "abstract"
+    PARTIAL = "partial"
+    EXPANDO = "expando"
+    READONLY = "readonly"
+    NAMESPACE = "namespace"
+    INTERFACE  = "interface"
+    CLASS  = "class"
+    INSTANCE  = "instance"
+    EXTENDS  = "extends"
+    IMPLEMENTS  = "implements"
+    DYN  = "dyn"
+    STATIC  = "static"
+    FINAL  = "final"
+    NUL  = "null"
+    VIRTUAL  = "virtual"
+    OVERRIDE  = "override"
+    MULTI = "multi"
+    DEFAULT = "default"
+    SHAPE = "shape"
+    MATERIAL = "material"
+    IN = "in"
+    OUT = "out"
+    INOUT = "inout"
+    CALLTARGET = "calltarget"
+
+    PUBLIC = "public"
+    PRIVATE = "private"
+    PROTECTED = "protected"
+    INTERNAL = "internal"
+    INTERNAL_PROT = "regexp:(internal[ \t\r\n]+protected)|(protected[ \t\r\n]+internal)"
+
+    IFNULL = "ifnull"
+    IFOBJ  = "ifobj"
+    IF = "if"
+    ELSE = "else"
+    ELSEIF = "elseif"
+    WHILE = "while"
+    FOR = "for"
+    FOREACH = "foreach"
+    RETURN = "return"
+    BREAK = "break"
+    CONTINUE = "continue"
+    FUN = "fun"
+    SUPER = "super"
+    CONSTRUCT = "constructor"
+    NEW = "new"
+    LET = "let"
+    LETVAR = "letvar"
+    DBG = "DEBUG"
+    ERR = "ERROR"
+    RUNTIMECMD = "RUNTIMECMD"
+
+    SEMICOLON = ";"
+    COLONCOLON  = "::"
+    COLON  = ":"
+    DOT = "."
+    DOTDOT = ".."
+    COMMA = ","
+    LPAREN = "("
+    RPAREN = ")"
+    LBRACKET = "["
+    RBRACKET = "]"
+    LBRACE = "{"
+    RBRACE = "}"
+    LANGLE = "<"
+    RANGLE = ">"
+    ARROW = "->"
+    QMARK = "?"
+
+    AND = "&&"
+    OR = "||"
+    APPEND = "++"
+    PLUS = "+"
+    MINUS = "-"
+    SLASH = "/"
+    TIMES = "*"
+    POW = "**"
+    PERCENT = "%"
+    EQ = "="
+    EQEQ = "=="
+    NEQ = "!="
+    EQEQEQ = "==="
+    LEQ = "<="
+    GEQ = ">="
+    BITXOR = "^"
+    BITAND  = "&"
+    BITOR  = "|"
+    PLUSEQ  = "+="
+    MINUSEQ  = "-="
+    TIMESEQ  = "*="
+    DIVEQ  = "/="
+    BIGARROW  = "=>"
+
+
+    BANG = "!"
+
+    ID = "regexp:[a-zA-Z_][a-zA-Z0-9_]*"
+
+    COMMENT = "regexp:#.*?[\r\n]"
+  ]
 }
 
-nomFile ::= item_*
+nomFile ::= (using)*(classdef|interfacedef|ns)*
+using ::= USING_TKN refqname SEMICOLON
+typeident ::= ident (LANGLE (typearg (COMMA typearg)*)? RANGLE)?
+declident ::= ident (LANGLE (typeargspec (COMMA typeargspec)*)? RANGLE)?
+refident ::= ident (LANGLE (type (COMMA type)*)? RANGLE)?
+typeqname ::= COLONCOLON? (typeident DOT)* typeident
+declqname ::= (declident DOT)* declident
+refqname ::= COLONCOLON? (refident DOT)* refident
+ns ::= NAMESPACE declqname LBRACE (classdef|interfacedef|ns)* RBRACE
+visibility ::= PRIVATE | PROTECTED | INTERNAL_PROT | INTERNAL | PUBLIC
+defaultexpr ::= STRING | INT | MINUS INT | FLOAT | TRUE | FALSE
+| NUL | ctype COLONCOLON ident (LBRACKET (defaultexpr (COMMA defaultexpr)*)? RBRACKET)?
+| LBRACKET (defaultexpr (COMMA defaultexpr)*)? RBRACKET
+| ident
+expr ::= expr_no_recur expr_prime*
+expr_no_recur ::= NEW refqname LPAREN (expr (COMMA expr)*)? RPAREN
+| NEW structfielddecls LBRACE (methdef)* structassignments RBRACE
+| LPAREN dtype RPAREN expr
+| LPAREN expr RPAREN
+| rangeexpr
+| ctype COLONCOLON ident LPAREN (expr (COMMA expr)*)? RPAREN
+| LBRACE (expr (COMMA expr)*)? RBRACE
+| (ident? COLONCOLON)? ident LANGLE (type (COMMA type)*)? RANGLE
+| STRING
+| INT
+| MINUS INT
+| FLOAT
+| MINUS FLOAT
+| TRUE
+| FALSE
+| NUL
+| BANG expr
+| ctype COLONCOLON ident (LBRACKET (expr (COMMA expr)*)? RBRACKET)?
+| LBRACKET (expr (COMMA expr)*)? RBRACKET
+| ident
+| LET structfielddecl IN expr
+| LETVAR ident EQ expr IN expr
+| argdecl BIGARROW lambdabody (COLON dtype)?
+| LPAREN (argdecl (COMMA argdecl)*)? RPAREN BIGARROW lambdabody (COLON dtype)?
+| MINUS expr
 
-private item_ ::= (property|COMMENT|CRLF)
 
-property ::= (KEY? SEPARATOR VALUE?) | KEY
+expr_prime ::= DOT refident
+| LPAREN (expr (COMMA expr)*)? RPAREN
+| POW expr
+| divmultop expr
+| PERCENT expr
+| addsubop expr
+| BITAND expr
+| BITXOR expr
+| BITOR expr
+| APPEND expr
+| LANGLE expr
+| RANGLE expr
+| LEQ expr
+| GEQ expr
+| EQEQ expr
+| NEQ expr
+| AND expr
+| OR expr
+| EQEQEQ
+
+lambdabody ::= expr | block
+rangeexpr ::= LBRACKET DOTDOT expr RBRACKET
+| LBRACKET expr DOTDOT expr RBRACKET
+| LBRACKET DOTDOT expr COLON expr RBRACKET
+| LBRACKET expr DOTDOT expr COLON expr RBRACKET
+divmultop ::= TIMES | SLASH
+addsubop ::= PLUS | MINUS
+stmt ::= (expr DOT)? ident EQ expr SEMICOLON
+| (expr DOT)? ident PLUSEQ expr SEMICOLON
+| (expr DOT)? ident MINUSEQ expr SEMICOLON
+| (expr DOT)? ident TIMESEQ expr SEMICOLON
+| (expr DOT)? ident DIVEQ expr SEMICOLON
+| dtype ident EQ expr SEMICOLON
+| dtype ident SEMICOLON
+| expr SEMICOLON
+| DBG LPAREN STRING RPAREN SEMICOLON
+| ERR LPAREN expr RPAREN SEMICOLON
+| RUNTIMECMD LPAREN STRING RPAREN SEMICOLON
+| BREAK (INT)? SEMICOLON
+| CONTINUE (INT)? SEMICOLON
+| RETURN expr? SEMICOLON
+| IF LPAREN expr RPAREN block (ELSEIF LPAREN expr RPAREN block)* (ELSE block)?
+| IFNULL LPAREN ident RPAREN block (ELSE block)?
+| IFOBJ LPAREN ident RPAREN block (ELSE block)?
+| IF LPAREN ident COLON type RPAREN block (ELSE block)?
+| WHILE LPAREN expr RPAREN block
+| FOREACH LPAREN argdecl IN expr RPAREN block
+block ::= LBRACE (stmt)* RBRACE
+ident ::= ID
+typearg ::= type
+typeident2 ::= ident (LANGLE (typearg (COMMA typearg)*)? RANGLE)
+typeqname2 ::= COLONCOLON? (typeident2 DOT)* typeident2
+ctype ::= typeqname
+ctype2 ::= typeqname2
+typeargspec ::= ident | ident EXTENDS ctype2
+inheritancedecl ::= refqname
+interfacedef ::= (visibility | PARTIAL | MATERIAL | SHAPE)* INTERFACE declident (EXTENDS inheritancedecl (COMMA inheritancedecl)*)? LBRACE (methdecl | interfacedef)* RBRACE
+classdef ::= (FINAL | visibility | ABSTRACT | PARTIAL | MATERIAL | SHAPE)* CLASS ID (EXTENDS inheritancedecl)? (IMPLEMENTS inheritancedecl (COMMA inheritancedecl)*)? LBRACE (methdef | fielddecl | constructor | staticmethdef | staticfielddecl | classdef | interfacedef | instancedecl)* RBRACE
+constructor ::= (visibility)? CONSTRUCT LPAREN (argdecl (COMMA argdecl)*)? RPAREN LBRACE stmt* (SUPER LPAREN (expr (COMMA expr)*)? RPAREN SEMICOLON stmt*)? RBRACE
+structassignment ::= ident EQ expr
+structassignments ::= structassignment (COMMA structassignment)*
+structfielddecls ::= LPAREN (structfielddecl (COMMA structfielddecl)*)? RPAREN
+structfielddecl ::= dtype ident EQ expr
+| ident EQ expr
+fielddecl ::= (visibility)? (READONLY)? dtype ident SEMICOLON
+| (visibility)? (READONLY)? ident SEMICOLON
+| (visibility)? (READONLY)? dtype ident EQ expr SEMICOLON
+| (visibility)? (READONLY)? ident EQ expr SEMICOLON
+staticfielddecl ::= (visibility)? STATIC (READONLY)? dtype ident SEMICOLON
+| (visibility)? STATIC (READONLY)? ident SEMICOLON
+| (visibility)? STATIC (READONLY)? dtype ident EQ defaultexpr SEMICOLON
+| (visibility)? STATIC (READONLY)? ident EQ defaultexpr SEMICOLON
+instancedecl ::= (visibility)? (DEFAULT)? (MULTI)? INSTANCE ident (EXTENDS ident (LPAREN (defaultexpr (COMMA defaultexpr)*)? RPAREN)?)? LBRACE (instanceassignment)* RBRACE
+| (visibility)? MULTI INSTANCE ident LPAREN (argdecl (COMMA argdecl)*)? RPAREN (EXTENDS ident (LPAREN (defaultexpr (COMMA defaultexpr)*)? RPAREN)?)? LBRACE (instanceassignment)* RBRACE
+instanceassignment ::= ident EQ defaultexpr SEMICOLON
+methdef ::= (FINAL | visibility | VIRTUAL | OVERRIDE | CALLTARGET)* FUN declident LPAREN (argdecl (COMMA argdecl)*)? RPAREN (COLON dtype)? block
+staticmethdef ::= (visibility)? STATIC FUN declident LPAREN (argdecl (COMMA argdecl)*)? RPAREN (COLON type)? block
+methdecl ::= (visibility)? (CALLTARGET)? FUN declident LPAREN (argdecl (COMMA argdecl)*)? RPAREN (COLON type)? SEMICOLON
+type ::= type_const | type_prime
+type_const ::= ctype | DYN | LPAREN type RPAREN
+type_prime ::= type_const LBRACKET RBRACKET | type_const BANG | type_const QMARK |
+dtype ::= type
+argdecl ::= dtype ident
+| ident
