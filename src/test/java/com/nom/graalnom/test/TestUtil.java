@@ -64,7 +64,7 @@ public class TestUtil {
             //echo '$dot' | dot -Tsvg > $outputPath
             String shellScript = "echo '" + dot + "' | dot -Tsvg > " + outputPath;
             try {
-                ExecuteShell("sh","-c", shellScript);
+                ExecuteShell("sh", "-c", shellScript);
                 System.out.println("Exported " + method.getName() + " to " + outputPath);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -72,9 +72,9 @@ public class TestUtil {
         }
     }
 
-    public static void Compile() throws Exception {
+    public static void Compile(String nomProjPath) throws Exception {
         //call shell
-        ExecuteShell("sh", "compiler.sh", "-p ./src/tests", "--project Test");
+        ExecuteShell("sh", "compiler.sh", "-p " + nomProjPath, "--project Test");
     }
 
     public static void ExecuteShell(String... cmd) throws Exception {

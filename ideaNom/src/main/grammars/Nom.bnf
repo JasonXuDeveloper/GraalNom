@@ -1,0 +1,20 @@
+{
+  parserClass="com.nom.ideanom.NomParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Nom"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.nom.ideanom"
+  psiImplPackage="com.nom.ideanom.impl"
+
+  elementTypeHolderClass="com.nom.ideanom.NomTypes"
+  elementTypeClass="com.nom.ideanom.NomElementType"
+  tokenTypeClass="com.nom.ideanom.NomTokenType"
+}
+
+nomFile ::= item_*
+
+private item_ ::= (property|COMMENT|CRLF)
+
+property ::= (KEY? SEPARATOR VALUE?) | KEY

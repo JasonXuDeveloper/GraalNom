@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestCases {
-    private static final String testPath = "src/tests/";
+    private static final String testPath = "src/test/monnom/";
     private static final String compiledManifestPath = testPath + "Test.manifest";
     private static final String configManifestPath = testPath + "Test.mnp";
 
@@ -34,7 +34,7 @@ public class TestCases {
         //inject config manifest
         TestUtil.InjectFiles(configManifestPath, testFiles.toArray(new String[0]));
         //compile bytecode
-        TestUtil.Compile();
+        TestUtil.Compile(testPath);
         //load bytecode
         context = Context.create();
         context.eval(NomLanguage.ID,
