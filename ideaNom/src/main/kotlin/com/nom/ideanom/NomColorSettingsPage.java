@@ -44,9 +44,27 @@ final class NomColorSettingsPage implements ColorSettingsPage {
     public String getDemoText() {
         return "class HelloWorld\n" +
                 "{\n" +
-                "    public static fun Main() : Void\n" +
+                "\tpublic static fun Main() : Void\n" +
+                "\t{\n" +
+                "\t\tInt a = 10;\n" +
+                "\t\tif (a * a > 10)\n" +
+                "\t\t{\n" +
+                "\t\t    \"Correct\".Print();\n" +
+                "        }\n" +
+                "        \n" +
+                "        # This is a comment\n" +
+                "        while (a > 0)\n" +
+                "        {\n" +
+                "            a = a - 1;\n" +
+                "            a.ToString().Print();\n" +
+                "        }\n" +
+                "        \n" +
+                "        \"Hello, World!\".Print();\n" +
+                "\t}\n" +
+                "\t\n" +
+                "\tpublic static fun GetBool(Int agr1) : Bool\n" +
                 "    {\n" +
-                "        \"Hello World\".Print();\n" +
+                "        return ture;\n" +
                 "    }\n" +
                 "}";
     }
