@@ -20,20 +20,22 @@ public class NomSyntaxHighlighter extends SyntaxHighlighterBase {
             createTextAttributesKey("Identifier", DefaultLanguageHighlighterColors.IDENTIFIER);
     public static final TextAttributesKey COMMA =
             createTextAttributesKey("Comma", DefaultLanguageHighlighterColors.COMMA);
-    public static final TextAttributesKey ClassName =
+    public static final TextAttributesKey CLASSNAME =
             createTextAttributesKey("ClassName", DefaultLanguageHighlighterColors.CLASS_NAME);
-    public static final TextAttributesKey TypeSource =
+    public static final TextAttributesKey TYPESOURCE =
             createTextAttributesKey("TypeSource", DefaultLanguageHighlighterColors.KEYWORD);
-    public static final TextAttributesKey MethodName =
+    public static final TextAttributesKey TYPEARG =
+            createTextAttributesKey("TypeArg", DefaultLanguageHighlighterColors.NUMBER);
+    public static final TextAttributesKey METHODNAME =
             createTextAttributesKey("MethodName", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION);
-    public static final TextAttributesKey InvokeFunction =
+    public static final TextAttributesKey INVOKEFUNCTION =
             createTextAttributesKey("InvokeFunction", DefaultLanguageHighlighterColors.CONSTANT);
     public static final TextAttributesKey COMMENT =
             createTextAttributesKey("Comment", DefaultLanguageHighlighterColors.LINE_COMMENT);
     public static final TextAttributesKey STRING =
             createTextAttributesKey("String", DefaultLanguageHighlighterColors.STRING);
     public static final TextAttributesKey NUMBERS =
-            createTextAttributesKey("Number", DefaultLanguageHighlighterColors.NUMBER);
+            createTextAttributesKey("Number", DefaultLanguageHighlighterColors.STRING);
     public static final TextAttributesKey BAD_CHARACTER =
             createTextAttributesKey("Bad Character", HighlighterColors.BAD_CHARACTER);
 
@@ -45,6 +47,8 @@ public class NomSyntaxHighlighter extends SyntaxHighlighterBase {
     private static final TextAttributesKey[] STRING_KEYS = new TextAttributesKey[]{STRING};
     private static final TextAttributesKey[] KEYWORDS_KEYS = new TextAttributesKey[]{KEYWORDS};
     private static final TextAttributesKey[] NUMBERS_KEYS = new TextAttributesKey[]{NUMBERS};
+    private static final TextAttributesKey[] TYPEARG_KEYS = new TextAttributesKey[]{TYPEARG};
+    private static final TextAttributesKey[] TYPESOURCE_KEYS = new TextAttributesKey[]{TYPESOURCE};
     private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
 
     @NotNull
@@ -64,7 +68,18 @@ public class NomSyntaxHighlighter extends SyntaxHighlighterBase {
         if (tokenType.equals(NomTypes.IDENT)) {
             return IDENTIFIER_KEYS;
         }
-        if (tokenType.equals(NomTypes.COMMA)) {
+        if (tokenType.equals(NomTypes.COMMA) ||
+                tokenType.equals(NomTypes.SEMICOLON) ||
+                tokenType.equals(NomTypes.COLON) ||
+                tokenType.equals(NomTypes.DOT) ||
+                tokenType.equals(NomTypes.ARROW) ||
+                tokenType.equals(NomTypes.LPAREN) ||
+                tokenType.equals(NomTypes.RPAREN) ||
+                tokenType.equals(NomTypes.LBRACE) ||
+                tokenType.equals(NomTypes.RBRACE) ||
+                tokenType.equals(NomTypes.LBRACKET) ||
+                tokenType.equals(NomTypes.RBRACKET)
+        ) {
             return COMMA_KEYS;
         }
         if (tokenType.equals(NomTypes.STRING)) {
@@ -109,7 +124,8 @@ public class NomSyntaxHighlighter extends SyntaxHighlighterBase {
                 tokenType.equals(NomTypes.LET) ||
                 tokenType.equals(NomTypes.LETVAR) ||
                 tokenType.equals(NomTypes.TRUE) ||
-                tokenType.equals(NomTypes.FALSE)
+                tokenType.equals(NomTypes.FALSE) ||
+                tokenType.equals(NomTypes.IMPLEMENTS)
         ) {
             return KEYWORDS_KEYS;
         }

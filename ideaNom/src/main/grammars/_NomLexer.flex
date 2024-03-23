@@ -27,7 +27,7 @@ WHITE_SPACE=\s+
 
 WHITE_SPACE=[ \t\r\n]+
 STRING=\"[^\"]*\"
-FLOAT=([0-9]+)?\\.[0-9]+
+FLOAT=([0-9]+)?[.][0-9]+
 INT=[0-9]+
 INTERNAL_PROT=(internal[ \t\r\n]+protected)|(protected[ \t\r\n]+internal)
 ID=[a-zA-Z_][a-zA-Z0-9_]*

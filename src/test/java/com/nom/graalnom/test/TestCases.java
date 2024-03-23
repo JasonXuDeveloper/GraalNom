@@ -109,4 +109,10 @@ public class TestCases {
         Value ret = RunTest();
         assert ret.isNull();
     }
+
+    @MonNomTest(filename = "object")
+    public void ObjectTest() {
+        Value ret = RunTest();
+        assert ret.isNumber();
+    }
 }

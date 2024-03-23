@@ -3,6 +3,7 @@ package com.nom.ideanom;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,45 +16,84 @@ public class NomAnnotator implements Annotator {
 
         if (psiElement instanceof NomClassdef classDef) {
             //ClassName
-            holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
-                    .range(classDef.getId())
-                    .textAttributes(NomSyntaxHighlighter.ClassName).create();
+            renderNode(classDef.getId(), holder, NomSyntaxHighlighter.CLASSNAME);
             //Inheritance
             if (!classDef.getInheritancedeclList().isEmpty()) {
-                for (NomInheritancedecl inheritancedecl : classDef.getInheritancedeclList()) {
-                    for (NomRefident refIdent : inheritancedecl.getRefqname().getRefidentList()) {
-                        holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
-                                .range(refIdent.getIdent())
-                                .textAttributes(NomSyntaxHighlighter.TypeSource).create();
-                    }
-                }
+                classDef.getInheritancedeclList()
+                        .forEach(inheritancedecl -> inheritancedecl.getRefqname().getRefidentList().forEach(refIdent -> {
+                            renderNode(refIdent.getIdent(), holder, NomSyntaxHighlighter.CLASSNAME);
+                            if (!refIdent.getTypeList().isEmpty()) {
+                                refIdent.getTypeList().forEach(type -> renderNode(type, holder, NomSyntaxHighlighter.TYPEARG));
+                            }
+                        }));
+            }
+            //Fields
+            classDef.getFielddeclList().forEach(fielddecl -> renderNode(fielddecl.getDtype(), holder, NomSyntaxHighlighter.TYPEARG));
+            //Constructors
+            //Arguments
+            classDef.getConstructorList().forEach(constrdef -> constrdef.getArgdeclList()
+                    .forEach(argdecl -> renderNode(argdecl.getDtype(), holder, NomSyntaxHighlighter.TYPEARG)));
+            //StaticFields
+            classDef.getStaticfielddeclList().forEach(staticfielddecl -> renderNode(staticfielddecl.getDtype(), holder, NomSyntaxHighlighter.TYPEARG));
+            //StaticMethods
+            for (NomStaticmethdef staticmethdef : classDef.getStaticmethdefList()) {
+                //MethodName
+                renderNode(staticmethdef.getDeclident().getIdent(), holder, NomSyntaxHighlighter.METHODNAME);
+                //Arguments
+                staticmethdef.getArgdeclList().forEach(argdecl -> renderNode(argdecl.getDtype(), holder, NomSyntaxHighlighter.TYPEARG));
+                //Return type
+                renderNomType(staticmethdef.getType(), holder);
+            }
+            //Methods
+            for (NomMethdef methdef : classDef.getMethdefList()) {
+                //MethodName
+                renderNode(methdef.getDeclident().getIdent(), holder, NomSyntaxHighlighter.METHODNAME);
+                //Arguments
+                methdef.getArgdeclList().forEach(argdecl -> renderNode(argdecl.getDtype(), holder, NomSyntaxHighlighter.TYPEARG));
+                //Return type
+                renderNomDtype(methdef.getDtype(), holder);
             }
         }
 
-        if (psiElement instanceof NomStaticmethdef staticMethDef) {
-            //MethodName
-            holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
-                    .range(staticMethDef.getDeclident().getIdent())
-                    .textAttributes(NomSyntaxHighlighter.MethodName).create();
-            //Arguments
-            for (NomArgdecl argdecl : staticMethDef.getArgdeclList()) {
-                NomDtype dtype = argdecl.getDtype();
-                if (dtype != null) {
-                    holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
-                            .range(dtype)
-                            .textAttributes(NomSyntaxHighlighter.TypeSource).create();
+        if (psiElement instanceof NomInterfacedef interfacedef) {
+            //ClassName
+            renderNode(interfacedef.getDeclident().getIdent(), holder, NomSyntaxHighlighter.CLASSNAME);
+            //TypeArgument
+            if (!interfacedef.getDeclident().getTypeargspecList().isEmpty()) {
+                for (NomTypeargspec type : interfacedef.getDeclident().getTypeargspecList()) {
+                    renderNode(type.getIdent(), holder, NomSyntaxHighlighter.TYPEARG);
                 }
             }
-            //Return type
-            NomType type = staticMethDef.getType();
-            if (type != null) {
-                holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
-                        .range(type)
-                        .textAttributes(NomSyntaxHighlighter.TypeSource).create();
+            //Methods
+            for (NomMethdecl methdecl : interfacedef.getMethdeclList()) {
+                //MethodName
+                renderNode(methdecl.getDeclident().getIdent(), holder, NomSyntaxHighlighter.METHODNAME);
+                //Arguments
+                methdecl.getArgdeclList().forEach(argdecl -> renderNode(argdecl.getDtype(), holder, NomSyntaxHighlighter.TYPEARG));
+                //Return type
+                renderNomType(methdecl.getType(), holder);
             }
         }
 
         if (psiElement instanceof NomExpr expr) {
+            //new
+            if (expr.getExprNoRecur().getRefqname() != null) {
+                expr.getExprNoRecur().getRefqname().getRefidentList().forEach(refIdent -> {
+                    renderNode(refIdent.getIdent(), holder, NomSyntaxHighlighter.TYPEARG);
+                    if (!refIdent.getTypeList().isEmpty()) {
+                        refIdent.getTypeList().forEach(type -> renderNomType(type, holder));
+                    }
+                });
+            }
+            if (expr.getExprNoRecur().getStructfielddecls() != null) {
+                expr.getExprNoRecur().getStructfielddecls().getStructfielddeclList().forEach(structfielddecl -> {
+                    renderNomStructfielddecl(structfielddecl, holder);
+                });
+            }
+            //structfielddecl
+            if (expr.getExprNoRecur().getStructfielddecl() != null) {
+                renderNomStructfielddecl(expr.getExprNoRecur().getStructfielddecl(), holder);
+            }
             //method call of a local class method
             if (!expr.getExprPrimeList().isEmpty()) {
                 NomExprPrime exprPrime = expr.getExprPrimeList().get(0);
@@ -61,9 +101,7 @@ public class NomAnnotator implements Annotator {
                     NomIdent nameEle = expr.getExprNoRecur().getIdent();
                     assert nameEle != null;
                     String methName = nameEle.getText();
-                    holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
-                            .range(nameEle)
-                            .textAttributes(NomSyntaxHighlighter.MethodName).create();
+                    renderNode(nameEle, holder, NomSyntaxHighlighter.METHODNAME);
 
                     //get classdef this expr is in
                     PsiElement classDef = expr;
@@ -76,6 +114,12 @@ public class NomAnnotator implements Annotator {
                     NomStaticmethdef staticmethdef = NomUtil.getStaticMethod(clsDef, methName);
                     //check existence
                     if (methdef == null && staticmethdef == null) {
+                        //could be expr in expr
+                        if (expr.getParent() instanceof NomExprNoRecur exprNoRecur) {
+                            if (exprNoRecur.getStructfielddecl() != null) {
+                                return;
+                            }
+                        }
                         holder.newAnnotation(HighlightSeverity.ERROR,
                                         "Method " + methName + " not found in class " + clsName)
                                 .range(nameEle)
@@ -102,20 +146,61 @@ public class NomAnnotator implements Annotator {
             //method invoke chain
             for (NomExprPrime exprPrime : expr.getExprPrimeList()) {
                 if (exprPrime.getRefident() != null) {
-                    holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
-                            .range(exprPrime.getRefident().getIdent())
-                            .textAttributes(NomSyntaxHighlighter.InvokeFunction).create();
+                    renderNode(exprPrime.getRefident().getIdent(), holder, NomSyntaxHighlighter.INVOKEFUNCTION);
                 }
             }
         }
 
         //assignment
         if (psiElement instanceof NomStmt nomStmt) {
-            if (nomStmt.getDtype() != null) {
-                holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
-                        .range(nomStmt.getDtype())
-                        .textAttributes(NomSyntaxHighlighter.TypeSource).create();
-            }
+            renderNomDtype(nomStmt.getDtype(), holder);
+        }
+    }
+
+    private void renderNode(PsiElement node, AnnotationHolder holder, TextAttributesKey key) {
+        if (node == null) return;
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+                .range(node)
+                .textAttributes(key).create();
+    }
+
+    private void renderNomStructfielddecl(NomStructfielddecl node, AnnotationHolder holder) {
+        renderNode(node.getIdent(), holder, NomSyntaxHighlighter.METHODNAME);
+        renderNomDtype(node.getDtype(), holder);
+    }
+
+    private void renderNomType(NomType node, AnnotationHolder holder) {
+        if (node == null) return;
+        NomTypeConst typeConst = null;
+        if (node.getTypeConst() != null) {
+            typeConst = node.getTypeConst();
+        } else if (node.getTypePrime() != null) {
+            NomTypePrime typePrime = node.getTypePrime();
+            typeConst = typePrime.getTypeConst();
+        }
+        if (typeConst == null) return;
+        renderNomCType(typeConst.getCtype(), holder);
+        renderNomType(typeConst.getType(), holder);
+    }
+
+    private void renderNomDtype(NomDtype node, AnnotationHolder holder) {
+        if (node == null) return;
+        renderNomType(node.getType(), holder);
+    }
+
+    private void renderNomCType(NomCtype node, AnnotationHolder holder) {
+        if (node == null) return;
+        List<NomTypeident> lst = node.getTypeqname().getTypeidentList();
+        for (NomTypeident typeident : lst) {
+            renderNomTypeident(typeident, holder);
+        }
+    }
+
+    private void renderNomTypeident(NomTypeident node, AnnotationHolder holder) {
+        if (node == null) return;
+        renderNode(node.getIdent(), holder, NomSyntaxHighlighter.TYPEARG);
+        for (NomTypearg typeident : node.getTypeargList()) {
+            renderNomType(typeident.getType(), holder);
         }
     }
 }
