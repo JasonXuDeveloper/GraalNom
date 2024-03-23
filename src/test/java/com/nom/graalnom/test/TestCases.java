@@ -55,7 +55,7 @@ public class TestCases {
         jo.put("mainClass", mainClassName);
         jo.put("invokeMain", invokeMain);
         jo.put("debug", debug);
-        jo.put("ignoreErrorBytecode", debug);
+        jo.put("ignoreErrorBytecode", ignoreErrorBytecode);
         return jo.toString(1);
     }
 
@@ -72,7 +72,7 @@ public class TestCases {
         }
         System.out.println(nameofCurrMethod + " output:");
         Value ret = context.eval(NomLanguage.ID,
-                GetTestString(nameofCurrMethod, true, debug, false));
+                GetTestString(nameofCurrMethod, true, debug, !debug));
         TestUtil.PrintClassMethods(TestUtil.GetClass(nameofCurrMethod));
         TestUtil.ExportClassMethodsDotGraphs(TestUtil.GetClass(nameofCurrMethod),
                 Paths.get(testPath, "graphs").toString());
@@ -110,6 +110,7 @@ public class TestCases {
         assert ret.isNull();
     }
 
+    @ByteCodeDebug
     @MonNomTest(filename = "object")
     public void ObjectTest() {
         Value ret = RunTest();
