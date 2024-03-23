@@ -36,5 +36,11 @@
                 implementationClass="com.nom.ideanom.NomSyntaxHighlighterFactory"/>
         <colorSettingsPage
                 implementation="com.nom.ideanom.NomColorSettingsPage"/>
+        <annotator
+                language="Nom"
+                implementationClass="com.nom.ideanom.NomAnnotator"/>
+        <lang.commenter
+                language="Nom"
+                implementationClass="com.nom.ideanom.NomCommenter"/>
     </extensions>
 </idea-plugin>

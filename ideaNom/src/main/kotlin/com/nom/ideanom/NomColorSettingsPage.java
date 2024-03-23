@@ -19,8 +19,11 @@ final class NomColorSettingsPage implements ColorSettingsPage {
             new AttributesDescriptor("Comma", NomSyntaxHighlighter.COMMA),
             new AttributesDescriptor("ClassName", NomSyntaxHighlighter.ClassName),
             new AttributesDescriptor("Comment", NomSyntaxHighlighter.COMMENT),
-            new AttributesDescriptor("Constant", NomSyntaxHighlighter.CONSTANTS),
+            new AttributesDescriptor("Constant", NomSyntaxHighlighter.NUMBERS),
             new AttributesDescriptor("String", NomSyntaxHighlighter.STRING),
+            new AttributesDescriptor("TypeSource", NomSyntaxHighlighter.TypeSource),
+            new AttributesDescriptor("MethodName", NomSyntaxHighlighter.MethodName),
+            new AttributesDescriptor("InvokeFunction", NomSyntaxHighlighter.InvokeFunction),
             new AttributesDescriptor("Bad value", NomSyntaxHighlighter.BAD_CHARACTER)
     };
 

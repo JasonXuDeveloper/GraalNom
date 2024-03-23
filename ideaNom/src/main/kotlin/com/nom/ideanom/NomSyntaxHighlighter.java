@@ -22,25 +22,29 @@ public class NomSyntaxHighlighter extends SyntaxHighlighterBase {
             createTextAttributesKey("Comma", DefaultLanguageHighlighterColors.COMMA);
     public static final TextAttributesKey ClassName =
             createTextAttributesKey("ClassName", DefaultLanguageHighlighterColors.CLASS_NAME);
+    public static final TextAttributesKey TypeSource =
+            createTextAttributesKey("TypeSource", DefaultLanguageHighlighterColors.KEYWORD);
+    public static final TextAttributesKey MethodName =
+            createTextAttributesKey("MethodName", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION);
+    public static final TextAttributesKey InvokeFunction =
+            createTextAttributesKey("InvokeFunction", DefaultLanguageHighlighterColors.CONSTANT);
     public static final TextAttributesKey COMMENT =
             createTextAttributesKey("Comment", DefaultLanguageHighlighterColors.LINE_COMMENT);
     public static final TextAttributesKey STRING =
             createTextAttributesKey("String", DefaultLanguageHighlighterColors.STRING);
-    public static final TextAttributesKey CONSTANTS =
-            createTextAttributesKey("Constant", DefaultLanguageHighlighterColors.CONSTANT);
+    public static final TextAttributesKey NUMBERS =
+            createTextAttributesKey("Number", DefaultLanguageHighlighterColors.NUMBER);
     public static final TextAttributesKey BAD_CHARACTER =
             createTextAttributesKey("Bad Character", HighlighterColors.BAD_CHARACTER);
 
 
     private static final TextAttributesKey[] BAD_CHAR_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
-    private static final TextAttributesKey[] OPERATOR_KEYS = new TextAttributesKey[]{OPERATOR};
     private static final TextAttributesKey[] IDENTIFIER_KEYS = new TextAttributesKey[]{IDENTIFIER};
     private static final TextAttributesKey[] COMMA_KEYS = new TextAttributesKey[]{COMMA};
-    private static final TextAttributesKey[] CLASSNAME_KEYS = new TextAttributesKey[]{ClassName};
     private static final TextAttributesKey[] COMMENT_KEYS = new TextAttributesKey[]{COMMENT};
     private static final TextAttributesKey[] STRING_KEYS = new TextAttributesKey[]{STRING};
     private static final TextAttributesKey[] KEYWORDS_KEYS = new TextAttributesKey[]{KEYWORDS};
-    private static final TextAttributesKey[] CONSTANTS_KEYS = new TextAttributesKey[]{CONSTANTS};
+    private static final TextAttributesKey[] NUMBERS_KEYS = new TextAttributesKey[]{NUMBERS};
     private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
 
     @NotNull
@@ -57,26 +61,19 @@ public class NomSyntaxHighlighter extends SyntaxHighlighterBase {
         if (tokenType.equals(TokenType.BAD_CHARACTER)) {
             return BAD_CHAR_KEYS;
         }
-        if (tokenType.equals(NomTypes.ADDSUBOP)) {
-            return OPERATOR_KEYS;
-        }
         if (tokenType.equals(NomTypes.IDENT)) {
             return IDENTIFIER_KEYS;
         }
         if (tokenType.equals(NomTypes.COMMA)) {
             return COMMA_KEYS;
         }
-        if (tokenType.equals(NomTypes.DECLIDENT)) {
-            return CLASSNAME_KEYS;
-        }
         if (tokenType.equals(NomTypes.STRING)) {
             return STRING_KEYS;
         }
         if (tokenType.equals(NomTypes.INT) ||
-                tokenType.equals(NomTypes.FLOAT) ||
-                tokenType.equals(NomTypes.NUL)
+                tokenType.equals(NomTypes.FLOAT)
         ) {
-            return CONSTANTS_KEYS;
+            return NUMBERS_KEYS;
         }
         if (tokenType.equals(NomTypes.PUBLIC) ||
                 tokenType.equals(NomTypes.PRIVATE) ||
@@ -93,6 +90,7 @@ public class NomSyntaxHighlighter extends SyntaxHighlighterBase {
                 tokenType.equals(NomTypes.OVERRIDE) ||
                 tokenType.equals(NomTypes.INTERFACE) ||
                 tokenType.equals(NomTypes.CLASS) ||
+                tokenType.equals(NomTypes.NUL) ||
                 tokenType.equals(NomTypes.FUN) ||
                 tokenType.equals(NomTypes.RETURN) ||
                 tokenType.equals(NomTypes.IFNULL) ||
