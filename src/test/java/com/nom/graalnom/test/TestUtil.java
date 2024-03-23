@@ -95,7 +95,7 @@ public class TestUtil {
         }
     }
 
-    public static void InjectFiles(String manifestPath, String... files) throws Exception {
+    public static void InjectFiles(String manifestPath,String mainClass, String... files) throws Exception {
         Path path = Paths.get(manifestPath);
         //load manifest file in manifestPath
         String manifest = Files.readString(path);
@@ -103,6 +103,7 @@ public class TestUtil {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         var builder = factory.newDocumentBuilder();
         var doc = builder.parse(new InputSource(new StringReader(manifest)));
+        doc.getElementsByTagName("project").item(0).getAttributes().getNamedItem("mainclass").setNodeValue(mainClass);
         var filesNode = doc.getElementsByTagName("files")
                 .item(0);
         filesNode.setTextContent("");

@@ -5,40 +5,53 @@ import com.nom.graalnom.test.java.*;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.json.JSONObject;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.*;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class TestCases {
     private static final String testPath = "src/test/monnom/";
     private static final String compiledManifestPath = testPath + "Test.manifest";
     private static final String configManifestPath = testPath + "Test.mnp";
+    private static String configManifestVal;
 
     @BeforeAll
     public static void SetUp() throws Exception {
         //collect test files
         List<String> testFiles = new ArrayList<>();
+        List<String> testNames = new ArrayList<>();
         for (Method m : TestCases.class.getMethods()) {
             if (m.isAnnotationPresent(MonNomTest.class)) {
                 MonNomTest source = m.getAnnotation(MonNomTest.class);
                 testFiles.add(source.filename());
+                testNames.add(m.getName());
             }
         }
         if (testFiles.isEmpty()) {
             throw new Exception("No test files found");
         }
+        String mainClassName = testNames.getFirst();
         //inject config manifest
-        TestUtil.InjectFiles(configManifestPath, testFiles.toArray(new String[0]));
+        TestUtil.InjectFiles(configManifestPath, mainClassName, testFiles.toArray(new String[0]));
         //compile bytecode
         TestUtil.Compile(testPath);
         //load bytecode
         context = Context.create();
         context.eval(NomLanguage.ID,
                 GetTestString("", false, true, true));
+        configManifestVal = Files.readString(Paths.get(configManifestPath));
+    }
+
+    @BeforeEach
+    public void BeforeEach() throws IOException {
+        //restore config manifest
+        Files.writeString(Paths.get(configManifestPath), configManifestVal);
     }
 
     @AfterAll
@@ -67,7 +80,14 @@ public class TestCases {
         try {
             debug = TestCases.class.getMethod(nameofCurrMethod)
                     .isAnnotationPresent(ByteCodeDebug.class);
-        } catch (NoSuchMethodException e) {
+            if (debug) {
+                //inject config manifest
+                TestUtil.InjectFiles(configManifestPath, nameofCurrMethod,
+                        TestCases.class.getMethod(nameofCurrMethod).getAnnotation(MonNomTest.class).filename());
+                //compile bytecode
+                TestUtil.Compile(testPath);
+            }
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         System.out.println(nameofCurrMethod + " output:");
@@ -82,7 +102,6 @@ public class TestCases {
         return ret;
     }
 
-    @ByteCodeDebug
     @MonNomTest(filename = "simple")
     public void SimpleTest() {
         Value ret = RunTest();
