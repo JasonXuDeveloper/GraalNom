@@ -3,8 +3,8 @@ package com.nom.graalnom.runtime.constants;
 import com.nom.graalnom.runtime.NomContext;
 
 public class NomSuperClassConstant extends NomConstant{
-    private final long SuperClass;
-    private final long Arguments;
+    public final long SuperClass;
+    public final long Arguments;
 
     //public NomClass value;
 

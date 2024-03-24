@@ -40,15 +40,11 @@ public class NomMethodConstant extends NomConstant {
         return NomContext.constants.GetClassType(classConstant);
     }
 
-
-    public int ArgCount(){
-        NomTypeListConstant argsTypeList = NomContext.constants.GetTypeList(argTypes);
-        if (argsTypeList != null) {
-            return argsTypeList.Count();
-        }
-
-        return 0;
+    @Override
+    public String toString() {
+        return QualifiedMethodName().toString();
     }
+
     /*
     virtual void FillConstantDependencies(NOM_CONSTANT_DEPENCENCY_CONTAINER& result) override
     {

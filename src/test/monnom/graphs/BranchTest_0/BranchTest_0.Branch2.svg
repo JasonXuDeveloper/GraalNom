@@ -12,22 +12,22 @@
 <g id="clust1" class="cluster">
 <title>cluster_b0</title>
 <polygon fill="none" stroke="black" points="254,-214.5 254,-291 458,-291 458,-214.5 254,-214.5"/>
-<text text-anchor="middle" x="356" y="-273.7" font-family="Times,serif" font-size="14.00">method entry</text>
+<text text-anchor="middle" x="356" y="-273.7" font-family="Times,serif" font-size="14.00">blk0</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_b1</title>
 <polygon fill="none" stroke="black" points="8,-8 8,-180 338,-180 338,-8 8,-8"/>
-<text text-anchor="middle" x="173" y="-162.7" font-family="Times,serif" font-size="14.00">blk 1</text>
+<text text-anchor="middle" x="173" y="-162.7" font-family="Times,serif" font-size="14.00">blk1</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_b2</title>
 <polygon fill="none" stroke="black" points="428,-103.5 428,-180 524,-180 524,-103.5 428,-103.5"/>
-<text text-anchor="middle" x="476" y="-162.7" font-family="Times,serif" font-size="14.00">blk 2</text>
+<text text-anchor="middle" x="476" y="-162.7" font-family="Times,serif" font-size="14.00">blk2</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_b3</title>
 <polygon fill="none" stroke="black" points="346,-8 346,-84.5 772,-84.5 772,-8 346,-8"/>
-<text text-anchor="middle" x="559" y="-67.2" font-family="Times,serif" font-size="14.00">blk 3</text>
+<text text-anchor="middle" x="559" y="-67.2" font-family="Times,serif" font-size="14.00">blk3</text>
 </g>
 <!-- b0_l0 -->
 <g id="node1" class="node">

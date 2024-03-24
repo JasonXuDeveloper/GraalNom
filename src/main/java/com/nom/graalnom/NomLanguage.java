@@ -105,6 +105,8 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
 
                 //load bytecode
                 try {
+                    if (debug)
+                        System.out.println("Loading bytecode " + file);
                     ByteCodeReader.ReadBytecodeFile(this, file, debug);
                 } catch (Exception e) {
                     if (!ignoreErrorBytecode) {
@@ -134,8 +136,8 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
 
         NomFunction mainFunc = null;
         for (var method : main.StaticMethods) {
-            if (method.name.equals("Main")) {
-                mainFunc = NomContext.functionsObject.get(main).get(method.name);
+            if (method.GetName().equals("Main")) {
+                mainFunc = NomContext.functionsObject.get(main).get(method.GetName());
                 break;
             }
         }

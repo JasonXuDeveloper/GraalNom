@@ -40,6 +40,8 @@
  */
 package com.nom.graalnom.runtime.nodes.expression;
 
+import com.nom.graalnom.runtime.constants.NomConstant;
+import com.nom.graalnom.runtime.constants.NomConstants;
 import com.nom.graalnom.runtime.constants.NomMethodConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.oracle.truffle.api.CompilerAsserts;
@@ -66,16 +68,16 @@ import java.util.function.Function;
  * @see InteropLibrary#execute(Object, Object...)
  */
 @NodeInfo(shortName = "invoke")
-public final class NomInvokeNode extends NomExpressionNode {
+public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNode {
 
-    private Function<NomMethodConstant, NomFunction> function;
-    private NomMethodConstant funcConst;
+    private Function<T, NomFunction> function;
+    private T funcConst;
     @Node.Children
     private final NomExpressionNode[] argumentNodes;
     @Node.Child
     private InteropLibrary library;
 
-    public NomInvokeNode(NomMethodConstant funcConst, Function<NomMethodConstant, NomFunction> function, NomExpressionNode[] argumentNodes) {
+    public NomInvokeNode(T funcConst, Function<T, NomFunction> function, NomExpressionNode[] argumentNodes) {
         this.funcConst = funcConst;
         this.function = function;
         this.argumentNodes = argumentNodes;
@@ -108,7 +110,7 @@ public final class NomInvokeNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return funcConst.QualifiedMethodName() + "(" + String.join(", ",
+        return funcConst.toString() + "(" + String.join(", ",
                 Arrays.stream(argumentNodes).map(Object::toString)
                         .toArray(String[]::new)) + ")";
     }

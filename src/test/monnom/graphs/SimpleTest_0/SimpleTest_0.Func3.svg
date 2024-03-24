@@ -12,7 +12,7 @@
 <g id="clust1" class="cluster">
 <title>cluster_b0</title>
 <polygon fill="none" stroke="black" points="8,-8 8,-260.5 212,-260.5 212,-8 8,-8"/>
-<text text-anchor="middle" x="110" y="-243.2" font-family="Times,serif" font-size="14.00">method entry</text>
+<text text-anchor="middle" x="110" y="-243.2" font-family="Times,serif" font-size="14.00">blk0</text>
 </g>
 <!-- b0_l0 -->
 <g id="node1" class="node">

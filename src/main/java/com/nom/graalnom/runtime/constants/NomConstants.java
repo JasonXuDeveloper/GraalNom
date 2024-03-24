@@ -84,6 +84,14 @@ public class NomConstants {
         return (NomTypeListConstant) cnstnt;
     }
 
+    public NomSuperClassConstant GetSuperClass(long constant) {
+        var cnstnt = constants.get((int) constant);
+        if (cnstnt == null || cnstnt.Type != NomConstantType.CTSuperClass) {
+            return null;
+        }
+        return (NomSuperClassConstant) cnstnt;
+    }
+
     public long AddString(TruffleString string, long cid) {
         if (cid == 0) {
             cid = GetConstantId();

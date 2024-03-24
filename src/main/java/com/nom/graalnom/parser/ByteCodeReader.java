@@ -11,9 +11,7 @@ import java.util.*;
 import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
-import com.nom.graalnom.runtime.constants.NomMethodConstant;
-import com.nom.graalnom.runtime.constants.NomStaticMethodConstant;
-import com.nom.graalnom.runtime.constants.NomTypeListConstant;
+import com.nom.graalnom.runtime.constants.*;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
@@ -153,24 +151,15 @@ public class ByteCodeReader {
     }
 
     private static final List<NomExpressionNode> args = new ArrayList<>();
-    private static boolean endOfBlock = false;
-    private static final List<NomBasicBlockNode> blocks = new ArrayList<>();
 
-    private static NomBasicBlockNode GetBlock(int index) {
-        while (blocks.size() <= index) {
-            blocks.add(new NomBasicBlockNode(new NomStatementNode[0], "blk " + index));
-        }
-        return blocks.get(index);
-    }
-
-    public static NomStatementNode ReadInstruction(NomStaticMethod curMethod, LittleEndianDataInputStream s, Map<Long, Long> constants, boolean debug) throws Exception {
+    public static NomStatementNode ReadInstruction(NomCallable curCallable, LittleEndianDataInputStream s, Map<Long, Long> constants, boolean debug) throws Exception {
         int opCodeVal = s.read();
         OpCode opCode = OpCode.fromValue(opCodeVal);
         long nameId;
         long typeArgsId;//generic type arguments
         int regIndex;//output register
         int receiverRegIndex;//this instance register
-        int curMethodArgCount = curMethod.ArgCount();//how many arguments (register offset)
+        int curMethodArgCount = curCallable.GetArgCount();//how many arguments (register offset)
         if (debug) {
             System.out.println("Read " + opCode);
         }
@@ -180,11 +169,9 @@ public class ByteCodeReader {
             }
             case Argument -> args.add(ReadFromFrame(curMethodArgCount, s.readInt()));
             case Return -> {
-                endOfBlock = true;
                 return new NomReturnNode(ReadFromFrame(curMethodArgCount, s.readInt()));
             }
             case ReturnVoid -> {
-                endOfBlock = true;
                 return new NomReturnNode(null);
             }
             case EnsureCheckedMethod -> {
@@ -230,7 +217,7 @@ public class ByteCodeReader {
                 }
                 NomExpressionNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode(method, NomContext::getMethod, methArgs));
+                        new NomInvokeNode<>(method, NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -245,7 +232,7 @@ public class ByteCodeReader {
                 }
                 NomExpressionNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode(staticMethod, NomContext::getMethod, methArgs));
+                        new NomInvokeNode<>(staticMethod, NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -286,6 +273,23 @@ public class ByteCodeReader {
                     case null -> throw new IllegalStateException("Unexpected value: " + null);
                 };
             }
+            case CallConstructor -> {
+                regIndex = s.readInt();
+                nameId = GetGlobalId(constants, s.readLong());
+                typeArgsId = GetGlobalId(constants, s.readLong());
+                NomSuperClassConstant superClass = NomContext.constants.GetSuperClass(nameId);
+                NomExpressionNode[] methArgs = new NomExpressionNode[args.size()];
+                for (int i = 0; i < args.size(); i++) {
+                    methArgs[i] = args.get(i);
+                }
+
+                return new NomInvokeNode<>(superClass, (su) -> {
+                    String clsName = NomContext.constants.GetClass(su.SuperClass).GetName();
+                    NomClass cls = NomContext.classes.get(clsName);
+                    String ctorName = "_Constructor_" + cls.GetName().toString() + "_" + methArgs.length;
+                    return NomContext.functionsObject.get(cls).get(ctorName);
+                }, methArgs);
+            }
             case PhiNode -> {
                 int incoming = s.readInt();// how many branches jumps here
                 int regCount = s.readInt();//mapped registers types
@@ -294,7 +298,6 @@ public class ByteCodeReader {
                     long typeId = GetGlobalId(constants, s.readLong());
                     regCount--;
                 }
-                endOfBlock = false;
             }
             case Branch -> {
                 int target = s.readInt();
@@ -311,7 +314,6 @@ public class ByteCodeReader {
                 //which block to jump to (target + 1 since the beginning of the body is a block)
                 int blockIndex = target + 1;
 
-                endOfBlock = true;
                 return new NomBranchNode(instructions.toArray(new NomStatementNode[0]), blockIndex);
             }
             case CondBranch -> {
@@ -344,7 +346,6 @@ public class ByteCodeReader {
                 int thenBlockIndex = thenTarget + 1;
                 int elseBlockIndex = elseTarget + 1;
 
-                endOfBlock = true;
                 return new NomIfNode(
                         ReadFromFrame(curMethodArgCount, condRegIndex),
                         new NomBranchNode(thenInstructions.toArray(new NomStatementNode[0]), thenBlockIndex),
@@ -390,33 +391,28 @@ public class ByteCodeReader {
         }
         long staticMethodCount = s.readLong();
         while (staticMethodCount > 0) {
-            ReadStaticMethod(s, cls, constants, language, debug);
+            ReadStaticMethod(s, cls, constants, debug);
             staticMethodCount--;
         }
-        /*
-        uint64_t constructorCount = stream.read<uint64_t>();
-			while (constructorCount > 0) {
-				ReadConstructor(cls);
-				constructorCount--;
-			}
-			uint64_t lambdaCount = stream.read<uint64_t>();
-			while (lambdaCount > 0) {
-				ReadLambda(cls);
-				lambdaCount--;
-			}
-			uint64_t structCount = stream.read<uint64_t>();
-			while (structCount > 0) {
-				ReadStruct(cls);
-				structCount--;
-			}
-			if (handler != nullptr)
-			{
-				handler->ReadClass(cls);
-			}
-         */
+        long constructorCount = s.readLong();
+        while (constructorCount > 0) {
+            ReadConstructor(s, cls, constants, debug);
+            constructorCount--;
+        }
+        long lambdaCount = s.readLong();
+        while (lambdaCount > 0) {
+            //ReadLambda(cls);
+            lambdaCount--;
+        }
+        long structCount = s.readLong();
+        while (structCount > 0) {
+            //ReadStruct(cls);
+            structCount--;
+        }
+        cls.Register(language);
     }
 
-    public static void ReadStaticMethod(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants, NomLanguage language, boolean debug) throws Exception {
+    public static void ReadStaticMethod(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants, boolean debug) throws Exception {
         if (s.read() != BytecodeInternalElementType.StaticMethod.getValue()) {
             throw new IllegalArgumentException("Expected static method, but did not encounter static method marker");
         }
@@ -429,43 +425,40 @@ public class ByteCodeReader {
         String qNameStr = cls.GetName().toString() + "." + nameStr;
         NomStaticMethod meth = cls.AddStaticMethod(nameStr, qNameStr, typeArgs, returnType, argTypes, regCount);
         long instructionCount = s.readLong();
-        NomTypeListConstant argsTypeList = NomContext.constants.GetTypeList(argTypes);
-        int argCount = 0;
-        if (argsTypeList != null) {
-            argCount = argsTypeList.Count();
-        }
-        regCount -= argCount;
-        List<NomStatementNode> curBlockInstructions = new ArrayList<>();
-        int curBlockIndex = 0;
-        blocks.clear();
         args.clear();
-        blocks.add(new NomBasicBlockNode(new NomStatementNode[0], "method entry"));
-        endOfBlock = false;
         while (instructionCount > 0) {
             NomStatementNode instr = ReadInstruction(meth, s, constants, debug);
             instructionCount--;
-            if (instr == null) {
-                continue;
-            }
-            curBlockInstructions.add(instr);
-            if (endOfBlock) {
-                GetBlock(curBlockIndex).append(curBlockInstructions.toArray(new NomStatementNode[0]));
-                curBlockInstructions.clear();
-                curBlockIndex++;
-            }
+            meth.AddInstruction(instr);
         }
+    }
 
-        NomFunctionBodyNode body = new NomFunctionBodyNode(blocks.toArray(new NomBasicBlockNode[0]));
-        FrameDescriptor.Builder builder = FrameDescriptor.newBuilder();
-        for (int i = 0; i < regCount; i++) {
-            builder.addSlot(FrameSlotKind.Illegal, "reg" + i, null);
+    public static void ReadConstructor(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants, boolean debug) throws Exception {
+        if (s.read() != BytecodeInternalElementType.Constructor.getValue()) {
+            throw new IllegalArgumentException("Expected constructor, but did not encounter constructor marker");
         }
-
-        TruffleString methName = NomString.create(qNameStr);
-        NomRootNode root = new NomRootNode(language, builder.build(), body, methName, argCount);
-        NomFunction func = new NomFunction(methName, root.getCallTarget());
-        var clsFunctions = NomContext.functionsObject.computeIfAbsent(cls, k -> new HashMap<>());
-        clsFunctions.put(nameStr, func);
+        long argTypes = GetGlobalId(constants, s.readLong());//type of the argument
+        int regCount = s.readInt();
+        NomConstructor ctor = cls.AddConstructor(argTypes, regCount);
+        long preInstructionCount = s.readLong();
+        long superArgCount = s.readLong();
+        long instructionCount = s.readLong();
+        args.clear();
+        while (preInstructionCount > 0) {
+            NomStatementNode instr = ReadInstruction(ctor, s, constants, debug);
+            preInstructionCount--;
+            ctor.AddInstruction(instr);
+        }
+        while (superArgCount > 0) {
+            ctor.AddSuperConstructorArg(s.readInt());
+            superArgCount--;
+        }
+        args.clear();
+        while (instructionCount > 0) {
+            NomStatementNode instr = ReadInstruction(ctor, s, constants, debug);
+            instructionCount--;
+            ctor.AddInstruction(instr);
+        }
     }
 
     public static void ReadField(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants) throws Exception {
