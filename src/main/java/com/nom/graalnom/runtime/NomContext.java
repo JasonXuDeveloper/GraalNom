@@ -29,12 +29,19 @@ import java.util.List;
 import java.util.Map;
 
 public class NomContext {
-    public static final NomConstants constants = new NomConstants();
+    public static NomConstants constants = new NomConstants();
 
     public static final Map<String, NomClass> classes = new java.util.HashMap<>();
 
     public static final Map<NomClass, Map<String, NomFunction>> functionsObject = new HashMap<>();
     public static final Map<String, NomFunction> builtinFunctions = new HashMap<>();
+
+    public static void clear() {
+        classes.clear();
+        functionsObject.clear();
+        constants = new NomConstants();
+    }
+
     private static final TruffleLanguage.ContextReference<NomContext> REFERENCE = TruffleLanguage.ContextReference.create(NomLanguage.class);
 
     public static NomContext get(Node node) {

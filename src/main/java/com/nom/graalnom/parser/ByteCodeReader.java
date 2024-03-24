@@ -34,20 +34,10 @@ import org.graalvm.collections.Pair;
 public class ByteCodeReader {
     public static int BYTECODE_VERSION = 2;
 
-    private static final HashSet<String> loadedFiles = new HashSet<>();
-
     public static void ReadBytecodeFile(NomLanguage language, String filename, boolean debug) throws Exception {
         Path path = Paths.get(filename);
         if (!Files.exists(path)) {
             throw new IllegalArgumentException("file not found");
-        }
-
-        byte[] data = Files.readAllBytes(path);
-        byte[] hash = MessageDigest.getInstance("MD5").digest(data);
-        String checksum = new BigInteger(1, hash).toString(16);
-
-        if (loadedFiles.contains(checksum)) {
-            return;
         }
 
         try (FileInputStream fs = new FileInputStream(filename)) {
@@ -146,8 +136,6 @@ public class ByteCodeReader {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        loadedFiles.add(checksum);
     }
 
     private static final List<NomExpressionNode> args = new ArrayList<>();
@@ -278,8 +266,9 @@ public class ByteCodeReader {
                 nameId = GetGlobalId(constants, s.readLong());
                 typeArgsId = GetGlobalId(constants, s.readLong());
                 NomSuperClassConstant superClass = NomContext.constants.GetSuperClass(nameId);
-                NomExpressionNode[] methArgs = new NomExpressionNode[args.size()];
-                for (int i = 0; i < args.size(); i++) {
+                //TODO create object, add to parameters (index0)
+                NomExpressionNode[] methArgs = new NomExpressionNode[args.size() + 1];
+                for (int i = 1; i < args.size(); i++) {
                     methArgs[i] = args.get(i);
                 }
 
@@ -289,6 +278,17 @@ public class ByteCodeReader {
                     String ctorName = "_Constructor_" + cls.GetName().toString() + "_" + methArgs.length;
                     return NomContext.functionsObject.get(cls).get(ctorName);
                 }, methArgs);
+            }
+            case WriteField -> {
+                receiverRegIndex = s.readInt();//this
+                int value = s.readInt();//arg
+                long fieldName = GetGlobalId(constants, s.readLong());//stringconstant
+                long receiverType = GetGlobalId(constants, s.readLong());//classconstant
+                System.out.println("this(" + NomContext.constants
+                        .GetClass(receiverType).GetName() + ")."
+                        + NomContext.constants.GetString(fieldName).GetText()
+                        + " = arg[" + (value - 1) + "]");
+                return new NomReturnNode(null);
             }
             case PhiNode -> {
                 int incoming = s.readInt();// how many branches jumps here

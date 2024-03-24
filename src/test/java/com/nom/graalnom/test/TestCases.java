@@ -1,6 +1,7 @@
 package com.nom.graalnom.test;
 
 import com.nom.graalnom.NomLanguage;
+import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.test.java.*;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -93,7 +94,6 @@ public class TestCases {
         System.out.println(nameofCurrMethod + " output:");
         Value ret = context.eval(NomLanguage.ID,
                 GetTestString(nameofCurrMethod, true, debug, !debug));
-        TestUtil.PrintClassMethods(TestUtil.GetClass(nameofCurrMethod));
         TestUtil.ExportClassMethodsDotGraphs(TestUtil.GetClass(nameofCurrMethod),
                 Paths.get(testPath, "graphs").toString());
         System.out.println();

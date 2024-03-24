@@ -78,6 +78,9 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         if (jo.has("ignoreErrorBytecode")) {
             ignoreErrorBytecode = jo.getBoolean("ignoreErrorBytecode");
         }
+        if (debug) {
+            NomContext.clear();
+        }
         //if we are debugging, even if we preloaded it we still curious what the bytecodereader does
         if (!loadedManifests.contains(manifestPathStr) || debug) {
             loadedManifests.add(manifestPathStr);
@@ -128,6 +131,16 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
                     NomString.create("Invalid"), 0).getCallTarget();
         }
 
+        if (debug) {
+            for (var cls : NomContext.classes.values()) {
+                for (var func : NomContext.functionsObject.get(cls).values()) {
+                    System.out.println(func.getCallTarget().getRootNode().toString());
+                    System.out.println();
+                }
+            }
+        }
+
+        System.out.println(mainClass);
         NomClass main = NomContext.classes.get(mainClass);
         //compatibility
         if (main == null) {

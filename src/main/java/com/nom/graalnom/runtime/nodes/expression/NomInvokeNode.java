@@ -110,7 +110,7 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
 
     @Override
     public String toString() {
-        return funcConst.toString() + "(" + String.join(", ",
+        return function.apply(funcConst).getName().toString() + "(" + String.join(", ",
                 Arrays.stream(argumentNodes).map(Object::toString)
                         .toArray(String[]::new)) + ")";
     }

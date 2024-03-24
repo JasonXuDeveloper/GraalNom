@@ -1,3 +1,3 @@
-<?xml version="1.0" encoding="utf-8" standalone="no"?><project build="0" mainclass="SimpleTest" major="1" minor="0" name="Test" revision="0">
-    <files><file name="simple.mn"/><file name="branch.mn"/><file name="while.mn"/><file name="mini.mn"/><file name="object.mn"/></files>
+<?xml version="1.0" encoding="utf-8" standalone="no"?><project build="0" mainclass="ObjectTest" major="1" minor="0" name="Test" revision="0">
+    <files><file name="object.mn"/></files>
 </project>

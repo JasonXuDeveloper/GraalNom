@@ -37,16 +37,6 @@ public class TestUtil {
         return NomContext.classes.values().stream().filter(c -> c.GetName().toString().equals(name + "_0")).findFirst().orElse(null);
     }
 
-    public static void PrintClassMethods(NomClass cls) {
-        System.out.println();
-        System.out.println(cls.GetName().toString() + " Class methods:");
-        Map<String, NomFunction> map = NomContext.functionsObject.get(cls);
-        for (var method : map.values()) {
-            System.out.println(method.getCallTarget().getRootNode().toString());
-            System.out.println();
-        }
-    }
-
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void ExportClassMethodsDotGraphs(NomClass cls, String directory) {
         directory = Paths.get(directory, cls.GetName().toString()).toString();
