@@ -16,4 +16,9 @@ public class NomConstructor extends NomCallable{
     public void AddSuperConstructorArg(int arg){
         superConstructorArgs.add(arg);
     }
+
+    @Override
+    public int GetArgCount() {
+        return super.GetArgCount() + 1;
+    }
 }

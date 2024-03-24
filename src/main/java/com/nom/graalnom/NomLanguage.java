@@ -140,7 +140,6 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             }
         }
 
-        System.out.println(mainClass);
         NomClass main = NomContext.classes.get(mainClass);
         //compatibility
         if (main == null) {

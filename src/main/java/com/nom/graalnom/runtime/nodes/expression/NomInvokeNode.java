@@ -71,15 +71,17 @@ import java.util.function.Function;
 public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNode {
 
     private Function<T, NomFunction> function;
+    private Function<T, String> getFuncName;
     private T funcConst;
     @Node.Children
     private final NomExpressionNode[] argumentNodes;
     @Node.Child
     private InteropLibrary library;
 
-    public NomInvokeNode(T funcConst, Function<T, NomFunction> function, NomExpressionNode[] argumentNodes) {
+    public NomInvokeNode(T funcConst, Function<T, String> getFuncName, Function<T, NomFunction> function, NomExpressionNode[] argumentNodes) {
         this.funcConst = funcConst;
         this.function = function;
+        this.getFuncName = getFuncName;
         this.argumentNodes = argumentNodes;
         this.library = InteropLibrary.getFactory().createDispatched(3);
     }
@@ -110,7 +112,7 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
 
     @Override
     public String toString() {
-        return function.apply(funcConst).getName().toString() + "(" + String.join(", ",
+        return getFuncName.apply(funcConst) + "(" + String.join(", ",
                 Arrays.stream(argumentNodes).map(Object::toString)
                         .toArray(String[]::new)) + ")";
     }

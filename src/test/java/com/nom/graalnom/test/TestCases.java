@@ -2,6 +2,7 @@ package com.nom.graalnom.test;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
+import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.test.java.*;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -56,7 +57,12 @@ public class TestCases {
     }
 
     @AfterAll
-    public static void TearDown() {
+    public static void TearDown() throws Exception {
+        SetUp();
+        for (NomClass cls : NomContext.classes.values()) {
+            TestUtil.ExportClassMethodsDotGraphs(cls,
+                    Paths.get(testPath, "graphs").toString());
+        }
         context.close();
     }
 
@@ -73,7 +79,7 @@ public class TestCases {
         return jo.toString(1);
     }
 
-    private static Value RunTest() {
+    private static Value RunTest(){
         String nameofCurrMethod = Thread.currentThread()
                 .getStackTrace()[2]
                 .getMethodName();
@@ -94,11 +100,16 @@ public class TestCases {
         System.out.println(nameofCurrMethod + " output:");
         Value ret = context.eval(NomLanguage.ID,
                 GetTestString(nameofCurrMethod, true, debug, !debug));
-        TestUtil.ExportClassMethodsDotGraphs(TestUtil.GetClass(nameofCurrMethod),
-                Paths.get(testPath, "graphs").toString());
         System.out.println();
         System.out.println("Returned value:");
         System.out.println(ret);
+        if (debug) {
+            try {
+                SetUp();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
         return ret;
     }
 

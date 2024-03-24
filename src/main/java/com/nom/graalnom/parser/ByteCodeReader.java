@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.function.Function;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.NomLanguage;
@@ -205,7 +206,7 @@ public class ByteCodeReader {
                 }
                 NomExpressionNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(method, NomContext::getMethod, methArgs));
+                        new NomInvokeNode<>(method, m -> m.QualifiedMethodName().toString(), NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -220,7 +221,7 @@ public class ByteCodeReader {
                 }
                 NomExpressionNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(staticMethod, NomContext::getMethod, methArgs));
+                        new NomInvokeNode<>(staticMethod, m -> m.QualifiedMethodName().toString(), NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -267,28 +268,34 @@ public class ByteCodeReader {
                 typeArgsId = GetGlobalId(constants, s.readLong());
                 NomSuperClassConstant superClass = NomContext.constants.GetSuperClass(nameId);
                 //TODO create object, add to parameters (index0)
+                //i.e. create the object then add to a static map<id, object>
                 NomExpressionNode[] methArgs = new NomExpressionNode[args.size() + 1];
-                for (int i = 1; i < args.size(); i++) {
-                    methArgs[i] = args.get(i);
+                //methArgs[0] = new NomFetchObjectNode(id);
+                methArgs[0] = new NomLongLiteralNode(0);
+                for (int i = 1; i <= args.size(); i++) {
+                    methArgs[i] = args.get(i - 1);
                 }
 
-                return new NomInvokeNode<>(superClass, (su) -> {
-                    String clsName = NomContext.constants.GetClass(su.SuperClass).GetName();
-                    NomClass cls = NomContext.classes.get(clsName);
-                    String ctorName = "_Constructor_" + cls.GetName().toString() + "_" + methArgs.length;
-                    return NomContext.functionsObject.get(cls).get(ctorName);
-                }, methArgs);
+                Function<NomSuperClassConstant, NomClass> getCls = su ->
+                        NomContext.classes.get(NomContext.constants.GetClass(su.SuperClass).GetName());
+                Function<NomSuperClassConstant, String> getName = su -> "_Constructor_" + getCls.apply(su).GetName().toString() + "_" + (methArgs.length - 1);
+                return WriteToFrame(curMethodArgCount, regIndex,
+                        new NomInvokeNode<>(superClass, getName,
+                                su -> NomContext.functionsObject.get(getCls.apply(su)).get(getName.apply(su)), methArgs));
             }
             case WriteField -> {
                 receiverRegIndex = s.readInt();//this
                 int value = s.readInt();//arg
                 long fieldName = GetGlobalId(constants, s.readLong());//stringconstant
                 long receiverType = GetGlobalId(constants, s.readLong());//classconstant
+                //we just need to pass
+                //receiverRegIndex(object arg) and
+                //NomReadArgNode(value) and the field name to the write node
                 System.out.println("this(" + NomContext.constants
                         .GetClass(receiverType).GetName() + ")."
                         + NomContext.constants.GetString(fieldName).GetText()
-                        + " = arg[" + (value - 1) + "]");
-                return new NomReturnNode(null);
+                        + " = arg[" + value + "]");
+                return new NomLongLiteralNode(value);
             }
             case PhiNode -> {
                 int incoming = s.readInt();// how many branches jumps here
@@ -459,6 +466,7 @@ public class ByteCodeReader {
             instructionCount--;
             ctor.AddInstruction(instr);
         }
+        ctor.AddInstruction(new NomReturnNode(new NomReadArgumentNode(0)));
     }
 
     public static void ReadField(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants) throws Exception {
