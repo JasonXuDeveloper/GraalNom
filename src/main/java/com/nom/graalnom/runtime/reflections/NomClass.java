@@ -2,8 +2,12 @@ package com.nom.graalnom.runtime.reflections;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
+import com.nom.graalnom.runtime.constants.NomClassConstant;
+import com.nom.graalnom.runtime.constants.NomSuperClassConstant;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class NomClass extends NomInterface {
@@ -14,6 +18,8 @@ public class NomClass extends NomInterface {
 
     public List<NomStaticMethod> StaticMethods;
     public List<NomConstructor> Constructors;
+
+    private HashSet<Long> SuperClassDependencies;
 
 /*
     std::vector<NomLambda*> Lambdas;
@@ -94,13 +100,48 @@ public class NomClass extends NomInterface {
     }
 
     public void Register(NomLanguage language) {
+        //copy methods from superclass
+        List<NomClass> superClassChain = new ArrayList<>();
+        SuperClassDependencies = new HashSet<>();
+        long superClassId = SuperClass;
+        SuperClassDependencies.add(superClassId);
+        while(superClassId != 0){
+            NomSuperClassConstant sc = NomContext.constants.GetSuperClass(superClassId);
+            NomClassConstant superClassRef = sc.GetSuperClass();
+            if(NomContext.classes.get(superClassRef.GetName()) != null){
+                NomClass cls = NomContext.classes.get(superClassRef.GetName());
+                superClassChain.add(cls);
+                SuperClassDependencies.add(superClassId);
+                superClassId = cls.SuperClass;
+            }
+            else{
+                superClassId = 0;
+            }
+        }
+        superClassChain = superClassChain.reversed();
         var clsFunctions = NomContext.functionsObject.computeIfAbsent(this, k -> new HashMap<>());
+        for (NomClass superClass : superClassChain) {
+            for (var constructor : superClass.Constructors) {
+                clsFunctions.put(constructor.GetName(), constructor.GetFunction(language));
+            }
+            for (var method : superClass.StaticMethods) {
+                clsFunctions.put(method.GetName(), method.GetFunction(language));
+            }
+            for (var method : superClass.Methods) {
+                clsFunctions.put(method.GetName(), method.GetFunction(language));
+            }
+        }
+
         //constructors
         for (var constructor : Constructors) {
             clsFunctions.put(constructor.GetName(), constructor.GetFunction(language));
         }
         //static methods
         for (var method : StaticMethods) {
+            clsFunctions.put(method.GetName(), method.GetFunction(language));
+        }
+        //methods
+        for (var method : Methods) {
             clsFunctions.put(method.GetName(), method.GetFunction(language));
         }
     }

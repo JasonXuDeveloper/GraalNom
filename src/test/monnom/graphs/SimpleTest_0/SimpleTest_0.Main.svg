@@ -18,9 +18,9 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="310.12,-162 15.88,-162 15.88,-88 310.12,-88 310.12,-162"/>
-<text text-anchor="middle" x="163" y="-144.7" font-family="Times,serif" font-size="14.00">reg[0] = Long(1)</text>
-<text text-anchor="middle" x="163" y="-128.2" font-family="Times,serif" font-size="14.00">reg[1] = Long(90)</text>
-<text text-anchor="middle" x="163" y="-111.7" font-family="Times,serif" font-size="14.00">reg[2] = Long(30)</text>
+<text text-anchor="middle" x="163" y="-144.7" font-family="Times,serif" font-size="14.00">reg[0] = 1</text>
+<text text-anchor="middle" x="163" y="-128.2" font-family="Times,serif" font-size="14.00">reg[1] = 90</text>
+<text text-anchor="middle" x="163" y="-111.7" font-family="Times,serif" font-size="14.00">reg[2] = 30</text>
 <text text-anchor="middle" x="163" y="-95.2" font-family="Times,serif" font-size="14.00">reg[3] = SimpleTest_0.Func(reg[0], reg[1], reg[2])</text>
 </g>
 <!-- b0_ret -->

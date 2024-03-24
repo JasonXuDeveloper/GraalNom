@@ -14,6 +14,10 @@ public class NomSuperClassConstant extends NomConstant{
         Arguments = args;
     }
 
+    public NomClassConstant GetSuperClass() {
+        return NomContext.constants.GetClass(SuperClass);
+    }
+
     /*
     NomInstantiationRef<NomClass>  NomSuperClassConstant::GetClassType(NomSubstitutionContextRef context) const
     {

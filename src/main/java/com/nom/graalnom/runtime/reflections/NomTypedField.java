@@ -1,6 +1,7 @@
 package com.nom.graalnom.runtime.reflections;
 
 import com.nom.graalnom.runtime.NomContext;
+import com.nom.graalnom.runtime.constants.NomClassTypeConstant;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import java.util.List;
@@ -38,6 +39,10 @@ public class NomTypedField extends NomField {
         return NomConstants::GetType(&nscmc, Type);
          */
         return null;
+    }
+
+    public NomClassTypeConstant GetTypeConstant() {
+        return NomContext.constants.GetClassType(Type);
     }
 
     @Override

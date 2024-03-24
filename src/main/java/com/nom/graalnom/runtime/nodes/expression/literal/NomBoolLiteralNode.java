@@ -25,6 +25,6 @@ public final class NomBoolLiteralNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "Bool(" + value + ")";
+        return value ? "true" : "false";
     }
 }

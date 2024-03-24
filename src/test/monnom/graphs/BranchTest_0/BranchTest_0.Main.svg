@@ -18,9 +18,9 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="329.5,-178.5 16.5,-178.5 16.5,-88 329.5,-88 329.5,-178.5"/>
-<text text-anchor="middle" x="173" y="-161.2" font-family="Times,serif" font-size="14.00">reg[0] = Long(10)</text>
-<text text-anchor="middle" x="173" y="-144.7" font-family="Times,serif" font-size="14.00">reg[1] = Long(256)</text>
-<text text-anchor="middle" x="173" y="-128.2" font-family="Times,serif" font-size="14.00">reg[2] = Long(1024)</text>
+<text text-anchor="middle" x="173" y="-161.2" font-family="Times,serif" font-size="14.00">reg[0] = 10</text>
+<text text-anchor="middle" x="173" y="-144.7" font-family="Times,serif" font-size="14.00">reg[1] = 256</text>
+<text text-anchor="middle" x="173" y="-128.2" font-family="Times,serif" font-size="14.00">reg[2] = 1024</text>
 <text text-anchor="middle" x="173" y="-111.7" font-family="Times,serif" font-size="14.00">reg[3] = BranchTest_0.Branch1(reg[0], reg[1], reg[2])</text>
 <text text-anchor="middle" x="173" y="-95.2" font-family="Times,serif" font-size="14.00">reg[4] = BranchTest_0.Branch2(reg[0], reg[1], reg[2])</text>
 </g>

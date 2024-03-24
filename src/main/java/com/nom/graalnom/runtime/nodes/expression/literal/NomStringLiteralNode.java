@@ -19,8 +19,12 @@ public final class NomStringLiteralNode extends NomExpressionNode {
         return value;
     }
 
+    public TruffleString Value() {
+        return value;
+    }
+
     @Override
     public String toString() {
-        return "String(" + value.toString() + ")";
+        return "'" + value.toString() + "'";
     }
 }

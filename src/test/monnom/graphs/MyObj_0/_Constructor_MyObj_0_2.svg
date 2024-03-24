@@ -17,9 +17,9 @@
 <!-- b0_l0 -->
 <g id="node1" class="node">
 <title>b0_l0</title>
-<polygon fill="none" stroke="black" points="110.12,-129 49.88,-129 49.88,-88 110.12,-88 110.12,-129"/>
-<text text-anchor="middle" x="80" y="-111.7" font-family="Times,serif" font-size="14.00">Long(1)</text>
-<text text-anchor="middle" x="80" y="-95.2" font-family="Times,serif" font-size="14.00">Long(2)</text>
+<polygon fill="none" stroke="black" points="134.12,-129 25.88,-129 25.88,-88 134.12,-88 134.12,-129"/>
+<text text-anchor="middle" x="80" y="-111.7" font-family="Times,serif" font-size="14.00">arg[0].x = arg[1]</text>
+<text text-anchor="middle" x="80" y="-95.2" font-family="Times,serif" font-size="14.00">arg[0].y = arg[2]</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">

@@ -30,6 +30,6 @@ public final class NomLongLiteralNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "Long(" + value + ")";
+        return Long.toString(value);
     }
 }

@@ -17,6 +17,6 @@ public final class NomNullLiteralNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "Null()";
+        return "Null";
     }
 }

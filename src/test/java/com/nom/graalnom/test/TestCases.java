@@ -140,10 +140,10 @@ public class TestCases {
         assert ret.isNull();
     }
 
-    @ByteCodeDebug
     @MonNomTest(filename = "object")
     public void ObjectTest() {
         Value ret = RunTest();
         assert ret.isNumber();
+        assert ret.asLong() == 6;
     }
 }

@@ -25,7 +25,7 @@ public class NomMethodConstant extends NomConstant {
     }
 
     public TruffleString QualifiedMethodName() {
-        return NomString.create(ClassTypeConstant().Class().GetName() + "." + NomContext.constants.GetString(methodName).GetText());
+        return NomString.create(ClassTypeConstant().GetClass().GetName() + "." + NomContext.constants.GetString(methodName).GetText());
     }
 
     public NomClass Class() {
@@ -33,7 +33,7 @@ public class NomMethodConstant extends NomConstant {
         if (clsConst == null) {
             return null;
         }
-        return NomContext.classes.get(clsConst.Class().GetName());
+        return NomContext.classes.get(clsConst.GetClass().GetName());
     }
 
     public NomClassTypeConstant ClassTypeConstant() {

@@ -7,6 +7,7 @@ import com.nom.graalnom.runtime.builtins.NomPrintBuiltinFactory;
 import com.nom.graalnom.runtime.builtins.NomToStringBuiltinFactory;
 import com.nom.graalnom.runtime.constants.*;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
+import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
@@ -35,6 +36,7 @@ public class NomContext {
 
     public static final Map<NomClass, Map<String, NomFunction>> functionsObject = new HashMap<>();
     public static final Map<String, NomFunction> builtinFunctions = new HashMap<>();
+    public static final Map<Long, NomObject> objects = new HashMap<>();
 
     public static void clear() {
         classes.clear();

@@ -18,7 +18,7 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="317.5,-145.5 16.5,-145.5 16.5,-88 317.5,-88 317.5,-145.5"/>
-<text text-anchor="middle" x="167" y="-128.2" font-family="Times,serif" font-size="14.00">reg[0] = Long(0)</text>
+<text text-anchor="middle" x="167" y="-128.2" font-family="Times,serif" font-size="14.00">reg[0] = 0</text>
 <text text-anchor="middle" x="167" y="-111.7" font-family="Times,serif" font-size="14.00">reg[1] = SimpleTest_0.Func3(reg[0], arg[0], arg[1])</text>
 <text text-anchor="middle" x="167" y="-95.2" font-family="Times,serif" font-size="14.00">reg[2] = arg[0] / arg[1]</text>
 </g>

@@ -1,11 +1,9 @@
 package com.nom.graalnom.parser;
 
 import java.io.FileInputStream;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
 import java.util.*;
 import java.util.function.Function;
 
@@ -13,21 +11,20 @@ import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.*;
-import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomString;
-import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.*;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
 import com.nom.graalnom.runtime.nodes.expression.binary.*;
 import com.nom.graalnom.runtime.nodes.expression.literal.*;
+import com.nom.graalnom.runtime.nodes.expression.object.NomNewObjectNode;
+import com.nom.graalnom.runtime.nodes.expression.object.NomReadFieldNodeGen;
+import com.nom.graalnom.runtime.nodes.expression.object.NomWriteFieldNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNegateNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNotNodeGen;
 import com.nom.graalnom.runtime.nodes.local.*;
 import com.nom.graalnom.runtime.reflections.*;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
@@ -267,20 +264,18 @@ public class ByteCodeReader {
                 nameId = GetGlobalId(constants, s.readLong());
                 typeArgsId = GetGlobalId(constants, s.readLong());
                 NomSuperClassConstant superClass = NomContext.constants.GetSuperClass(nameId);
-                //TODO create object, add to parameters (index0)
-                //i.e. create the object then add to a static map<id, object>
                 NomExpressionNode[] methArgs = new NomExpressionNode[args.size() + 1];
-                //methArgs[0] = new NomFetchObjectNode(id);
-                methArgs[0] = new NomLongLiteralNode(0);
+                methArgs[0] = new NomNewObjectNode(superClass);
                 for (int i = 1; i <= args.size(); i++) {
                     methArgs[i] = args.get(i - 1);
                 }
+                args.clear();
 
                 Function<NomSuperClassConstant, NomClass> getCls = su ->
-                        NomContext.classes.get(NomContext.constants.GetClass(su.SuperClass).GetName());
+                        NomContext.classes.get(su.GetSuperClass().GetName());
                 Function<NomSuperClassConstant, String> getName = su -> "_Constructor_" + getCls.apply(su).GetName().toString() + "_" + (methArgs.length - 1);
                 return WriteToFrame(curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(superClass, getName,
+                        new NomInvokeNode<>(superClass, su -> "new " + getCls.apply(su).GetName().toString(),
                                 su -> NomContext.functionsObject.get(getCls.apply(su)).get(getName.apply(su)), methArgs));
             }
             case WriteField -> {
@@ -288,14 +283,19 @@ public class ByteCodeReader {
                 int value = s.readInt();//arg
                 long fieldName = GetGlobalId(constants, s.readLong());//stringconstant
                 long receiverType = GetGlobalId(constants, s.readLong());//classconstant
-                //we just need to pass
-                //receiverRegIndex(object arg) and
-                //NomReadArgNode(value) and the field name to the write node
-                System.out.println("this(" + NomContext.constants
-                        .GetClass(receiverType).GetName() + ")."
-                        + NomContext.constants.GetString(fieldName).GetText()
-                        + " = arg[" + value + "]");
-                return new NomLongLiteralNode(value);
+                return NomWriteFieldNodeGen.create(
+                        ReadFromFrame(curMethodArgCount, receiverRegIndex),
+                        new NomStringLiteralNode(NomContext.constants.GetString(fieldName).GetText()),
+                        ReadFromFrame(curMethodArgCount, value));
+            }
+            case ReadField -> {
+                regIndex = s.readInt();
+                receiverRegIndex = s.readInt();
+                long fieldName = GetGlobalId(constants, s.readLong());
+                long receiverType = GetGlobalId(constants, s.readLong());
+                return WriteToFrame(curMethodArgCount, regIndex,
+                        NomReadFieldNodeGen.create(ReadFromFrame(curMethodArgCount, receiverRegIndex),
+                                new NomStringLiteralNode(NomContext.constants.GetString(fieldName).GetText())));
             }
             case PhiNode -> {
                 int incoming = s.readInt();// how many branches jumps here

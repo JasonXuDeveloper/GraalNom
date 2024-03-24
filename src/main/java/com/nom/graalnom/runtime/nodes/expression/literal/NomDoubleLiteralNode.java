@@ -25,6 +25,6 @@ public final class NomDoubleLiteralNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "Double(" + value + ")";
+        return Double.toString(value);
     }
 }

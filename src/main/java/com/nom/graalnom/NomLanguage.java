@@ -3,7 +3,9 @@ package com.nom.graalnom;
 import com.nom.graalnom.parser.ByteCodeReader;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
+import com.nom.graalnom.runtime.datatypes.ExtendedObject;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
+import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
@@ -22,6 +24,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.json.JSONObject;
 import org.xml.sax.InputSource;
@@ -47,6 +50,13 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     public static final String MIME_TYPE = "application/xml";
 
     private static final HashSet<String> loadedManifests = new HashSet<>();
+    private static final Shape initialObjectShape = Shape.newBuilder().layout(ExtendedObject.class).build();
+
+    public static NomObject createObject(NomClass cls) {
+        var ret = new ExtendedObject(initialObjectShape, cls);
+        NomContext.objects.put(ret.GetId(), ret);
+        return ret;
+    }
 
     @Override
     protected NomContext createContext(Env env) {
