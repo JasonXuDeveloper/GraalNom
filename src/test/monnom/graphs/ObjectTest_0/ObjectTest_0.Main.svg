@@ -18,10 +18,10 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="280.12,-376.5 15.88,-376.5 15.88,-88 280.12,-88 280.12,-376.5"/>
-<text text-anchor="middle" x="148" y="-359.2" font-family="Times,serif" font-size="14.00">reg[0] = 1</text>
+<text text-anchor="middle" x="148" y="-359.2" font-family="Times,serif" font-size="14.00">reg[0] = 0</text>
 <text text-anchor="middle" x="148" y="-342.7" font-family="Times,serif" font-size="14.00">reg[1] = Hello</text>
 <text text-anchor="middle" x="148" y="-326.2" font-family="Times,serif" font-size="14.00">reg[2] = MyObj_0.ctor(new(), reg[0], reg[1])</text>
-<text text-anchor="middle" x="148" y="-309.7" font-family="Times,serif" font-size="14.00">reg[3] = 2</text>
+<text text-anchor="middle" x="148" y="-309.7" font-family="Times,serif" font-size="14.00">reg[3] = 1</text>
 <text text-anchor="middle" x="148" y="-293.2" font-family="Times,serif" font-size="14.00">reg[4] = World</text>
 <text text-anchor="middle" x="148" y="-276.7" font-family="Times,serif" font-size="14.00">reg[5] = MyObj_0.ctor(new(), reg[3], reg[4])</text>
 <text text-anchor="middle" x="148" y="-260.2" font-family="Times,serif" font-size="14.00">reg[6] = 3</text>

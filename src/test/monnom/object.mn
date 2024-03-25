@@ -2,8 +2,8 @@ public class ObjectTest
 {
     public static fun Main() : Int
     {
-        MyObj obj = new MyObj(1, "Hello");
-        MyObj obj2 = new MyObj(2, "World");
+        MyObj obj = new MyObj(0, "Hello");
+        MyObj obj2 = new MyObj(1, "World");
         MyObj obj3 = new MyObj(3, "!");
         obj.Print();
         obj2.Print();
@@ -25,6 +25,7 @@ public class MyObj
 
     public fun Print() : Void
     {
+        x = x + 1;
         y.Print();
     }
 
