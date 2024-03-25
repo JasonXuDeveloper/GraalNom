@@ -153,10 +153,8 @@ public class NomClass extends NomInterface {
         }
         superClassChain = superClassChain.reversed();
         var clsFunctions = NomContext.functionsObject.computeIfAbsent(this, k -> new HashMap<>());
+        var ctorFunctions = NomContext.ctorFunctions.computeIfAbsent(this.GetName(), k -> new HashMap<>());
         for (NomClass superClass : superClassChain) {
-            for (var constructor : superClass.Constructors) {
-                clsFunctions.put(constructor.GetName(), constructor.GetFunction(language));
-            }
             for (var method : superClass.StaticMethods) {
                 clsFunctions.put(method.GetName(), method.GetFunction(language));
             }
@@ -172,7 +170,7 @@ public class NomClass extends NomInterface {
 
         //constructors
         for (var constructor : Constructors) {
-            clsFunctions.put(constructor.GetName(), constructor.GetFunction(language));
+            ctorFunctions.put(constructor.GetArgCount(), constructor.GetFunction(language));
         }
         //static methods
         for (var method : StaticMethods) {

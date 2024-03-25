@@ -1,6 +1,7 @@
 package com.nom.graalnom.runtime.constants;
 
 import com.nom.graalnom.runtime.NomContext;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class NomClassConstant extends NomConstant {
     private final long Library;
@@ -16,6 +17,10 @@ public class NomClassConstant extends NomConstant {
 
     public String GetName() {
         return NomContext.constants.GetString(Name).GetText().toString();
+    }
+
+    public TruffleString GetTruffleName() {
+        return NomContext.constants.GetString(Name).GetText();
     }
 
     /*

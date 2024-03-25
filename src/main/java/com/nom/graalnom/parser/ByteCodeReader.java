@@ -271,12 +271,10 @@ public class ByteCodeReader {
                 }
                 args.clear();
 
-                Function<NomSuperClassConstant, NomClass> getCls = su ->
-                        NomContext.classes.get(su.GetSuperClass().GetName());
-                Function<NomSuperClassConstant, String> getName = su -> "_Constructor_" + getCls.apply(su).GetName().toString() + "_" + (methArgs.length - 1);
                 return WriteToFrame(curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(superClass, su -> getCls.apply(su).GetName().toString() + ".ctor",
-                                su -> NomContext.functionsObject.get(getCls.apply(su)).get(getName.apply(su)), methArgs));
+                        new NomInvokeNode<>(superClass,
+                                su -> NomContext.classes.get(su.GetSuperClass().GetName()).GetName().toString() + ".ctor",
+                                su -> NomContext.ctorFunctions.get(su.GetSuperClass().GetTruffleName()).get(methArgs.length), methArgs));
             }
             case WriteField -> {
                 receiverRegIndex = s.readInt();//this

@@ -35,6 +35,7 @@ public class NomContext {
     public static final Map<String, NomClass> classes = new java.util.HashMap<>();
 
     public static final Map<NomClass, Map<String, NomFunction>> functionsObject = new HashMap<>();
+    public static final Map<TruffleString, Map<Integer, NomFunction>> ctorFunctions = new HashMap<>();
     public static final Map<String, NomFunction> builtinFunctions = new HashMap<>();
     public static final Map<Long, NomObject> objects = new HashMap<>();
 
