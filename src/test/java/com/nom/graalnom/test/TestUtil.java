@@ -48,6 +48,7 @@ public class TestUtil {
         System.out.println();
         System.out.println(cls.GetName().toString() + " Class methods control flow graphs:");
         Map<String, NomFunction> map = NomContext.functionsObject.get(cls);
+        if (map == null) return;
         for (var method : map.values()) {
             String dot = ((NomRootNode) method.getCallTarget().getRootNode()).toDotGraph();
             String outputPath = Paths.get(directory, method.getName() + ".svg").toString();
@@ -85,7 +86,7 @@ public class TestUtil {
         }
     }
 
-    public static void InjectFiles(String manifestPath,String mainClass, String... files) throws Exception {
+    public static void InjectFiles(String manifestPath, String mainClass, String... files) throws Exception {
         Path path = Paths.get(manifestPath);
         //load manifest file in manifestPath
         String manifest = Files.readString(path);

@@ -266,8 +266,8 @@ public class ByteCodeReader {
                 NomSuperClassConstant superClass = NomContext.constants.GetSuperClass(nameId);
                 NomExpressionNode[] methArgs = new NomExpressionNode[args.size() + 1];
                 methArgs[0] = new NomNewObjectNode(superClass);
-                for (int i = 1; i <= args.size(); i++) {
-                    methArgs[i] = args.get(i - 1);
+                for (int i = 0; i < args.size(); i++) {
+                    methArgs[i + 1] = args.get(i);
                 }
                 args.clear();
 
@@ -275,7 +275,7 @@ public class ByteCodeReader {
                         NomContext.classes.get(su.GetSuperClass().GetName());
                 Function<NomSuperClassConstant, String> getName = su -> "_Constructor_" + getCls.apply(su).GetName().toString() + "_" + (methArgs.length - 1);
                 return WriteToFrame(curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(superClass, su -> "new " + getCls.apply(su).GetName().toString(),
+                        new NomInvokeNode<>(superClass, su -> getCls.apply(su).GetName().toString() + ".ctor",
                                 su -> NomContext.functionsObject.get(getCls.apply(su)).get(getName.apply(su)), methArgs));
             }
             case WriteField -> {
@@ -388,7 +388,7 @@ public class ByteCodeReader {
         NomClass.RegisterClass(NomContext.constants.GetString(nameId).GetText().toString(), cls);
         long methodCount = s.readLong();
         while (methodCount > 0) {
-            //ReadMethod(cls);
+            ReadMethod(s, cls, constants, debug);
             methodCount--;
         }
         long fieldCount = s.readLong();
@@ -417,6 +417,28 @@ public class ByteCodeReader {
             structCount--;
         }
         cls.Register(language);
+    }
+
+    public static void ReadMethod(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants, boolean debug) throws Exception {
+        if (s.read() != BytecodeInternalElementType.Method.getValue()) {
+            throw new IllegalArgumentException("Expected method, but did not encounter method marker");
+        }
+        long nameId = GetGlobalId(constants, s.readLong());
+        long typeArgs = GetGlobalId(constants, s.readLong());//type that contains the method
+        long returnType = GetGlobalId(constants, s.readLong());
+        long argTypes = GetGlobalId(constants, s.readLong());//type of the argument
+        String nameStr = NomContext.constants.GetString(nameId).GetText().toString();
+        boolean isFinal = s.readBoolean();
+        int regCount = s.readInt();
+        String qNameStr = cls.GetName().toString() + "." + nameStr;
+        NomMethod meth = cls.AddMethod(nameStr, qNameStr, typeArgs, returnType, argTypes, regCount, isFinal);
+        long instructionCount = s.readLong();
+        args.clear();
+        while (instructionCount > 0) {
+            NomStatementNode instr = ReadInstruction(meth, s, constants, debug);
+            instructionCount--;
+            meth.AddInstruction(instr);
+        }
     }
 
     public static void ReadStaticMethod(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants, boolean debug) throws Exception {

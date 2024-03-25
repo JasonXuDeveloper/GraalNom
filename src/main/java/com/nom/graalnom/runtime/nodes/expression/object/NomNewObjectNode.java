@@ -7,7 +7,7 @@ import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-@NodeInfo(shortName = "instance")
+@NodeInfo(shortName = "new()")
 public class NomNewObjectNode extends NomExpressionNode {
     private final NomSuperClassConstant superClassConstant;
 
@@ -22,6 +22,6 @@ public class NomNewObjectNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "instance";
+        return "new()";
     }
 }

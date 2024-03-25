@@ -3,7 +3,6 @@ package com.nom.graalnom;
 import com.nom.graalnom.parser.ByteCodeReader;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
-import com.nom.graalnom.runtime.datatypes.ExtendedObject;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.datatypes.NomString;
@@ -50,10 +49,10 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     public static final String MIME_TYPE = "application/xml";
 
     private static final HashSet<String> loadedManifests = new HashSet<>();
-    private static final Shape initialObjectShape = Shape.newBuilder().layout(ExtendedObject.class).build();
+    private static final Shape initialObjectShape = Shape.newBuilder().layout(NomObject.class).build();
 
     public static NomObject createObject(NomClass cls) {
-        var ret = new ExtendedObject(initialObjectShape, cls);
+        var ret = new NomObject(initialObjectShape, cls);
         NomContext.objects.put(ret.GetId(), ret);
         return ret;
     }
@@ -159,7 +158,8 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         NomFunction mainFunc = null;
         for (var method : main.StaticMethods) {
             if (method.GetName().equals("Main")) {
-                mainFunc = NomContext.functionsObject.get(main).get(method.GetName());
+                if (NomContext.functionsObject.get(main) != null)
+                    mainFunc = NomContext.functionsObject.get(main).get(method.GetName());
                 break;
             }
         }

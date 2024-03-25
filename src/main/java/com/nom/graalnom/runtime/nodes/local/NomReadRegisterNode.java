@@ -102,6 +102,7 @@ public abstract class NomReadRegisterNode extends NomExpressionNode {
             return result;
         }
 
+//        System.out.println("Object " + (frame.getObject(getRegIndex()) != null ? frame.getObject(getRegIndex()).getClass().getSimpleName() : "null") + " at slot " + getRegIndex());
         return frame.getObject(getRegIndex());
     }
 

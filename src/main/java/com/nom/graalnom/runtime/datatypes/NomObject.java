@@ -23,6 +23,19 @@ public class NomObject extends DynamicObject implements TruffleObject {
     private final long Id;
     private static long nextId = 0;
 
+    @DynamicField
+    private Object _object1;
+    @DynamicField
+    private Object _object2;
+    @DynamicField
+    private Object _object3;
+    @DynamicField
+    private long _long1;
+    @DynamicField
+    private long _long2;
+    @DynamicField
+    private long _long3;
+
     public long GetId() {
         return Id;
     }
@@ -49,10 +62,8 @@ public class NomObject extends DynamicObject implements TruffleObject {
             throws UnknownIdentifierException {
         Object result = objectLibrary.getOrDefault(this, name, null);
         if (result == null) {
-            var s = cls.Fields.stream().filter(f ->
-                    NomContext.constants.GetString(f.Name).toString().equals(name)).findFirst();
-            if (s.isPresent()) {
-                NomTypedField f = s.get();
+            NomTypedField f = (NomTypedField) cls.GetField(name);
+            if (f != null) {
                 NomClassTypeConstant type = f.GetTypeConstant();
                 NomClassConstant typeCls = type.GetClass();
                 if (typeCls.GetName().equals("Int_0")) {

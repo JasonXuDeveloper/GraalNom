@@ -1,5 +1,6 @@
 package com.nom.graalnom.runtime.nodes.local;
 
+import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -26,7 +27,7 @@ public abstract class NomWriteRegisterNode extends NomExpressionNode {
     public abstract NomExpressionNode getValueNode();
 
     public final TruffleString getRegName() {
-        return (TruffleString) getRootNode().getFrameDescriptor().getSlotName(getRegIndex());
+        return NomString.create((String)getRootNode().getFrameDescriptor().getSlotName(getRegIndex()));
     }
 
     /**
@@ -83,6 +84,7 @@ public abstract class NomWriteRegisterNode extends NomExpressionNode {
         frame.getFrameDescriptor().setSlotKind(getRegIndex(), FrameSlotKind.Object);
 
         frame.setObject(getRegIndex(), value);
+//        System.out.println("Wrote " + value.getClass().getSimpleName() + " to " + getRegName());
         return value;
     }
 

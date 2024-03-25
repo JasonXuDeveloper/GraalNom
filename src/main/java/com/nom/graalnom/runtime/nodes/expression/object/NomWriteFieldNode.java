@@ -1,11 +1,9 @@
 package com.nom.graalnom.runtime.nodes.expression.object;
 
-import com.nom.graalnom.runtime.datatypes.ExtendedObject;
 import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.literal.NomStringLiteralNode;
 import com.oracle.truffle.api.dsl.*;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -26,7 +24,7 @@ public abstract class NomWriteFieldNode extends NomExpressionNode {
 
 
     @Specialization(limit = "LIBRARY_LIMIT")
-    protected static Object writeNomObject(ExtendedObject receiver, TruffleString name, Object value,
+    protected static Object writeNomObject(NomObject receiver, TruffleString name, Object value,
                                            @Bind("this") Node node,
                                            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
         objectLibrary.put(receiver, name, value);

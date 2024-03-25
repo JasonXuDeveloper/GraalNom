@@ -5,15 +5,11 @@ public class ObjectTest
         MyObj obj = new MyObj(1, "Hello");
         MyObj obj2 = new MyObj(2, "World");
         MyObj obj3 = new MyObj(3, "!");
-        MyObj temp;
-        temp = obj;
-        obj = obj3;
-        obj3 = temp;
-        MyObj.Print(obj);
-        MyObj.Print(obj2);
-        MyObj.Print(obj3);
+        obj.Print();
+        obj2.Print();
+        obj3.y.Print();
 
-        return obj.x + obj2.x + obj3.x;
+        return obj.x + MyObj.GetX(obj2) + obj3.x;
     }
 }
 public class MyObj
@@ -27,8 +23,13 @@ public class MyObj
         y = s;
     }
 
-    public static fun Print(MyObj ins) : Void
+    public fun Print() : Void
     {
-        ins.y.Print();
+        y.Print();
+    }
+
+    public static fun GetX(MyObj obj) : Int
+    {
+        return obj.x;
     }
 }

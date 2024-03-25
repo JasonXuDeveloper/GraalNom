@@ -51,6 +51,12 @@ public class NomClass extends NomInterface {
         return field;
     }
 
+    public NomMethod AddMethod(String name, String qname, long typeArgs, long returnType, long argTypes, int regCount, boolean isFinal) {
+        NomMethod method = new NomMethod(name, this, qname, returnType, typeArgs, argTypes, regCount, false, isFinal);
+        Methods.add(method);
+        return method;
+    }
+
     public NomStaticMethod AddStaticMethod(String name, String qname, long typeArgs, long returnType, long argTypes, int regCount) {
         NomStaticMethod staticMethod = new NomStaticMethod(name, this, qname, returnType, typeArgs, argTypes, regCount, false);
         StaticMethods.add(staticMethod);
@@ -99,22 +105,49 @@ public class NomClass extends NomInterface {
         }
     }
 
+    public NomField GetField(long nameId) {
+        for (NomTypedField field : Fields) {
+            if (field.Name == nameId) {
+                return field;
+            }
+        }
+        for (NomTypedField field : AllFields) {
+            if (field.Name == nameId) {
+                return field;
+            }
+        }
+        return null;
+    }
+
+    public NomField GetField(String name) {
+        for (NomTypedField field : Fields) {
+            if (name.equals(NomContext.constants.GetString(field.Name).GetText().toString())) {
+                return field;
+            }
+        }
+        for (NomTypedField field : AllFields) {
+            if (name.equals(NomContext.constants.GetString(field.Name).GetText().toString())) {
+                return field;
+            }
+        }
+        return null;
+    }
+
     public void Register(NomLanguage language) {
         //copy methods from superclass
         List<NomClass> superClassChain = new ArrayList<>();
         SuperClassDependencies = new HashSet<>();
         long superClassId = SuperClass;
         SuperClassDependencies.add(superClassId);
-        while(superClassId != 0){
+        while (superClassId != 0) {
             NomSuperClassConstant sc = NomContext.constants.GetSuperClass(superClassId);
             NomClassConstant superClassRef = sc.GetSuperClass();
-            if(NomContext.classes.get(superClassRef.GetName()) != null){
+            if (NomContext.classes.get(superClassRef.GetName()) != null) {
                 NomClass cls = NomContext.classes.get(superClassRef.GetName());
                 superClassChain.add(cls);
                 SuperClassDependencies.add(superClassId);
                 superClassId = cls.SuperClass;
-            }
-            else{
+            } else {
                 superClassId = 0;
             }
         }
@@ -129,6 +162,11 @@ public class NomClass extends NomInterface {
             }
             for (var method : superClass.Methods) {
                 clsFunctions.put(method.GetName(), method.GetFunction(language));
+            }
+            for (var field : superClass.Fields) {
+                if (!AllFields.contains(field)) {
+                    AllFields.add(field);
+                }
             }
         }
 

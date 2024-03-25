@@ -1,10 +1,9 @@
 package com.nom.graalnom.runtime.nodes.expression.object;
 
-import com.nom.graalnom.runtime.datatypes.ExtendedObject;
+import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.literal.NomStringLiteralNode;
 import com.oracle.truffle.api.dsl.Bind;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -20,9 +19,9 @@ public abstract class NomReadFieldNode extends NomExpressionNode {
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization(limit = "LIBRARY_LIMIT")
-    protected static Object readNomObject(ExtendedObject receiver, TruffleString name,
-                                         @Bind("this") Node node,
-                                         @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
+    protected static Object readNomObject(NomObject receiver, TruffleString name,
+                                          @Bind("this") Node node,
+                                          @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
         Object result = objectLibrary.getOrDefault(receiver, name, null);
         if (result == null) {
             throw new RuntimeException("Field not found: " + name);
