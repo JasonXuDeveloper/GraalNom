@@ -3,15 +3,16 @@ package com.nom.graalnom;
 import com.nom.graalnom.parser.ByteCodeReader;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
+import com.nom.graalnom.runtime.constants.NomSuperClassConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomObject;
-import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomBasicBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomReturnNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
+import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
 import com.nom.graalnom.runtime.nodes.local.NomReadArgumentNode;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.oracle.truffle.api.CallTarget;
@@ -24,7 +25,6 @@ import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.json.JSONObject;
 import org.xml.sax.InputSource;
 
@@ -44,7 +44,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @ProvidedTags({StandardTags.CallTag.class, StandardTags.StatementTag.class, StandardTags.RootTag.class, StandardTags.RootBodyTag.class, StandardTags.ExpressionTag.class, DebuggerTags.AlwaysHalt.class,
         StandardTags.ReadVariableTag.class, StandardTags.WriteVariableTag.class})
 public class NomLanguage extends TruffleLanguage<NomContext> {
-    public static final TruffleString.Encoding STRING_ENCODING = TruffleString.Encoding.UTF_16LE;
     public static final String ID = "nom";
     public static final String MIME_TYPE = "application/xml";
 
@@ -52,9 +51,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     private static final Shape initialObjectShape = Shape.newBuilder().layout(NomObject.class).build();
 
     public static NomObject createObject(NomClass cls) {
-        var ret = new NomObject(initialObjectShape, cls);
-        NomContext.objects.put(ret.GetId(), ret);
-        return ret;
+        return new NomObject(initialObjectShape, cls);
     }
 
     @Override
@@ -137,7 +134,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
                                     new NomReturnNode(null)
                             }, "method entry")
                     }),
-                    NomString.create("Invalid"), 0).getCallTarget();
+                    "Invalid", 0).getCallTarget();
         }
 
         if (debug) {
@@ -173,6 +170,13 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         return mainFunc.getCallTarget();
     }
 
+    public static NomExpressionNode callCtorNode(NomSuperClassConstant superClass, int curMethodArgCount, int regIndex, int ctorArgLen, NomExpressionNode[] ctorArgs) {
+        return ByteCodeReader.WriteToFrame(curMethodArgCount, regIndex,
+                new NomInvokeNode<>(superClass,
+                        su -> NomContext.classes.get(su.GetSuperClass().GetName()).GetName() + ".ctor",
+                        su -> NomContext.ctorFunctions.get(su.GetSuperClass().GetTruffleName()).get(ctorArgLen), ctorArgs));
+    }
+
     private final Map<NodeFactory<? extends NomBuiltinNode>, RootCallTarget> builtinTargets = new ConcurrentHashMap<>();
 
     public RootCallTarget lookupBuiltin(NodeFactory<? extends NomBuiltinNode> factory) {
@@ -200,8 +204,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         /* Instantiate the builtin node. This node performs the actual functionality. */
         NomBuiltinNode builtinBodyNode = factory.createNode((Object) argumentNodes);
         /* The name of the builtin function is specified via an annotation on the node class. */
-        TruffleString name = NomString.create(lookupNodeInfo(builtinBodyNode.getClass()).shortName());
-
+        String name = lookupNodeInfo(builtinBodyNode.getClass()).shortName();
         /* Wrap the builtin in a RootNode. Truffle requires all AST to start with a RootNode. */
         NomRootNode rootNode = new NomRootNode(this, new FrameDescriptor(), builtinBodyNode, name, argumentCount);
 

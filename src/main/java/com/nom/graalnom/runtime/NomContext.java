@@ -2,24 +2,16 @@ package com.nom.graalnom.runtime;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
-import com.nom.graalnom.runtime.builtins.NomPrintBuiltin;
 import com.nom.graalnom.runtime.builtins.NomPrintBuiltinFactory;
 import com.nom.graalnom.runtime.builtins.NomToStringBuiltinFactory;
 import com.nom.graalnom.runtime.constants.*;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
-import com.nom.graalnom.runtime.datatypes.NomObject;
-import com.nom.graalnom.runtime.datatypes.NomString;
-import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
-import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
-import com.nom.graalnom.runtime.nodes.local.NomReadRegisterNodeGen;
-import com.nom.graalnom.runtime.nodes.local.NomWriteRegisterNodeGen;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
 import java.io.BufferedReader;
@@ -35,9 +27,8 @@ public class NomContext {
     public static final Map<String, NomClass> classes = new java.util.HashMap<>();
 
     public static final Map<NomClass, Map<String, NomFunction>> functionsObject = new HashMap<>();
-    public static final Map<TruffleString, Map<Integer, NomFunction>> ctorFunctions = new HashMap<>();
+    public static final Map<String, Map<Integer, NomFunction>> ctorFunctions = new HashMap<>();
     public static final Map<String, NomFunction> builtinFunctions = new HashMap<>();
-    public static final Map<Long, NomObject> objects = new HashMap<>();
 
     public static void clear() {
         classes.clear();
@@ -74,8 +65,8 @@ public class NomContext {
     public void installBuiltin(NodeFactory<? extends NomBuiltinNode> factory) {
         /* Register the builtin function in our function registry. */
         RootCallTarget target = language.lookupBuiltin(factory);
-        NomFunction function = new NomFunction(NomString.create(target.getRootNode().getName()), target);
-        builtinFunctions.put(function.getName().toString(), function);
+        NomFunction function = new NomFunction(target.getRootNode().getName(), target);
+        builtinFunctions.put(function.getName(), function);
     }
 
     /**
@@ -103,7 +94,7 @@ public class NomContext {
     }
 
     public static NomFunction getMethod(NomMethodConstant method) {
-        String methName = method.MethodName().toString();
+        String methName = method.MethodName();
         if (method.Class() != null && NomContext.functionsObject.containsKey(method.Class())) {
             Map<String, NomFunction> clsFunctions = NomContext.functionsObject.get(method.Class());
             if (clsFunctions.containsKey(methName)) {

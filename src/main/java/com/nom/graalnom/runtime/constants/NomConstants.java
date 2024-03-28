@@ -1,6 +1,5 @@
 package com.nom.graalnom.runtime.constants;
 
-import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
 import java.util.Collections;
@@ -92,7 +91,7 @@ public class NomConstants {
         return (NomSuperClassConstant) cnstnt;
     }
 
-    public long AddString(TruffleString string, long cid) {
+    public long AddString(String string, long cid) {
         if (cid == 0) {
             cid = GetConstantId();
         }

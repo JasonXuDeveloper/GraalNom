@@ -47,7 +47,6 @@ import com.nom.graalnom.runtime.nodes.controlflow.*;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.*;
-import com.oracle.truffle.api.strings.TruffleString;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,7 +56,7 @@ import java.util.Map;
 /**
  * The root of all Nom execution trees. It is a Truffle requirement that the tree root extends the
  * class {@link RootNode}. This class is used for both builtin and user-defined functions. For
- * builtin functions, the {@link #bodyNode} is a subclass of {@link NomBuiltinNode}. For user-defined
+ * builtin functions, the {@link #bodyNode} is a subclass of {@link com.nom.graalnom.runtime.builtins.NomBuiltinNode}. For user-defined
  * functions, the {@link #bodyNode} is a {@link NomBasicBlockNode}.
  */
 @NodeInfo(language = "Nom", description = "The root of all Nom execution trees")
@@ -71,11 +70,11 @@ public class NomRootNode extends RootNode {
     /**
      * The name of the function, for printing purposes only.
      */
-    private final TruffleString name;
+    private final String name;
 
     private final int argCount;
 
-    public NomRootNode(NomLanguage language, FrameDescriptor frameDescriptor, NomExpressionNode bodyNode, TruffleString name, int argCount) {
+    public NomRootNode(NomLanguage language, FrameDescriptor frameDescriptor, NomExpressionNode bodyNode, String name, int argCount) {
         super(language, frameDescriptor);
         this.bodyNode = bodyNode;
         this.name = name;
@@ -94,7 +93,7 @@ public class NomRootNode extends RootNode {
 
     @Override
     public String getName() {
-        return name.toJavaStringUncached();
+        return name;
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.nom.graalnom.runtime.nodes.local;
 
-import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -8,7 +7,6 @@ import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.strings.TruffleString;
 
 /**
  * Node to write a local variable to a function's {@link VirtualFrame frame}. The Truffle frame API
@@ -25,10 +23,6 @@ public abstract class NomWriteRegisterNode extends NomExpressionNode {
     public abstract int getRegIndex();
 
     public abstract NomExpressionNode getValueNode();
-
-    public final TruffleString getRegName() {
-        return NomString.create((String)getRootNode().getFrameDescriptor().getSlotName(getRegIndex()));
-    }
 
     /**
      * Specialized method to write a primitive {@code long} value. This is only possible if the

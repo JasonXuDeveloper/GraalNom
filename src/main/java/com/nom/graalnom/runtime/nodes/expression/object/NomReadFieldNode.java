@@ -6,23 +6,30 @@ import com.nom.graalnom.runtime.nodes.expression.literal.NomStringLiteralNode;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeChild("receiverNode")
 @NodeChild(value = "nameNode", type = NomStringLiteralNode.class)
 public abstract class NomReadFieldNode extends NomExpressionNode {
     public abstract NomExpressionNode getReceiverNode();
+
     public abstract NomStringLiteralNode getNameNode();
+
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization(limit = "LIBRARY_LIMIT")
-    protected static Object readNomObject(NomObject receiver, TruffleString name,
+    protected Object readNomObject(NomObject receiver, String name,
                                           @Bind("this") Node node,
                                           @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
-        Object result = objectLibrary.getOrDefault(receiver, name, null);
+        Object result = null;
+        try {
+            result = receiver.readMember(name, objectLibrary);
+        } catch (UnknownIdentifierException e) {
+            throw new RuntimeException(e);
+        }
         if (result == null) {
             throw new RuntimeException("Field not found: " + name);
         }
@@ -31,6 +38,6 @@ public abstract class NomReadFieldNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return getReceiverNode().toString() + "." + getNameNode().Value().toString();
+        return getReceiverNode().toString() + "." + getNameNode().Value();
     }
 }

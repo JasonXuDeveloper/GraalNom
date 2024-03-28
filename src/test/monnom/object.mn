@@ -9,28 +9,46 @@ public class ObjectTest
         obj2.Print();
         obj3.y.Print();
 
-        return obj.x + MyObj.GetX(obj2) + obj3.x;
+        return obj.GetX() + MyObj.GetX(obj2) + obj3.GetX();
     }
 }
-public class MyObj
+public class Base
 {
     public Int x;
+
+    public constructor(Int i)
+    {
+        x = i;
+    }
+
+    public fun GetX() : Int
+    {
+        return x;
+    }
+
+    public fun SetX(Int i) : Void
+    {
+        x = i;
+    }
+}
+public class MyObj extends Base
+{
     public String y;
 
     public constructor(Int i, String s)
     {
-        x = i;
         y = s;
+        super(i);
     }
 
     public fun Print() : Void
     {
-        x = x + 1;
+        SetX(GetX() + 1);
         y.Print();
     }
 
     public static fun GetX(MyObj obj) : Int
     {
-        return obj.x;
+        return obj.GetX();
     }
 }

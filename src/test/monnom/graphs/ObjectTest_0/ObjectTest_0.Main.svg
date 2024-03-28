@@ -31,10 +31,10 @@
 <text text-anchor="middle" x="148" y="-194.2" font-family="Times,serif" font-size="14.00">reg[10] = MyObj_0.Print(reg[5])</text>
 <text text-anchor="middle" x="148" y="-177.7" font-family="Times,serif" font-size="14.00">reg[11] = reg[8].y</text>
 <text text-anchor="middle" x="148" y="-161.2" font-family="Times,serif" font-size="14.00">reg[12] = String_0.Print(reg[11])</text>
-<text text-anchor="middle" x="148" y="-144.7" font-family="Times,serif" font-size="14.00">reg[13] = reg[2].x</text>
+<text text-anchor="middle" x="148" y="-144.7" font-family="Times,serif" font-size="14.00">reg[13] = Base_0.GetX(reg[2])</text>
 <text text-anchor="middle" x="148" y="-128.2" font-family="Times,serif" font-size="14.00">reg[14] = MyObj_0.GetX(reg[5])</text>
 <text text-anchor="middle" x="148" y="-111.7" font-family="Times,serif" font-size="14.00">reg[15] = reg[13] + reg[14]</text>
-<text text-anchor="middle" x="148" y="-95.2" font-family="Times,serif" font-size="14.00">reg[16] = reg[8].x</text>
+<text text-anchor="middle" x="148" y="-95.2" font-family="Times,serif" font-size="14.00">reg[16] = Base_0.GetX(reg[8])</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">

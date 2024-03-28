@@ -1,9 +1,7 @@
 package com.nom.graalnom.runtime.constants;
 
 import com.nom.graalnom.runtime.NomContext;
-import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.reflections.NomClass;
-import com.oracle.truffle.api.strings.TruffleString;
 
 public class NomMethodConstant extends NomConstant {
     public final long classConstant;
@@ -20,12 +18,12 @@ public class NomMethodConstant extends NomConstant {
         this.argTypes = argTypes;
     }
 
-    public TruffleString MethodName() {
-        return NomContext.constants.GetString(methodName).GetText();
+    public String MethodName() {
+        return NomContext.constants.GetString(methodName).Value();
     }
 
-    public TruffleString QualifiedMethodName() {
-        return NomString.create(ClassTypeConstant().GetClass().GetName() + "." + NomContext.constants.GetString(methodName).GetText());
+    public String QualifiedMethodName() {
+        return ClassTypeConstant().GetClass().GetName() + "." + NomContext.constants.GetString(methodName).Value();
     }
 
     public NomClass Class() {
@@ -42,7 +40,7 @@ public class NomMethodConstant extends NomConstant {
 
     @Override
     public String toString() {
-        return QualifiedMethodName().toString();
+        return QualifiedMethodName();
     }
 
     /*

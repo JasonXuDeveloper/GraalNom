@@ -5,9 +5,7 @@ import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.NomClassConstant;
 import com.nom.graalnom.runtime.constants.NomSuperClassConstant;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 public class NomClass extends NomInterface {
@@ -18,8 +16,6 @@ public class NomClass extends NomInterface {
 
     public List<NomStaticMethod> StaticMethods;
     public List<NomConstructor> Constructors;
-
-    private HashSet<Long> SuperClassDependencies;
 
 /*
     std::vector<NomLambda*> Lambdas;
@@ -64,7 +60,7 @@ public class NomClass extends NomInterface {
     }
 
     public NomConstructor AddConstructor(long arguments, int regcount) {
-        String name = "_Constructor_" + this.GetName().toString() + "_" + NomContext.constants.GetTypeList(arguments).Count();
+        String name = "_Constructor_" + this.GetName() + "_" + NomContext.constants.GetTypeList(arguments).Count();
         NomConstructor constructor = new NomConstructor(name, this, name, 0, arguments, regcount, false);
         Constructors.add(constructor);
         return constructor;
@@ -121,12 +117,12 @@ public class NomClass extends NomInterface {
 
     public NomField GetField(String name) {
         for (NomTypedField field : Fields) {
-            if (name.equals(NomContext.constants.GetString(field.Name).GetText().toString())) {
+            if (name.equals(NomContext.constants.GetString(field.Name).Value())) {
                 return field;
             }
         }
         for (NomTypedField field : AllFields) {
-            if (name.equals(NomContext.constants.GetString(field.Name).GetText().toString())) {
+            if (name.equals(NomContext.constants.GetString(field.Name).Value())) {
                 return field;
             }
         }
@@ -135,37 +131,22 @@ public class NomClass extends NomInterface {
 
     public void Register(NomLanguage language) {
         //copy methods from superclass
-        List<NomClass> superClassChain = new ArrayList<>();
-        SuperClassDependencies = new HashSet<>();
-        long superClassId = SuperClass;
-        SuperClassDependencies.add(superClassId);
-        while (superClassId != 0) {
-            NomSuperClassConstant sc = NomContext.constants.GetSuperClass(superClassId);
-            NomClassConstant superClassRef = sc.GetSuperClass();
-            if (NomContext.classes.get(superClassRef.GetName()) != null) {
-                NomClass cls = NomContext.classes.get(superClassRef.GetName());
-                superClassChain.add(cls);
-                SuperClassDependencies.add(superClassId);
-                superClassId = cls.SuperClass;
-            } else {
-                superClassId = 0;
-            }
+        NomSuperClassConstant sc = NomContext.constants.GetSuperClass(SuperClass);
+        NomClassConstant superClassRef = sc.GetSuperClass();
+        NomClass superClass = null;
+        if (NomContext.classes.get(superClassRef.GetName()) != null) {
+            superClass = NomContext.classes.get(superClassRef.GetName());
         }
-        superClassChain = superClassChain.reversed();
         var clsFunctions = NomContext.functionsObject.computeIfAbsent(this, k -> new HashMap<>());
         var ctorFunctions = NomContext.ctorFunctions.computeIfAbsent(this.GetName(), k -> new HashMap<>());
-        for (NomClass superClass : superClassChain) {
+        if (superClass != null) {
             for (var method : superClass.StaticMethods) {
                 clsFunctions.put(method.GetName(), method.GetFunction(language));
             }
             for (var method : superClass.Methods) {
                 clsFunctions.put(method.GetName(), method.GetFunction(language));
             }
-            for (var field : superClass.Fields) {
-                if (!AllFields.contains(field)) {
-                    AllFields.add(field);
-                }
-            }
+            this.AllFields.addAll(superClass.AllFields);
         }
 
         //constructors
@@ -180,5 +161,7 @@ public class NomClass extends NomInterface {
         for (var method : Methods) {
             clsFunctions.put(method.GetName(), method.GetFunction(language));
         }
+
+        AllFields.addAll(Fields);
     }
 }

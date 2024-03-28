@@ -7,7 +7,6 @@ import com.oracle.truffle.api.dsl.*;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.strings.TruffleString;
 
 
 @NodeChild("receiverNode")
@@ -24,15 +23,15 @@ public abstract class NomWriteFieldNode extends NomExpressionNode {
 
 
     @Specialization(limit = "LIBRARY_LIMIT")
-    protected static Object writeNomObject(NomObject receiver, TruffleString name, Object value,
+    protected static Object writeNomObject(NomObject receiver, String name, Object value,
                                            @Bind("this") Node node,
                                            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
-        objectLibrary.put(receiver, name, value);
-        return value;
+        receiver.writeMember(name, value, objectLibrary);
+        return receiver;
     }
 
     @Override
     public String toString() {
-        return getReceiverNode().toString() + "." + getNameNode().Value().toString() + " = " + getValueNode().toString();
+        return getReceiverNode().toString() + "." + getNameNode().Value() + " = " + getValueNode().toString();
     }
 }

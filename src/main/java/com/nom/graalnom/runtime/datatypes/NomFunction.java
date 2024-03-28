@@ -55,7 +55,6 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import com.oracle.truffle.api.utilities.TriState;
 
@@ -84,7 +83,7 @@ public final class NomFunction implements TruffleObject {
     /**
      * The name of the function.
      */
-    private final TruffleString name;
+    private final String name;
 
     /**
      * The current implementation of this function.
@@ -98,13 +97,13 @@ public final class NomFunction implements TruffleObject {
      */
     private final CyclicAssumption callTargetStable;
 
-    public NomFunction(TruffleString name, RootCallTarget callTarget) {
+    public NomFunction(String name, RootCallTarget callTarget) {
         this.name = name;
-        this.callTargetStable = new CyclicAssumption(name.toJavaStringUncached());
+        this.callTargetStable = new CyclicAssumption(name);
         setCallTarget(callTarget);
     }
 
-    public TruffleString getName() {
+    public String getName() {
         return name;
     }
 
@@ -135,7 +134,7 @@ public final class NomFunction implements TruffleObject {
      */
     @Override
     public String toString() {
-        return name.toJavaStringUncached();
+        return name;
     }
 
     @ExportMessage

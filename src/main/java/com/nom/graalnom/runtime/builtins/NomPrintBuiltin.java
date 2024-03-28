@@ -6,13 +6,12 @@ import com.nom.graalnom.runtime.datatypes.NomNull;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeInfo(shortName = "Print")
 public abstract class NomPrintBuiltin extends NomBuiltinNode {
 
     @Specialization
-    protected Object doDefault(TruffleString str) {
+    protected Object doDefault(String str) {
         NomContext.get(this).getOutput().println(str);
         return NomNull.SINGLETON;
     }

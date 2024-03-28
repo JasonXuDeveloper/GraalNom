@@ -5,13 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.function.Function;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.*;
-import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.*;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
@@ -25,7 +23,6 @@ import com.nom.graalnom.runtime.nodes.expression.unary.NomNegateNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNotNodeGen;
 import com.nom.graalnom.runtime.nodes.local.*;
 import com.nom.graalnom.runtime.reflections.*;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
 @SuppressWarnings("unused")
@@ -55,7 +52,12 @@ public class ByteCodeReader {
                 switch (nextType) {
                     case StringConstant -> {
                         localConstId = s.readLong();
-                        TruffleString str = NomString.create(s);
+                        long length = s.readLong();
+                        char[] chars = new char[(int) length];
+                        for (int i = 0; i < length; i++) {
+                            chars[i] = s.readChar();
+                        }
+                        String str = new String(chars);
                         constants.put(localConstId, NomContext.constants.AddString(str, TryGetGlobalId(constants, localConstId)));
                     }
                     case ClassConstant -> {
@@ -188,7 +190,7 @@ public class ByteCodeReader {
                 regIndex = s.readInt();
                 return WriteToFrame(curMethodArgCount, regIndex, new NomStringLiteralNode(
                         NomContext.constants.
-                                GetString(nameId).GetText()));
+                                GetString(nameId).Value()));
             }
             case InvokeCheckedInstance -> {
                 nameId = GetGlobalId(constants, s.readLong());
@@ -203,7 +205,7 @@ public class ByteCodeReader {
                 }
                 NomExpressionNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(method, m -> m.QualifiedMethodName().toString(), NomContext::getMethod, methArgs));
+                        new NomInvokeNode<>(method, NomMethodConstant::QualifiedMethodName, NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -218,7 +220,7 @@ public class ByteCodeReader {
                 }
                 NomExpressionNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(staticMethod, m -> m.QualifiedMethodName().toString(), NomContext::getMethod, methArgs));
+                        new NomInvokeNode<>(staticMethod, NomStaticMethodConstant::QualifiedMethodName, NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -271,10 +273,7 @@ public class ByteCodeReader {
                 }
                 args.clear();
 
-                return WriteToFrame(curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(superClass,
-                                su -> NomContext.classes.get(su.GetSuperClass().GetName()).GetName().toString() + ".ctor",
-                                su -> NomContext.ctorFunctions.get(su.GetSuperClass().GetTruffleName()).get(methArgs.length), methArgs));
+                return NomLanguage.callCtorNode(superClass, curMethodArgCount, regIndex, methArgs.length, methArgs);
             }
             case WriteField -> {
                 receiverRegIndex = s.readInt();//this
@@ -283,7 +282,7 @@ public class ByteCodeReader {
                 long receiverType = GetGlobalId(constants, s.readLong());//classconstant
                 return NomWriteFieldNodeGen.create(
                         ReadFromFrame(curMethodArgCount, receiverRegIndex),
-                        new NomStringLiteralNode(NomContext.constants.GetString(fieldName).GetText()),
+                        new NomStringLiteralNode(NomContext.constants.GetString(fieldName).Value()),
                         ReadFromFrame(curMethodArgCount, value));
             }
             case ReadField -> {
@@ -293,7 +292,7 @@ public class ByteCodeReader {
                 long receiverType = GetGlobalId(constants, s.readLong());
                 return WriteToFrame(curMethodArgCount, regIndex,
                         NomReadFieldNodeGen.create(ReadFromFrame(curMethodArgCount, receiverRegIndex),
-                                new NomStringLiteralNode(NomContext.constants.GetString(fieldName).GetText())));
+                                new NomStringLiteralNode(NomContext.constants.GetString(fieldName).Value())));
             }
             case PhiNode -> {
                 int incoming = s.readInt();// how many branches jumps here
@@ -370,7 +369,7 @@ public class ByteCodeReader {
         return NomReadRegisterNodeGen.create(index);
     }
 
-    private static NomExpressionNode WriteToFrame(int methodArgCnt, int index, NomExpressionNode value) {
+    public static NomExpressionNode WriteToFrame(int methodArgCnt, int index, NomExpressionNode value) {
         index -= methodArgCnt;
         return NomWriteRegisterNodeGen.create(value, index);
     }
@@ -383,7 +382,7 @@ public class ByteCodeReader {
         long superInterfacesId = GetGlobalId(constants, s.readLong());
         long superClassId = GetGlobalId(constants, s.readLong());
         NomClass cls = new NomClass(nameId, typeArgsId, superClassId, superInterfacesId);
-        NomClass.RegisterClass(NomContext.constants.GetString(nameId).GetText().toString(), cls);
+        NomClass.RegisterClass(NomContext.constants.GetString(nameId).Value(), cls);
         long methodCount = s.readLong();
         while (methodCount > 0) {
             ReadMethod(s, cls, constants, debug);
@@ -425,10 +424,10 @@ public class ByteCodeReader {
         long typeArgs = GetGlobalId(constants, s.readLong());//type that contains the method
         long returnType = GetGlobalId(constants, s.readLong());
         long argTypes = GetGlobalId(constants, s.readLong());//type of the argument
-        String nameStr = NomContext.constants.GetString(nameId).GetText().toString();
+        String nameStr = NomContext.constants.GetString(nameId).Value();
         boolean isFinal = s.readBoolean();
         int regCount = s.readInt();
-        String qNameStr = cls.GetName().toString() + "." + nameStr;
+        String qNameStr = cls.GetName() + "." + nameStr;
         NomMethod meth = cls.AddMethod(nameStr, qNameStr, typeArgs, returnType, argTypes, regCount, isFinal);
         long instructionCount = s.readLong();
         args.clear();
@@ -447,9 +446,9 @@ public class ByteCodeReader {
         long typeArgs = GetGlobalId(constants, s.readLong());//type that contains the method
         long returnType = GetGlobalId(constants, s.readLong());
         long argTypes = GetGlobalId(constants, s.readLong());//type of the argument
-        String nameStr = NomContext.constants.GetString(nameId).GetText().toString();
+        String nameStr = NomContext.constants.GetString(nameId).Value();
         int regCount = s.readInt();
-        String qNameStr = cls.GetName().toString() + "." + nameStr;
+        String qNameStr = cls.GetName() + "." + nameStr;
         NomStaticMethod meth = cls.AddStaticMethod(nameStr, qNameStr, typeArgs, returnType, argTypes, regCount);
         long instructionCount = s.readLong();
         args.clear();
@@ -476,11 +475,25 @@ public class ByteCodeReader {
             preInstructionCount--;
             ctor.AddInstruction(instr);
         }
-        while (superArgCount > 0) {
-            ctor.AddSuperConstructorArg(s.readInt());
-            superArgCount--;
-        }
         args.clear();
+        if (superArgCount > 0) {
+            args.add(new NomReadArgumentNode(0));
+            while (superArgCount > 0) {
+                args.add(new NomReadArgumentNode(s.readInt()));
+                superArgCount--;
+            }
+            if (!args.isEmpty()) {
+                ctor.AddInstruction(
+                        NomLanguage.callCtorNode(
+                                NomContext.constants.GetSuperClass(ctor.declaringClass.SuperClass),
+                                ctor.GetArgCount(),
+                                ctor.GetArgCount(),
+                                args.size(),
+                                args.toArray(new NomExpressionNode[0])));
+                args.clear();
+            }
+        }
+
         while (instructionCount > 0) {
             NomStatementNode instr = ReadInstruction(ctor, s, constants, debug);
             instructionCount--;

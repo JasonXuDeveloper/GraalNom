@@ -4,7 +4,6 @@ import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.NomTypeListConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
-import com.nom.graalnom.runtime.datatypes.NomString;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomBasicBlockNode;
@@ -12,7 +11,6 @@ import com.nom.graalnom.runtime.nodes.controlflow.NomEndOfBasicBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.strings.TruffleString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +69,7 @@ public class NomCallable {
         if (stmt == null)
             return;
         statementNodes.add(stmt);
-        if(stmt instanceof NomEndOfBasicBlockNode){
+        if (stmt instanceof NomEndOfBasicBlockNode) {
             AddBasicBlock(statementNodes.toArray(new NomStatementNode[0]));
             statementNodes.clear();
         }
@@ -94,9 +92,8 @@ public class NomCallable {
                 builder.addSlot(FrameSlotKind.Illegal, "reg" + i, null);
             }
 
-            TruffleString methName = NomString.create(qName);
-            NomRootNode root = new NomRootNode(language, builder.build(), body, methName, GetArgCount());
-            function = new NomFunction(methName, root.getCallTarget());
+            NomRootNode root = new NomRootNode(language, builder.build(), body, qName, GetArgCount());
+            function = new NomFunction(qName, root.getCallTarget());
         }
 
         return function;

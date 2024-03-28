@@ -15,7 +15,6 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.strings.TruffleString;
 
 @ExportLibrary(InteropLibrary.class)
 public class NomObject extends DynamicObject implements TruffleObject {
@@ -57,18 +56,19 @@ public class NomObject extends DynamicObject implements TruffleObject {
     }
 
     @ExportMessage
-    Object readMember(String name,
-                      @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
+    public Object readMember(String name,
+                             @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
             throws UnknownIdentifierException {
         Object result = objectLibrary.getOrDefault(this, name, null);
         if (result == null) {
             NomTypedField f = (NomTypedField) cls.GetField(name);
+            System.out.println(f);
             if (f != null) {
                 NomClassTypeConstant type = f.GetTypeConstant();
                 NomClassConstant typeCls = type.GetClass();
                 if (typeCls.GetName().equals("Int_0")) {
                     objectLibrary.putLong(this, name, 0);
-                    return 0;
+                    return 0L;
                 } else if (typeCls.GetName().equals("Float_0")) {
                     objectLibrary.putDouble(this, name, 0.0);
                     return 0.0;
@@ -87,47 +87,44 @@ public class NomObject extends DynamicObject implements TruffleObject {
     }
 
     @ExportMessage
-    void writeMember(String name, Object value,
-                     @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+    public void writeMember(String name, Object value,
+                            @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         objectLibrary.put(this, name, value);
     }
 
 
     @ExportMessage
-    void removeMember(String member,
-                      @Cached @Cached.Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
-                      @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
-        TruffleString memberTS = fromJavaStringNode.execute(member, NomLanguage.STRING_ENCODING);
-        if (objectLibrary.containsKey(this, memberTS)) {
-            objectLibrary.removeKey(this, memberTS);
+    public void removeMember(String member,
+                             @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
+        if (objectLibrary.containsKey(this, member)) {
+            objectLibrary.removeKey(this, member);
         } else {
             throw UnknownIdentifierException.create(member);
         }
     }
 
     @ExportMessage
-    final boolean hasMembers() {
+    public final boolean hasMembers() {
         return true;
     }
 
     @ExportMessage
-    Object getMembers(@SuppressWarnings("unused") boolean includeInternal,
-                      @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+    public Object getMembers(@SuppressWarnings("unused") boolean includeInternal,
+                             @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         return new Keys(objectLibrary.getKeyArray(this));
     }
 
     @ExportMessage(name = "isMemberReadable")
     @ExportMessage(name = "isMemberModifiable")
     @ExportMessage(name = "isMemberRemovable")
-    boolean existsMember(String member,
-                         @Cached @Cached.Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
-                         @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        return objectLibrary.containsKey(this, fromJavaStringNode.execute(member, NomLanguage.STRING_ENCODING));
+    public boolean existsMember(String member,
+                                @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+        return objectLibrary.containsKey(this, member);
     }
 
     @ExportMessage
-    boolean isMemberInsertable(String member,
-                               @CachedLibrary("this") InteropLibrary receivers) {
+    public boolean isMemberInsertable(String member,
+                                      @CachedLibrary("this") InteropLibrary receivers) {
         return !receivers.isMemberExisting(this, member);
     }
 
@@ -172,6 +169,6 @@ public class NomObject extends DynamicObject implements TruffleObject {
 
     @ExportMessage
     final Object toDisplayString(boolean allowSideEffects) {
-        return null;
+        return "NomObject(" + Id + ")";
     }
 }

@@ -19,6 +19,8 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class TestUtil {
@@ -34,22 +36,24 @@ public class TestUtil {
     }
 
     public static NomClass GetClass(String name) {
-        return NomContext.classes.values().stream().filter(c -> c.GetName().toString().equals(name + "_0")).findFirst().orElse(null);
+        return NomContext.classes.values().stream().filter(c -> c.GetName().equals(name + "_0")).findFirst().orElse(null);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void ExportClassMethodsDotGraphs(NomClass cls, String directory) {
-        directory = Paths.get(directory, cls.GetName().toString()).toString();
+        directory = Paths.get(directory, cls.GetName()).toString();
         //create directory if not exists
         File dir = new File(directory);
         if (!dir.exists()) {
             dir.mkdirs();
         }
         System.out.println();
-        System.out.println(cls.GetName().toString() + " Class methods control flow graphs:");
+        System.out.println(cls.GetName() + " Class methods control flow graphs:");
         Map<String, NomFunction> map = NomContext.functionsObject.get(cls);
-        if (map == null) return;
-        for (var method : map.values()) {
+        Map<Integer, NomFunction> map2 = NomContext.ctorFunctions.get(cls.GetName());
+        List<NomFunction> funcs = new ArrayList<>(List.copyOf(map.values()));
+        funcs.addAll(map2.values());
+        for (var method : funcs) {
             String dot = ((NomRootNode) method.getCallTarget().getRootNode()).toDotGraph();
             String outputPath = Paths.get(directory, method.getName() + ".svg").toString();
             //echo '$dot' | dot -Tsvg > $outputPath

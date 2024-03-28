@@ -4,13 +4,12 @@ import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeInfo(shortName = "const")
 public final class NomStringLiteralNode extends NomExpressionNode {
-    private final TruffleString value;
+    private final String value;
 
-    public NomStringLiteralNode(TruffleString value) {
+    public NomStringLiteralNode(String value) {
         this.value = value;
     }
 
@@ -19,12 +18,12 @@ public final class NomStringLiteralNode extends NomExpressionNode {
         return value;
     }
 
-    public TruffleString Value() {
+    public String Value() {
         return value;
     }
 
     @Override
     public String toString() {
-        return "'" + value.toString() + "'";
+        return "'" + value + "'";
     }
 }
