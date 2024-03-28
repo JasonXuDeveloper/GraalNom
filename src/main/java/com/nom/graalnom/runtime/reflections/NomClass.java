@@ -143,7 +143,7 @@ public class NomClass extends NomInterface {
             for (var method : superClass.StaticMethods) {
                 clsFunctions.put(method.GetName(), method.GetFunction(language));
             }
-            for (var method : superClass.Methods) {
+            for (var method : superClass.AllMethods) {
                 clsFunctions.put(method.GetName(), method.GetFunction(language));
             }
             this.AllFields.addAll(superClass.AllFields);
@@ -163,5 +163,6 @@ public class NomClass extends NomInterface {
         }
 
         AllFields.addAll(Fields);
+        AllMethods.addAll(Methods);
     }
 }
