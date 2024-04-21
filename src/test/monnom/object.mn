@@ -4,7 +4,8 @@ public class ObjectTest
     {
         MyObj obj = new MyObj(0, "Hello");
         MyObj obj2 = new MyObj(1, "World");
-        MyObj obj3 = new MyObj(3, "!");
+        dyn castObj = Base.Create(3, "!");
+        MyObj obj3 = castObj;
         obj.Print();
         obj2.Print();
         obj3.y.Print();
@@ -29,6 +30,12 @@ public class Base
     public fun SetX(Int i) : Void
     {
         x = i;
+    }
+
+    public static fun Create(Int x, String y): Base
+    {
+        Base ret = (Base) new MyObj(x,y);
+        return ret;
     }
 }
 public class MyObj extends Base

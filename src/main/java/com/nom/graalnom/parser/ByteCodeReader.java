@@ -275,6 +275,14 @@ public class ByteCodeReader {
 
                 return NomLanguage.callCtorNode(superClass, curMethodArgCount, regIndex, methArgs.length, methArgs);
             }
+            case Cast -> {
+                regIndex = s.readInt();
+                int value = s.readInt();
+                long typeId = GetGlobalId(constants, s.readLong());
+                //assuming compiler DOES check on the types so that the cast
+                //object is always an instance under the type with typeId
+                return WriteToFrame(curMethodArgCount, regIndex, ReadFromFrame(curMethodArgCount, value));
+            }
             case WriteField -> {
                 receiverRegIndex = s.readInt();//this
                 int value = s.readInt();//arg
