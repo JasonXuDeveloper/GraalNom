@@ -88,6 +88,13 @@ public class ByteCodeReader {
                                 args,
                                 TryGetGlobalId(constants, localConstId)));
                     }
+                    case InterfaceConstant -> {
+                        localConstId = s.readLong();
+                        constants.put(localConstId, NomContext.constants.AddInterface(
+                                GetGlobalId(constants, s.readLong()),
+                                GetGlobalId(constants, s.readLong()),
+                                TryGetGlobalId(constants, localConstId)));
+                    }
                     case ClassTypeConstant -> {
                         localConstId = s.readLong();
                         constants.put(localConstId, NomContext.constants.AddClassType(
@@ -125,6 +132,7 @@ public class ByteCodeReader {
                                 TryGetGlobalId(constants, localConstId)));
                     }
                     case Class -> ReadClass(s, constants, language, debug);
+                    case Interface -> ReadInterface(s, constants, language, debug);
                     case null, default -> throw new IllegalArgumentException("unknown type (" + b + "): " + nextType);
                 }
                 if (constants.containsKey(localConstId) && debug) {
@@ -205,7 +213,8 @@ public class ByteCodeReader {
                 }
                 NomExpressionNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(method, NomMethodConstant::QualifiedMethodName, NomContext::getMethod, methArgs));
+                        new NomInvokeNode<>(method, NomMethodConstant::QualifiedMethodName,
+                                NomMethodConstant::MethodName, NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -220,7 +229,8 @@ public class ByteCodeReader {
                 }
                 NomExpressionNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(staticMethod, NomStaticMethodConstant::QualifiedMethodName, NomContext::getMethod, methArgs));
+                        new NomInvokeNode<>(staticMethod, NomStaticMethodConstant::QualifiedMethodName,
+                                NomStaticMethodConstant::QualifiedMethodName, NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -382,6 +392,22 @@ public class ByteCodeReader {
         return NomWriteRegisterNodeGen.create(value, index);
     }
 
+    public static void ReadInterface(LittleEndianDataInputStream s, Map<Long, Long> constants, NomLanguage language, boolean debug) throws Exception {
+        long nameId = GetGlobalId(constants, s.readLong());
+        long typeParams = GetGlobalId(constants, s.readLong());
+        byte visibility = s.readByte();
+        byte flags = s.readByte();
+        long superInterfacesId = GetGlobalId(constants, s.readLong());
+        NomInterface cls = new NomInterface(nameId, typeParams, superInterfacesId);
+        NomClass.RegisterClass(NomContext.constants.GetString(nameId).Value(), cls);
+        long methodCount = s.readLong();
+        while (methodCount > 0) {
+            ReadMethod(s, cls, constants, debug);
+            methodCount--;
+        }
+        cls.Register(language);
+    }
+
     public static void ReadClass(LittleEndianDataInputStream s, Map<Long, Long> constants, NomLanguage language, boolean debug) throws Exception {
         long nameId = GetGlobalId(constants, s.readLong());
         long typeArgsId = GetGlobalId(constants, s.readLong());
@@ -424,7 +450,7 @@ public class ByteCodeReader {
         cls.Register(language);
     }
 
-    public static void ReadMethod(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants, boolean debug) throws Exception {
+    public static void ReadMethod(LittleEndianDataInputStream s, NomInterface cls, Map<Long, Long> constants, boolean debug) throws Exception {
         if (s.read() != BytecodeInternalElementType.Method.getValue()) {
             throw new IllegalArgumentException("Expected method, but did not encounter method marker");
         }

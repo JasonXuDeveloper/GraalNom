@@ -2,6 +2,7 @@ package com.nom.graalnom.runtime.constants;
 
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.reflections.NomClass;
+import com.nom.graalnom.runtime.reflections.NomInterface;
 
 public class NomMethodConstant extends NomConstant {
     public final long classConstant;
@@ -23,13 +24,23 @@ public class NomMethodConstant extends NomConstant {
     }
 
     public String QualifiedMethodName() {
-        return ClassTypeConstant().GetClass().GetName() + "." + NomContext.constants.GetString(methodName).Value();
+        String name;
+        if(ClassTypeConstant().GetClass() != null){
+            name = ClassTypeConstant().GetClass().GetName();
+        }
+        else{
+            name = ClassTypeConstant().GetInterface().GetName();
+        }
+        return name + "." + NomContext.constants.GetString(methodName).Value();
     }
 
-    public NomClass Class() {
+    public NomInterface Class() {
         NomClassTypeConstant clsConst = this.ClassTypeConstant();
         if (clsConst == null) {
             return null;
+        }
+        if(clsConst.GetClass() == null){
+            return NomContext.classes.get(clsConst.GetInterface().GetName());
         }
         return NomContext.classes.get(clsConst.GetClass().GetName());
     }

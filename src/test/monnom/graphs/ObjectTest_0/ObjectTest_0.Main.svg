@@ -33,7 +33,7 @@
 <text text-anchor="middle" x="148" y="-177.7" font-family="Times,serif" font-size="14.00">reg[12] = reg[9].y</text>
 <text text-anchor="middle" x="148" y="-161.2" font-family="Times,serif" font-size="14.00">reg[13] = String_0.Print(reg[12])</text>
 <text text-anchor="middle" x="148" y="-144.7" font-family="Times,serif" font-size="14.00">reg[14] = Base_0.GetX(reg[2])</text>
-<text text-anchor="middle" x="148" y="-128.2" font-family="Times,serif" font-size="14.00">reg[15] = MyObj_0.GetX(reg[5])</text>
+<text text-anchor="middle" x="148" y="-128.2" font-family="Times,serif" font-size="14.00">reg[15] = MyObj_0.StaticGetX(reg[5])</text>
 <text text-anchor="middle" x="148" y="-111.7" font-family="Times,serif" font-size="14.00">reg[16] = reg[14] + reg[15]</text>
 <text text-anchor="middle" x="148" y="-95.2" font-family="Times,serif" font-size="14.00">reg[17] = Base_0.GetX(reg[9])</text>
 </g>

@@ -4,6 +4,7 @@ import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.NomSuperClassConstant;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
+import com.nom.graalnom.runtime.reflections.NomClass;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
@@ -17,7 +18,7 @@ public class NomNewObjectNode extends NomExpressionNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        return NomLanguage.createObject(NomContext.classes.get(superClassConstant.GetSuperClass().GetName()));
+        return NomLanguage.createObject((NomClass)NomContext.classes.get(superClassConstant.GetSuperClass().GetName()));
     }
 
     @Override

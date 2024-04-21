@@ -3,6 +3,7 @@ package com.nom.graalnom.test;
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.reflections.NomClass;
+import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.nom.graalnom.test.java.*;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -59,7 +60,7 @@ public class TestCases {
     @AfterAll
     public static void TearDown() throws Exception {
         SetUp();
-        for (NomClass cls : NomContext.classes.values()) {
+        for (NomInterface cls : NomContext.classes.values()) {
             TestUtil.ExportClassMethodsDotGraphs(cls,
                     Paths.get(testPath, "graphs").toString());
         }
@@ -146,4 +147,9 @@ public class TestCases {
         assert ret.isNumber();
         assert ret.asLong() == 6;
     }
+
+//    @MonNomTest(filename = "sieve")
+//    public void SieveTest() {
+//        Value ret = RunTest();
+//    }
 }

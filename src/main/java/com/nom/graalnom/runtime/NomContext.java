@@ -7,6 +7,7 @@ import com.nom.graalnom.runtime.builtins.NomToStringBuiltinFactory;
 import com.nom.graalnom.runtime.constants.*;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.reflections.NomClass;
+import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -24,9 +25,9 @@ import java.util.Map;
 public class NomContext {
     public static NomConstants constants = new NomConstants();
 
-    public static final Map<String, NomClass> classes = new java.util.HashMap<>();
+    public static final Map<String, NomInterface> classes = new java.util.HashMap<>();
 
-    public static final Map<NomClass, Map<String, NomFunction>> functionsObject = new HashMap<>();
+    public static final Map<NomInterface, Map<String, NomFunction>> functionsObject = new HashMap<>();
     public static final Map<String, Map<Integer, NomFunction>> ctorFunctions = new HashMap<>();
     public static final Map<String, NomFunction> builtinFunctions = new HashMap<>();
 

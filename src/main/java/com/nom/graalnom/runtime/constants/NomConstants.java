@@ -1,5 +1,6 @@
 package com.nom.graalnom.runtime.constants;
 
+import com.nom.graalnom.runtime.reflections.NomInterface;
 import org.graalvm.collections.Pair;
 
 import java.util.Collections;
@@ -67,6 +68,14 @@ public class NomConstants {
         return (NomClassConstant) cnstnt;
     }
 
+    public NomInterfaceConstant GetInterface(long constant) {
+        var cnstnt = constants.get((int) constant);
+        if (cnstnt == null || cnstnt.Type != NomConstantType.CTInterface) {
+            return null;
+        }
+        return (NomInterfaceConstant) cnstnt;
+    }
+
     public NomClassTypeConstant GetClassType(long constant) {
         var cnstnt = constants.get((int) constant);
         if (cnstnt == null || cnstnt.Type != NomConstantType.CTClassType) {
@@ -91,6 +100,14 @@ public class NomConstants {
         return (NomSuperClassConstant) cnstnt;
     }
 
+    public NomSuperInterfacesConstant GetSuperInterfaces(long constant) {
+        var cnstnt = constants.get((int) constant);
+        if (cnstnt == null || cnstnt.Type != NomConstantType.CTSuperInterfaces) {
+            return null;
+        }
+        return (NomSuperInterfacesConstant) cnstnt;
+    }
+
     public long AddString(String string, long cid) {
         if (cid == 0) {
             cid = GetConstantId();
@@ -104,6 +121,14 @@ public class NomConstants {
             cid = GetConstantId();
         }
         constants.set((int) cid, new NomClassConstant(library, name));
+        return cid;
+    }
+
+    public long AddInterface(long library, long name, long cid) {
+        if (cid == 0) {
+            cid = GetConstantId();
+        }
+        constants.set((int) cid, new NomInterfaceConstant(library, name));
         return cid;
     }
 

@@ -4,6 +4,7 @@ import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.reflections.NomClass;
+import com.nom.graalnom.runtime.reflections.NomInterface;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -35,12 +36,9 @@ public class TestUtil {
         }
     }
 
-    public static NomClass GetClass(String name) {
-        return NomContext.classes.values().stream().filter(c -> c.GetName().equals(name + "_0")).findFirst().orElse(null);
-    }
-
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void ExportClassMethodsDotGraphs(NomClass cls, String directory) {
+    public static void ExportClassMethodsDotGraphs(NomInterface cls, String directory) {
+        if (!(cls instanceof NomClass)) return;
         directory = Paths.get(directory, cls.GetName()).toString();
         //create directory if not exists
         File dir = new File(directory);

@@ -7,7 +7,6 @@ import com.nom.graalnom.runtime.constants.NomClassTypeConstant;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomTypedField;
 import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.*;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -53,6 +52,14 @@ public class NomObject extends DynamicObject implements TruffleObject {
     @ExportMessage
     boolean hasLanguage() {
         return true;
+    }
+
+    public NomClass GetClass() {
+        return cls;
+    }
+
+    public NomFunction GetFunction(String name) {
+        return NomContext.functionsObject.get(cls).get(name);
     }
 
     @ExportMessage

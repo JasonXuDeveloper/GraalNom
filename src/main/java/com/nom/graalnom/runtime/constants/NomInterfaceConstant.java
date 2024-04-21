@@ -2,12 +2,12 @@ package com.nom.graalnom.runtime.constants;
 
 import com.nom.graalnom.runtime.NomContext;
 
-public class NomClassConstant extends NomConstant {
+public class NomInterfaceConstant extends NomConstant {
     private final long Library;
     private final long Name;
 
-    public NomClassConstant(long library, long name) {
-        super(NomConstantType.CTClass);
+    public NomInterfaceConstant(long library, long name) {
+        super(NomConstantType.CTInterface);
         this.Library = library;
         this.Name = name;
     }
@@ -23,7 +23,7 @@ public class NomClassConstant extends NomConstant {
 
     @Override
     public void Print(boolean resolve) {
-        System.out.print("Class ");
+        System.out.print("Interface ");
         NomContext.constants.PrintConstant(Library, resolve);
         System.out.print("::");
         NomContext.constants.PrintConstant(Name, resolve);

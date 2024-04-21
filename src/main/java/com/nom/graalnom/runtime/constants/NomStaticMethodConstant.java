@@ -2,6 +2,7 @@ package com.nom.graalnom.runtime.constants;
 
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.reflections.NomClass;
+import com.nom.graalnom.runtime.reflections.NomInterface;
 
 public class NomStaticMethodConstant extends NomMethodConstant {
     public NomStaticMethodConstant(long cls, long methodname, long typeArgs, long argTypes) {
@@ -15,7 +16,7 @@ public class NomStaticMethodConstant extends NomMethodConstant {
     }
 
     @Override
-    public NomClass Class() {
+    public NomInterface Class() {
         NomClassConstant clsConst = this.ClassConstant();
         if (clsConst == null) {
             return null;

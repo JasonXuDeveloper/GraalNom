@@ -13,6 +13,7 @@
 <nomclass qname="MyObj_0" file="MyObj_0.mnil"/>
 </classes>
 <interfaces>
+<nominterface qname="IInterface_0" file="IInterface_0.mnil"/>
 </interfaces>
 <nativefiles>
 </nativefiles>

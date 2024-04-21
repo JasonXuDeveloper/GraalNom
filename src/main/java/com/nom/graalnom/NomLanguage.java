@@ -15,6 +15,7 @@ import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
 import com.nom.graalnom.runtime.nodes.local.NomReadArgumentNode;
 import com.nom.graalnom.runtime.reflections.NomClass;
+import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -103,6 +104,27 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             if (mainClass == null) {
                 mainClass = doc.getElementsByTagName("mainclass").item(0).getAttributes().getNamedItem("name").getNodeValue();
             }
+            //load all <nominterface qname="xxx" file="xxx"/>
+            var nomInterfaces = doc.getElementsByTagName("nominterface");
+            for (int i = 0; i < nomInterfaces.getLength(); i++) {
+                var nomInterface = nomInterfaces.item(i);
+                //get info
+                var qname = nomInterface.getAttributes().getNamedItem("qname").getNodeValue();
+                var file = nomInterface.getAttributes().getNamedItem("file").getNodeValue();
+                file = dirPath.resolve(file).toString();
+
+                //load bytecode
+                try {
+                    if (debug)
+                        System.out.println("Loading bytecode " + file);
+                    ByteCodeReader.ReadBytecodeFile(this, file, debug);
+                } catch (Exception e) {
+                    if (!ignoreErrorBytecode) {
+                        throw e;
+                    }
+                    System.out.println("Error loading bytecode " + file + ": " + e.getMessage());
+                }
+            }
             //load all <nomclass qname = "xxx" file = "xxx" />
             var nomClasses = doc.getElementsByTagName("nomclass");
             for (int i = 0; i < nomClasses.getLength(); i++) {
@@ -139,6 +161,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
 
         if (debug) {
             for (var cls : NomContext.classes.values()) {
+                if (NomContext.functionsObject.get(cls) == null) continue;//interface has no method table
                 for (var func : NomContext.functionsObject.get(cls).values()) {
                     System.out.println(func.getCallTarget().getRootNode().toString());
                     System.out.println();
@@ -146,10 +169,10 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             }
         }
 
-        NomClass main = NomContext.classes.get(mainClass);
+        NomClass main = (NomClass) NomContext.classes.get(mainClass);
         //compatibility
         if (main == null) {
-            main = NomContext.classes.get(mainClass + "_0");
+            main = (NomClass) NomContext.classes.get(mainClass + "_0");
         }
 
         NomFunction mainFunc = null;
@@ -173,6 +196,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     public static NomExpressionNode callCtorNode(NomSuperClassConstant superClass, int curMethodArgCount, int regIndex, int ctorArgLen, NomExpressionNode[] ctorArgs) {
         return ByteCodeReader.WriteToFrame(curMethodArgCount, regIndex,
                 new NomInvokeNode<>(superClass,
+                        su -> NomContext.classes.get(su.GetSuperClass().GetName()).GetName() + ".ctor",
                         su -> NomContext.classes.get(su.GetSuperClass().GetName()).GetName() + ".ctor",
                         su -> NomContext.ctorFunctions.get(su.GetSuperClass().GetTruffleName()).get(ctorArgLen), ctorArgs));
     }

@@ -10,10 +10,16 @@ public class ObjectTest
         obj2.Print();
         obj3.y.Print();
 
-        return obj.GetX() + MyObj.GetX(obj2) + obj3.GetX();
+        return ((IInterface)obj).GetX() + MyObj.StaticGetX(obj2) + obj3.GetX();
     }
 }
-public class Base
+
+interface IInterface
+{
+    public fun GetX() : Int;
+}
+
+public class Base implements IInterface
 {
     public Int x;
 
@@ -38,6 +44,7 @@ public class Base
         return ret;
     }
 }
+
 public class MyObj extends Base
 {
     public String y;
@@ -54,7 +61,7 @@ public class MyObj extends Base
         y.Print();
     }
 
-    public static fun GetX(MyObj obj) : Int
+    public static fun StaticGetX(IInterface obj) : Int
     {
         return obj.GetX();
     }
