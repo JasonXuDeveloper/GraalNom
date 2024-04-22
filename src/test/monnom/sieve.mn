@@ -1,117 +1,114 @@
-interface IStreamThunk
+interface IFun<T>
 {
-	fun Unfold() : Stream;
+    public fun this() : T;
 }
 
 class Stream
 {
-	public readonly Int Head;
-	public readonly IStreamThunk Rest;
+	public readonly Int First;
+	public readonly IFun<Stream> Rest;
 
-	public constructor(Int first, IStreamThunk rest)
+	public constructor(Int first, IFun<Stream> rest)
 	{
-		Head=first;
+		First=first;
 		Rest=rest;
 	}
-
 
 	public static fun Get(Stream s, Int n) : Int
 	{
 		while(n > 0)
 		{
-			s=s.Rest.Unfold();
-			n-=1;
+			n=(n-1);
+			s = s.Rest();
 		}
-		return s.Head;
+		return s.First;
 	}
 }
 
-class CountFromThunk implements IStreamThunk
+class CountFromFun implements IFun<Stream>
 {
-	private readonly Int n;
-
-	public constructor(Int start)
+	private readonly Int N;
+	public constructor(Int n)
 	{
-		n=start;
+		N=n;
 	}
-
-	public fun Unfold() : Stream
+	public fun this() : Stream
 	{
-		return Main.CountFrom(n+1);
+		Int p1 = N+1;
+		return SieveTest.CountFrom(p1);
 	}
 }
 
-class SiftThunk implements IStreamThunk
+class SiftFun implements IFun<Stream>
 {
-	private readonly Int n;
-	private readonly Stream stream;
-
-	public constructor(Int siftFor, Stream rest)
+	private readonly Int N;
+	private readonly Stream S;
+	public constructor(Int n, Stream s)
 	{
-		n=siftFor;
-		stream=rest;
+		N=n;
+		S=s;
 	}
-
-	public fun Unfold() : Stream
+	public fun this() : Stream
 	{
-		return Main.Sift(n, stream.Rest.Unfold());
+		return SieveTest.Sift(N, let IFun<Stream> fn = S.Rest in fn());
 	}
 }
 
-class SieveThunk implements IStreamThunk
+class SieveFun implements IFun<Stream>
 {
-	private readonly Int n;
-	private readonly Stream stream;
-
-	public constructor(Int siftFor, Stream rest)
+	private readonly Int N;
+	private readonly Stream S;
+	public constructor(Int n, Stream s)
 	{
-		n=siftFor;
-		stream=rest;
+		N=n;
+		S=s;
 	}
-
-	public fun Unfold() : Stream
+	public fun this() : Stream
 	{
-		return Main.Sieve(Main.Sift(n, stream.Rest.Unfold()));
+		return SieveTest.Sieve(SieveTest.Sift(N, let IFun<Stream> fn = S.Rest in fn()));
 	}
 }
 
-class Main
+class SieveTest
 {
+
 	public static fun CountFrom(Int n) : Stream
 	{
-		return new Stream(n, new CountFromThunk(n));
+		return new Stream(n, new CountFromFun(n));
 	}
 
 	public static fun Sift(Int n, Stream s) : Stream
 	{
-		Int first = s.Head;
-		if(first % n == 0)
+		Int f = s.First;
+		if(f % n == 0)
 		{
-			return Sift(n, s.Rest.Unfold());
+			return SieveTest.Sift(n, let IFun<Stream> fn = s.Rest in fn());
 		}
 		else
 		{
-			return new Stream(first, new SiftThunk(n, s));
+			return new Stream(f, new SiftFun(n, s));
 		}
 	}
 
 	public static fun Sieve(Stream s) : Stream
 	{
-		Int f = s.Head;
-		return new Stream(f, new SieveThunk(f, s));
+		Int f = s.First;
+		return new Stream(f, new SieveFun(f, s));
 	}
 
 	public static fun GetPrimes() : Stream
 	{
-		return Sieve(CountFrom(2));
+		return SieveTest.Sieve(SieveTest.CountFrom(2));
 	}
 
-	public static Int Nminus1 = 9999;
 
 	public static fun Main() : Void
 	{
-#		Time t=new Time();
-		("The "++(Nminus1+1).ToString()++"th prime number is "++Stream.Get(GetPrimes(),Nminus1).ToString()).Print();
+#		Timer t=new Timer();
+		Int p = Stream.Get(SieveTest.GetPrimes(),9999);
 #		t.PrintDifference();
+#		"\n".Print();
+		p.ToString().Print();
+		"\n".Print();
 	}
 }

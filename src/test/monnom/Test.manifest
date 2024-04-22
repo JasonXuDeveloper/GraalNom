@@ -11,9 +11,15 @@
 <nomclass qname="ObjectTest_0" file="ObjectTest_0.mnil"/>
 <nomclass qname="Base_0" file="Base_0.mnil"/>
 <nomclass qname="MyObj_0" file="MyObj_0.mnil"/>
+<nomclass qname="Stream_0" file="Stream_0.mnil"/>
+<nomclass qname="CountFromFun_0" file="CountFromFun_0.mnil"/>
+<nomclass qname="SiftFun_0" file="SiftFun_0.mnil"/>
+<nomclass qname="SieveFun_0" file="SieveFun_0.mnil"/>
+<nomclass qname="SieveTest_0" file="SieveTest_0.mnil"/>
 </classes>
 <interfaces>
 <nominterface qname="IInterface_0" file="IInterface_0.mnil"/>
+<nominterface qname="IFun_1" file="IFun_1.mnil"/>
 </interfaces>
 <nativefiles>
 </nativefiles>

@@ -39,7 +39,7 @@ public class NomConstants {
     public NomStringConstant GetString(long constant) {
         var cnstnt = constants.get((int) constant);
         if (cnstnt == null || cnstnt.Type != NomConstantType.CTString) {
-            throw new RuntimeException();
+            throw new RuntimeException("constant " + constant + " is not a string constant " + cnstnt);
         }
         return (NomStringConstant) cnstnt;
     }
@@ -113,6 +113,31 @@ public class NomConstants {
             cid = GetConstantId();
         }
         constants.set((int) cid, new NomStringConstant(string));
+        return cid;
+    }
+
+    public long AddBottomType(long cid) {
+        if (cid == 0) {
+            cid = GetConstantId();
+        }
+        constants.set((int) cid, new NomBottomConstant());
+        return cid;
+    }
+
+    public long AddTypeParameters(NomTypeParameterConstant[] entries, long cid) {
+        if (cid == 0) {
+            cid = GetConstantId();
+        }
+
+        constants.set((int) cid, new NomTypeParametersConstant(entries));
+        return cid;
+    }
+
+    public long AddTypeVariable(int index, long cid) {
+        if (cid == 0) {
+            cid = GetConstantId();
+        }
+        constants.set((int) cid, new NomTypeVarConstant(index));
         return cid;
     }
 

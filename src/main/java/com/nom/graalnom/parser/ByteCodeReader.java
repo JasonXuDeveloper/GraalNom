@@ -42,7 +42,9 @@ public class ByteCodeReader {
                 throw new IllegalArgumentException("file" + filename + " (ver" + ver + ") is too new");
             }
             HashMap<Long, Long> constants = new HashMap<>();//local id -> global id
+            constants.put(0L,0L);//null constant
             while (s.available() > 0) {
+//                System.out.println(NomContext.constants.Constants().size());
                 int b = s.read();//need to use int to get 0-255, I HATE JAVA
                 BytecodeTopElementType nextType = BytecodeTopElementType.fromValue(b);
                 if (nextType == BytecodeTopElementType.None) return;
@@ -131,6 +133,30 @@ public class ByteCodeReader {
                                 GetGlobalId(constants, s.readLong()),
                                 TryGetGlobalId(constants, localConstId)));
                     }
+                    case CTBottom -> {
+                        localConstId = s.readLong();
+                        constants.put(localConstId, NomContext.constants.AddBottomType(
+                                TryGetGlobalId(constants, localConstId)));
+                    }
+                    case CTTypeParameters -> {
+                        localConstId = s.readLong();
+                        long paramCount = s.readLong();
+                        NomTypeParameterConstant[] params = new NomTypeParameterConstant[(int) paramCount];
+                        for (int i = 0; i < paramCount; i++) {
+                            long lowerBound = GetGlobalId(constants, s.readLong());
+                            long upperBound = GetGlobalId(constants, s.readLong());
+                            params[i] = new NomTypeParameterConstant(lowerBound, upperBound);
+                        }
+                        constants.put(localConstId, NomContext.constants.AddTypeParameters(
+                                params,
+                                TryGetGlobalId(constants, localConstId)));
+                    }
+                    case TypeVarConstant -> {
+                        localConstId = s.readLong();
+                        constants.put(localConstId, NomContext.constants.AddTypeVariable(
+                                s.readInt(),
+                                TryGetGlobalId(constants, localConstId)));
+                    }
                     case Class -> ReadClass(s, constants, language, debug);
                     case Interface -> ReadInterface(s, constants, language, debug);
                     case null, default -> throw new IllegalArgumentException("unknown type (" + b + "): " + nextType);
@@ -141,8 +167,6 @@ public class ByteCodeReader {
                     System.out.println();
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -256,6 +280,8 @@ public class ByteCodeReader {
                     case LessThan -> WriteToFrame(curMethodArgCount, regIndex, NomLessThanNodeGen.create(left, right));
                     case LessOrEqualTo ->
                             WriteToFrame(curMethodArgCount, regIndex, NomLessOrEqualNodeGen.create(left, right));
+                    case Equals, RefEquals ->
+                        WriteToFrame(curMethodArgCount, regIndex, NomRefEqualsNodeGen.create(left, right));
                     case null, default -> throw new IllegalStateException("Unexpected value: " + op);
                 };
             }

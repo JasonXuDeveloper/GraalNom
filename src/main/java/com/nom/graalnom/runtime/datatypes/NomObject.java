@@ -178,4 +178,9 @@ public class NomObject extends DynamicObject implements TruffleObject {
     final Object toDisplayString(boolean allowSideEffects) {
         return "NomObject(" + Id + ")";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof NomObject && ((NomObject) obj).Id == Id;
+    }
 }

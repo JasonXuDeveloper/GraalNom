@@ -148,8 +148,9 @@ public class TestCases {
         assert ret.asLong() == 6;
     }
 
-//    @MonNomTest(filename = "sieve")
-//    public void SieveTest() {
-//        Value ret = RunTest();
-//    }
+    @MonNomTest(filename = "sieve")
+    @ByteCodeDebug
+    public void SieveTest() {
+        Value ret = RunTest();
+    }
 }
