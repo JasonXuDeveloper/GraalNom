@@ -89,7 +89,7 @@ public class NomCallable {
             NomFunctionBodyNode body = new NomFunctionBodyNode(basicBlocks.toArray(new NomBasicBlockNode[0]));
             FrameDescriptor.Builder builder = FrameDescriptor.newBuilder();
             for (int i = 0; i < regCount - GetArgCount(); i++) {
-                builder.addSlot(FrameSlotKind.Illegal, "reg" + i, null);
+                builder.addSlot(FrameSlotKind.Illegal, null, null);
             }
 
             NomRootNode root = new NomRootNode(language, builder.build(), body, qName, GetArgCount());

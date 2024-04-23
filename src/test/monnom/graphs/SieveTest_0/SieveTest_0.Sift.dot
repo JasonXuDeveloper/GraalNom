@@ -1,0 +1,31 @@
+digraph {
+  rankdir=TB;
+  b0_l0 -> b0_cond
+  b0_cond [label="reg[1] == reg[2]", shape=diamond]
+  b0_cond -> b1_l0 [label="true"]
+  b0_cond -> b2_l0 [label="false"]
+  b0_l0 [label="reg[0] = arg[1].First\nreg[1] = reg[0] % arg[0]\nreg[2] = 0\n", shape=box]
+  subgraph cluster_b0 {
+    label = "blk0";
+    b0_l0;
+    b0_cond;
+  }
+  b1_l0 -> b1_ret
+  b1_l0 [label="reg[4] = arg[1].Rest\nreg[5] = IFun_1.IInterface_0(reg[4])\n", shape=box]
+  b1_ret [label="return SieveTest_0.Sift(arg[0], reg[5])"]
+  subgraph cluster_b1 {
+    label = "blk1";
+    b1_l0;
+    b1_ret;
+  }
+  b2_l0 -> b2_ret
+  b2_l0 [label="reg[7] = SiftFun_0.ctor(new(), arg[0], arg[1])\n", shape=box]
+  b2_ret [label="return Stream_0.ctor(new(), reg[0], reg[7])"]
+  subgraph cluster_b2 {
+    label = "blk2";
+    b2_l0;
+    b2_ret;
+  }
+  labelloc="t"
+  label="SieveTest_0.Sift"
+}

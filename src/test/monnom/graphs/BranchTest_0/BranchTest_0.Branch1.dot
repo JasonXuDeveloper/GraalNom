@@ -1,0 +1,58 @@
+digraph {
+  rankdir=TB;
+  b0_l0 [label="arg[0] > arg[1]", shape=diamond]
+  b0_l0 -> b1_l0 [label="true"]
+  b0_l0 -> b4_l0 [label="false"]
+  subgraph cluster_b0 {
+    label = "blk0";
+    b0_l0;
+  }
+  b1_l0 [label="arg[0] > arg[2]", shape=diamond]
+  b1_l0 -> b2_l0 [label="true"]
+  b1_l0 -> b3_l0 [label="false"]
+  subgraph cluster_b1 {
+    label = "blk1";
+    b1_l0;
+  }
+  b2_l0 [label="return true"]
+  subgraph cluster_b2 {
+    label = "blk2";
+    b2_l0;
+  }
+  b3_l0 [label="return false"]
+  subgraph cluster_b3 {
+    label = "blk3";
+    b3_l0;
+  }
+  b4_l0 [label="arg[1] > arg[2]", shape=diamond]
+  b4_l0 -> b5_l0 [label="true"]
+  b4_l0 -> b6_l0 [label="false"]
+  subgraph cluster_b4 {
+    label = "blk4";
+    b4_l0;
+  }
+  b5_l0 [label="return false"]
+  subgraph cluster_b5 {
+    label = "blk5";
+    b5_l0;
+  }
+  b6_l0 -> b7_l0
+  b6_l0 [label="placeholder", shape=box]
+  subgraph cluster_b6 {
+    label = "blk6";
+    b6_l0;
+  }
+  b7_l0 -> b8_l0
+  b7_l0 [label="placeholder", shape=box]
+  subgraph cluster_b7 {
+    label = "blk7";
+    b7_l0;
+  }
+  b8_l0 [label="return true"]
+  subgraph cluster_b8 {
+    label = "blk8";
+    b8_l0;
+  }
+  labelloc="t"
+  label="BranchTest_0.Branch1"
+}

@@ -149,7 +149,6 @@ public class TestCases {
     }
 
     @MonNomTest(filename = "sieve")
-    @ByteCodeDebug
     public void SieveTest() {
         Value ret = RunTest();
     }

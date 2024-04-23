@@ -2,6 +2,7 @@ package com.nom.graalnom.runtime.nodes.expression.binary;
 
 import com.nom.graalnom.runtime.datatypes.NomNull;
 import com.nom.graalnom.runtime.datatypes.NomObject;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
@@ -25,6 +26,11 @@ public abstract class NomRefEqualsNode extends NomBinaryNode {
     @Specialization
     protected boolean boolEquals(boolean left, boolean right) {
         return left == right;
+    }
+
+    @Specialization
+    protected boolean stringEquals(String left, String right) {
+        return left.equals(right);
     }
 
     @Specialization

@@ -1,0 +1,63 @@
+digraph {
+  rankdir=TB;
+  b0_l0 -> b0_cond
+  b0_cond [label="reg[1] > reg[2]", shape=diamond]
+  b0_cond -> b1_l0 [label="true"]
+  b0_cond -> b2_l0 [label="false"]
+  b0_l0 [label="reg[0] = 10\nreg[1] = reg[0] * reg[0]\nreg[2] = 10\n", shape=box]
+  subgraph cluster_b0 {
+    label = "blk0";
+    b0_l0;
+    b0_cond;
+  }
+  b1_l0 -> b3_l0
+  b1_l0 [label="reg[4] = 'Correct'\nreg[5] = String_0.Print(reg[4])\n", shape=box]
+  subgraph cluster_b1 {
+    label = "blk1";
+    b1_l0;
+  }
+  b2_l0 -> b3_l0
+  b2_l0 [label="reg[6] = 'Incorrect'\nreg[7] = String_0.Print(reg[6])\n", shape=box]
+  subgraph cluster_b2 {
+    label = "blk2";
+    b2_l0;
+  }
+  b3_l0 -> b3_jmp
+  b3_jmp -> b4_l0
+  b3_l0 [label="placeholder", shape=box]
+  b3_jmp [label="reg[14] = reg[0]\n", shape=box]
+  subgraph cluster_b3 {
+    label = "blk3";
+    b3_l0;
+    b3_jmp;
+  }
+  b4_l0 -> b4_cond
+  b4_cond [label="reg[14] > reg[8]", shape=diamond]
+  b4_cond -> b5_l0 [label="true"]
+  b4_cond -> b4_false [label="false"]
+  b4_false -> b6_l0 
+  b4_l0 [label="reg[8] = 0\n", shape=box]
+  b4_false [label="reg[15] = reg[14]\n", shape=box]
+  subgraph cluster_b4 {
+    label = "blk4";
+    b4_l0;
+    b4_cond;
+    b4_false;
+  }
+  b5_l0 -> b5_jmp
+  b5_jmp -> b4_l0
+  b5_l0 [label="reg[10] = 1\nreg[11] = reg[14] - reg[10]\nreg[12] = Int_0.ToString(reg[11])\nreg[13] = String_0.Print(reg[12])\n", shape=box]
+  b5_jmp [label="reg[14] = reg[11]\n", shape=box]
+  subgraph cluster_b5 {
+    label = "blk5";
+    b5_l0;
+    b5_jmp;
+  }
+  b6_l0 [label="return "]
+  subgraph cluster_b6 {
+    label = "blk6";
+    b6_l0;
+  }
+  labelloc="t"
+  label="MiniTest_0.Main"
+}

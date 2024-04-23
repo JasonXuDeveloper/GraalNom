@@ -31,27 +31,21 @@ public abstract class NomWriteRegisterNode extends NomExpressionNode {
      */
     @Specialization(guards = "isLongOrIllegal(frame)")
     protected long writeLong(VirtualFrame frame, long value) {
-        /* Initialize type on first write of the local variable. No-op if kind is already Long. */
         frame.getFrameDescriptor().setSlotKind(getRegIndex(), FrameSlotKind.Long);
-
         frame.setLong(getRegIndex(), value);
         return value;
     }
 
     @Specialization(guards = "isBooleanOrIllegal(frame)")
     protected boolean writeBoolean(VirtualFrame frame, boolean value) {
-        /* Initialize type on first write of the local variable. No-op if kind is already Long. */
         frame.getFrameDescriptor().setSlotKind(getRegIndex(), FrameSlotKind.Boolean);
-
         frame.setBoolean(getRegIndex(), value);
         return value;
     }
 
     @Specialization(guards = "isDoubleOrIllegal(frame)")
     protected double writeDouble(VirtualFrame frame, float value) {
-        /* Initialize type on first write of the local variable. No-op if kind is already Long. */
         frame.getFrameDescriptor().setSlotKind(getRegIndex(), FrameSlotKind.Double);
-
         frame.setFloat(getRegIndex(), value);
         return value;
     }
@@ -76,7 +70,6 @@ public abstract class NomWriteRegisterNode extends NomExpressionNode {
          * No-op if kind is already Object.
          */
         frame.getFrameDescriptor().setSlotKind(getRegIndex(), FrameSlotKind.Object);
-
         frame.setObject(getRegIndex(), value);
 //        System.out.println("Wrote " + value.getClass().getSimpleName() + " to " + getRegName());
         return value;

@@ -116,15 +116,6 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
                 throw new RuntimeException("Function not found: " + getFuncQName.apply(funcConst));
             }
 
-//            System.out.println(funcObj.getName());
-//            for (Object argumentValue : argumentValues) {
-//                if(argumentValue instanceof NomObject obj){
-//                    System.out.println(obj.GetClass().GetName());
-//                    continue;
-//                }
-//                System.out.println(argumentValue);
-//            }
-
             return library.execute(funcObj, argumentValues);
         } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
             /* Execute was not successful. */

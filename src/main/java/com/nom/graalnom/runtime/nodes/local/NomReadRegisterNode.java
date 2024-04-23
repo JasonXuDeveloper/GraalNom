@@ -44,6 +44,7 @@ import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /**
@@ -97,11 +98,11 @@ public abstract class NomReadRegisterNode extends NomExpressionNode {
              */
             CompilerDirectives.transferToInterpreter();
             Object result = frame.getValue(getRegIndex());
+            frame.getFrameDescriptor().setSlotKind(getRegIndex(), FrameSlotKind.Object);
             frame.setObject(getRegIndex(), result);
             return result;
         }
 
-//        System.out.println("Object " + (frame.getObject(getRegIndex()) != null ? frame.getObject(getRegIndex()).getClass().getSimpleName() : "null") + " at slot " + getRegIndex());
         return frame.getObject(getRegIndex());
     }
 

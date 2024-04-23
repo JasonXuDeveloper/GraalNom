@@ -1,0 +1,31 @@
+digraph {
+  rankdir=TB;
+  b0_l0 [label="arg[0] > arg[1]", shape=diamond]
+  b0_l0 -> b1_l0 [label="true"]
+  b0_l0 -> b2_l0 [label="false"]
+  subgraph cluster_b0 {
+    label = "blk0";
+    b0_l0;
+  }
+  b1_l0 -> b1_ret
+  b1_l0 [label="reg[1] = BranchTest_0.Branch1(arg[0], arg[1], arg[2])\n", shape=box]
+  b1_ret [label="return !reg[1]"]
+  subgraph cluster_b1 {
+    label = "blk1";
+    b1_l0;
+    b1_ret;
+  }
+  b2_l0 -> b3_l0
+  b2_l0 [label="placeholder", shape=box]
+  subgraph cluster_b2 {
+    label = "blk2";
+    b2_l0;
+  }
+  b3_l0 [label="return BranchTest_0.Branch1(arg[0], arg[1], arg[2])"]
+  subgraph cluster_b3 {
+    label = "blk3";
+    b3_l0;
+  }
+  labelloc="t"
+  label="BranchTest_0.Branch2"
+}

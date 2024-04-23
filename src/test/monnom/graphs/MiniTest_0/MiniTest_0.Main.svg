@@ -68,7 +68,7 @@
 <g id="node3" class="node">
 <title>b1_l0</title>
 <polygon fill="none" stroke="black" points="199.62,-638.5 16.38,-638.5 16.38,-597.5 199.62,-597.5 199.62,-638.5"/>
-<text text-anchor="middle" x="108" y="-621.2" font-family="Times,serif" font-size="14.00">reg[4] = Correct</text>
+<text text-anchor="middle" x="108" y="-621.2" font-family="Times,serif" font-size="14.00">reg[4] = &#39;Correct&#39;</text>
 <text text-anchor="middle" x="108" y="-604.7" font-family="Times,serif" font-size="14.00">reg[5] = String_0.Print(reg[4])</text>
 </g>
 <!-- b0_cond&#45;&gt;b1_l0 -->
@@ -82,7 +82,7 @@
 <g id="node4" class="node">
 <title>b2_l0</title>
 <polygon fill="none" stroke="black" points="407.62,-638.5 224.38,-638.5 224.38,-597.5 407.62,-597.5 407.62,-638.5"/>
-<text text-anchor="middle" x="316" y="-621.2" font-family="Times,serif" font-size="14.00">reg[6] = Incorrect</text>
+<text text-anchor="middle" x="316" y="-621.2" font-family="Times,serif" font-size="14.00">reg[6] = &#39;Incorrect&#39;</text>
 <text text-anchor="middle" x="316" y="-604.7" font-family="Times,serif" font-size="14.00">reg[7] = String_0.Print(reg[6])</text>
 </g>
 <!-- b0_cond&#45;&gt;b2_l0 -->

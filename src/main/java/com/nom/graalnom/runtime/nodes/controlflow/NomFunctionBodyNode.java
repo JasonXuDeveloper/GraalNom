@@ -77,6 +77,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
     @Override
     @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.MERGE_EXPLODE)
     public Object executeGeneric(VirtualFrame frame) {
+        curIndex = 0;
         /* Execute the function body. */
         while (true) {
             if (curIndex >= bodyNodes.length) {

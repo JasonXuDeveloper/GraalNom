@@ -53,9 +53,16 @@ public class TestUtil {
         funcs.addAll(map2.values());
         for (var method : funcs) {
             String dot = ((NomRootNode) method.getCallTarget().getRootNode()).toDotGraph();
+            String dotOutputPath = Paths.get(directory, method.getName() + ".dot").toString();
+            try {
+                Files.writeString(Paths.get(dotOutputPath), dot);
+                System.out.println("Exported " + method.getName() + " to " + dotOutputPath);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             String outputPath = Paths.get(directory, method.getName() + ".svg").toString();
-            //echo '$dot' | dot -Tsvg > $outputPath
-            String shellScript = "echo '" + dot + "' | dot -Tsvg > " + outputPath;
+            //dot -Tsvg > $outputPath
+            String shellScript = "dot -Tsvg " + dotOutputPath + " > " + outputPath;
             try {
                 ExecuteShell("sh", "-c", shellScript);
                 System.out.println("Exported " + method.getName() + " to " + outputPath);

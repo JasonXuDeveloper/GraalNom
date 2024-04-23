@@ -1,0 +1,14 @@
+digraph {
+  rankdir=TB;
+  b0_l0 -> b0_ret
+  b0_l0 [label="reg[0] = SieveTest_0.GetPrimes()\nreg[1] = 100\nreg[2] = Stream_0.Get(reg[0], reg[1])\nreg[3] = Int_0.ToString(reg[2])\nreg[4] = String_0.Print(reg[3])\nreg[5] = '
+'\nreg[6] = String_0.Print(reg[5])\n", shape=box]
+  b0_ret [label="return "]
+  subgraph cluster_b0 {
+    label = "blk0";
+    b0_l0;
+    b0_ret;
+  }
+  labelloc="t"
+  label="SieveTest_0.Main"
+}
