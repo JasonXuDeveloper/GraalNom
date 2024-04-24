@@ -16,6 +16,11 @@
 <nomclass qname="SiftFun_0" file="SiftFun_0.mnil"/>
 <nomclass qname="SieveFun_0" file="SieveFun_0.mnil"/>
 <nomclass qname="SieveTest_0" file="SieveTest_0.mnil"/>
+<nomclass qname="A_0" file="A_0.mnil"/>
+<nomclass qname="B_0" file="B_0.mnil"/>
+<nomclass qname="C_0" file="C_0.mnil"/>
+<nomclass qname="D_0" file="D_0.mnil"/>
+<nomclass qname="DynTest_0" file="DynTest_0.mnil"/>
 </classes>
 <interfaces>
 <nominterface qname="IInterface_0" file="IInterface_0.mnil"/>

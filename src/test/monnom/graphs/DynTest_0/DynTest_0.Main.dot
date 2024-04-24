@@ -1,0 +1,13 @@
+digraph {
+  rankdir=TB;
+  b0_l0 -> b0_ret
+  b0_l0 [label="reg[0] = C_0.ctor(new())\nreg[1] = DynTest_0.ctor(new(), reg[0])\nreg[2] = reg[1].a\n", shape=box]
+  b0_ret [label="return (A_0)"]
+  subgraph cluster_b0 {
+    label = "blk0";
+    b0_l0;
+    b0_ret;
+  }
+  labelloc="t"
+  label="DynTest_0.Main"
+}

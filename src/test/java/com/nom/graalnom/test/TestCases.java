@@ -2,6 +2,7 @@ package com.nom.graalnom.test;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
+import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.nom.graalnom.test.java.*;
@@ -150,6 +151,11 @@ public class TestCases {
 
     @MonNomTest(filename = "sieve")
     public void SieveTest() {
+        Value ret = RunTest();
+    }
+
+    @MonNomTest(filename = "dyn")
+    public void DynTest() {
         Value ret = RunTest();
     }
 }

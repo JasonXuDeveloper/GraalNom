@@ -19,6 +19,8 @@ import com.nom.graalnom.runtime.nodes.expression.literal.*;
 import com.nom.graalnom.runtime.nodes.expression.object.NomNewObjectNode;
 import com.nom.graalnom.runtime.nodes.expression.object.NomReadFieldNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.object.NomWriteFieldNodeGen;
+import com.nom.graalnom.runtime.nodes.expression.unary.NomCastNode;
+import com.nom.graalnom.runtime.nodes.expression.unary.NomCastNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNegateNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNotNodeGen;
 import com.nom.graalnom.runtime.nodes.local.*;
@@ -155,6 +157,11 @@ public class ByteCodeReader {
                         localConstId = s.readLong();
                         constants.put(localConstId, NomContext.constants.AddTypeVariable(
                                 s.readInt(),
+                                TryGetGlobalId(constants, localConstId)));
+                    }
+                    case CTDynamic -> {
+                        localConstId = s.readLong();
+                        constants.put(localConstId, NomContext.constants.AddDynType(
                                 TryGetGlobalId(constants, localConstId)));
                     }
                     case Class -> ReadClass(s, constants, language, debug);
@@ -315,9 +322,10 @@ public class ByteCodeReader {
                 regIndex = s.readInt();
                 int value = s.readInt();
                 long typeId = GetGlobalId(constants, s.readLong());
+                System.out.println(typeId);
                 //assuming compiler DOES check on the types so that the cast
                 //object is always an instance under the type with typeId
-                return WriteToFrame(curMethodArgCount, regIndex, ReadFromFrame(curMethodArgCount, value));
+                return WriteToFrame(curMethodArgCount, regIndex, NomCastNodeGen.create(ReadFromFrame(curMethodArgCount, value), (int) typeId));
             }
             case WriteField -> {
                 receiverRegIndex = s.readInt();//this
@@ -431,7 +439,6 @@ public class ByteCodeReader {
             ReadMethod(s, cls, constants, debug);
             methodCount--;
         }
-        cls.Register(language);
     }
 
     public static void ReadClass(LittleEndianDataInputStream s, Map<Long, Long> constants, NomLanguage language, boolean debug) throws Exception {
@@ -473,7 +480,6 @@ public class ByteCodeReader {
             //ReadStruct(cls);
             structCount--;
         }
-        cls.Register(language);
     }
 
     public static void ReadMethod(LittleEndianDataInputStream s, NomInterface cls, Map<Long, Long> constants, boolean debug) throws Exception {

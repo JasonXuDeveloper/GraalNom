@@ -124,6 +124,14 @@ public class NomConstants {
         return cid;
     }
 
+    public long AddDynType(long cid) {
+        if (cid == 0) {
+            cid = GetConstantId();
+        }
+        constants.set((int) cid, new NomDynamicTypeConstant());
+        return cid;
+    }
+
     public long AddTypeParameters(NomTypeParameterConstant[] entries, long cid) {
         if (cid == 0) {
             cid = GetConstantId();

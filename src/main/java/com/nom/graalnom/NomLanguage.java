@@ -148,6 +148,10 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             }
         }
 
+        for(NomInterface nomInterface: NomContext.classes.values()){
+            nomInterface.Register(this);
+        }
+
         if (!invokeMain) {
             return new NomRootNode(
                     this, new FrameDescriptor(),

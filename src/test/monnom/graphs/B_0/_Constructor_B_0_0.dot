@@ -1,0 +1,10 @@
+digraph {
+  rankdir=TB;
+  b0_l0 [label="return arg[0]"]
+  subgraph cluster_b0 {
+    label = "blk0";
+    b0_l0;
+  }
+  labelloc="t"
+  label="_Constructor_B_0_0"
+}

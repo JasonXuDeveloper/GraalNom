@@ -76,7 +76,7 @@ import java.util.logging.Level;
 @ExportLibrary(InteropLibrary.class)
 @SuppressWarnings("static-method")
 public final class NomFunction implements TruffleObject {
-    public static final int INLINE_CACHE_SIZE = 2;
+    public static final int INLINE_CACHE_SIZE = 100;
 
     private static final TruffleLogger LOG = TruffleLogger.getLogger(NomLanguage.ID, NomFunction.class);
 
@@ -264,8 +264,7 @@ public final class NomFunction implements TruffleObject {
                                          @Cached("create(cachedTarget)") DirectCallNode callNode) {
 
             /* Inline cache hit, we are safe to execute the cached call target. */
-            Object returnValue = callNode.call(arguments);
-            return returnValue;
+            return callNode.call(arguments);
         }
 
         /**

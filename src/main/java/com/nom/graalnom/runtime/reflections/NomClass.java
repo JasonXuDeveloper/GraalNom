@@ -6,6 +6,7 @@ import com.nom.graalnom.runtime.constants.NomClassConstant;
 import com.nom.graalnom.runtime.constants.NomSuperClassConstant;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class NomClass extends NomInterface {
@@ -45,7 +46,7 @@ public class NomClass extends NomInterface {
     }
 
     public NomConstructor AddConstructor(long arguments, int regcount) {
-        String name = "_Constructor_" + this.GetName() + "_" + NomContext.constants.GetTypeList(arguments).Count();
+        String name = "_Constructor_" + this.GetName() + "_" + (NomContext.constants.GetTypeList(arguments) == null ? 0 : NomContext.constants.GetTypeList(arguments).Count());
         NomConstructor constructor = new NomConstructor(name, this, name, 0, arguments, regcount, false);
         Constructors.add(constructor);
         return constructor;
@@ -80,14 +81,22 @@ public class NomClass extends NomInterface {
         return null;
     }
 
+    public HashSet<NomClass> superClasses = new HashSet<>();
+
     public void Register(NomLanguage language) {
         //copy methods from superclass
         NomSuperClassConstant sc = NomContext.constants.GetSuperClass(SuperClass);
         NomClassConstant superClassRef = sc.GetSuperClass();
         NomClass superClass = null;
         if (NomContext.classes.get(superClassRef.GetName()) != null) {
-            superClass = (NomClass)NomContext.classes.get(superClassRef.GetName());
+            superClass = (NomClass) NomContext.classes.get(superClassRef.GetName());
+            if (!superClass.registered) {
+                superClass.Register(language);
+                superClass.registered = true;
+            }
+            superClasses.addAll(superClass.superClasses);
         }
+        superClasses.add(this);
         var clsFunctions = NomContext.functionsObject.computeIfAbsent(this, k -> new HashMap<>());
         var ctorFunctions = NomContext.ctorFunctions.computeIfAbsent(this.GetName(), k -> new HashMap<>());
         if (superClass != null) {

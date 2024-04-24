@@ -1,0 +1,34 @@
+class A{
+public constructor(){}
+}
+
+class B extends A{
+public constructor(){
+        super();
+    }
+}
+
+class C extends B{
+public constructor(){
+        super();
+    }
+}
+
+class D extends C{
+public constructor(){
+        super();
+    }
+}
+
+class DynTest{
+    public dyn a;
+
+    public constructor(dyn x){
+        a = x;
+    }
+
+    public static fun Main(): A{
+        DynTest d = new DynTest(new C());
+        return d.a;
+    }
+}

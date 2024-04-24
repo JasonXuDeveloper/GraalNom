@@ -7,7 +7,7 @@ import org.graalvm.collections.Pair;
 import java.util.List;
 
 public class NomSuperInterfacesConstant extends NomConstant {
-    private final List<Pair<Long,Long>> entries;
+    public final List<Pair<Long,Long>> entries;
 //    private List<NomInterface> interfaces;
 
     public NomSuperInterfacesConstant(List<Pair<Long,Long>> entries) {

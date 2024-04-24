@@ -2,19 +2,18 @@ package com.nom.graalnom.runtime.reflections;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
-import com.nom.graalnom.runtime.constants.NomClassConstant;
-import com.nom.graalnom.runtime.constants.NomInterfaceConstant;
-import com.nom.graalnom.runtime.constants.NomSuperClassConstant;
-import com.nom.graalnom.runtime.constants.NomSuperInterfacesConstant;
+import com.nom.graalnom.runtime.constants.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
-public class NomInterface extends NomNamed{
+public class NomInterface extends NomNamed {
     public List<NomMethod> Methods;
     public List<NomMethod> AllMethods;
     public long TypeArgs;
     public long SuperInterfaces;
+
     public NomInterface(long name, long typeArgs, long superInterfaces) {
         super(name);
         this.TypeArgs = typeArgs;
@@ -34,9 +33,28 @@ public class NomInterface extends NomNamed{
         return method;
     }
 
+    public HashSet<NomInterface> superInterfaces = new HashSet<>();
+    protected boolean registered = false;
+
+
     public void Register(NomLanguage language) {
         //copy methods from superclass
         NomSuperInterfacesConstant sc = NomContext.constants.GetSuperInterfaces(SuperInterfaces);
+        sc.entries.forEach(pair -> {
+            // (classNameId, typeListId)
+            long classNameId = pair.getLeft();
+            NomStringConstant className = NomContext.constants.GetString(classNameId);
+            NomInterface inter = NomContext.classes.get(className.Value());
+            if (inter != null) {
+                if (!inter.registered) {
+                    inter.Register(language);
+                    inter.registered = true;
+                    superInterfaces.addAll(inter.superInterfaces);
+                }
+
+                superInterfaces.add(this);
+            }
+        });
         //TODO use sc.ClassNameId with sc.TypeArgList to find methods and add
 //        var clsFunctions = NomContext.functionsObject.computeIfAbsent(this, k -> new HashMap<>());
 //        //methods
