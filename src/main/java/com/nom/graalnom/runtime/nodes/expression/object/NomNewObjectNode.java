@@ -8,6 +8,8 @@ import com.nom.graalnom.runtime.reflections.NomClass;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+import java.util.Timer;
+
 @NodeInfo(shortName = "new()")
 public class NomNewObjectNode extends NomExpressionNode {
     private final NomSuperClassConstant superClassConstant;
@@ -18,7 +20,12 @@ public class NomNewObjectNode extends NomExpressionNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        return NomLanguage.createObject((NomClass)NomContext.classes.get(superClassConstant.GetSuperClass().GetName()));
+        String name = superClassConstant.GetSuperClass().GetName();
+        //TODO built in lookup
+        if (name.equals("Timer_0")) {
+            return NomLanguage.createTimer();
+        }
+        return NomLanguage.createObject((NomClass) NomContext.classes.get(superClassConstant.GetSuperClass().GetName()));
     }
 
     @Override

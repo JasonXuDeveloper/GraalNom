@@ -1,9 +1,7 @@
 package com.nom.graalnom.runtime;
 
 import com.nom.graalnom.NomLanguage;
-import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
-import com.nom.graalnom.runtime.builtins.NomPrintBuiltinFactory;
-import com.nom.graalnom.runtime.builtins.NomToStringBuiltinFactory;
+import com.nom.graalnom.runtime.builtins.*;
 import com.nom.graalnom.runtime.constants.*;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.reflections.NomClass;
@@ -61,6 +59,7 @@ public class NomContext {
     private void installBuiltins() {
         installBuiltin(NomToStringBuiltinFactory.getInstance());
         installBuiltin(NomPrintBuiltinFactory.getInstance());
+        installBuiltin(NomPrintDifferenceBuiltinFactory.getInstance());
     }
 
     public void installBuiltin(NodeFactory<? extends NomBuiltinNode> factory) {

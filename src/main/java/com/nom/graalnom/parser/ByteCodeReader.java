@@ -44,7 +44,7 @@ public class ByteCodeReader {
                 throw new IllegalArgumentException("file" + filename + " (ver" + ver + ") is too new");
             }
             HashMap<Long, Long> constants = new HashMap<>();//local id -> global id
-            constants.put(0L,0L);//null constant
+            constants.put(0L, 0L);//null constant
             while (s.available() > 0) {
 //                System.out.println(NomContext.constants.Constants().size());
                 int b = s.read();//need to use int to get 0-255, I HATE JAVA
@@ -288,7 +288,7 @@ public class ByteCodeReader {
                     case LessOrEqualTo ->
                             WriteToFrame(curMethodArgCount, regIndex, NomLessOrEqualNodeGen.create(left, right));
                     case Equals, RefEquals ->
-                        WriteToFrame(curMethodArgCount, regIndex, NomRefEqualsNodeGen.create(left, right));
+                            WriteToFrame(curMethodArgCount, regIndex, NomRefEqualsNodeGen.create(left, right));
                     case null, default -> throw new IllegalStateException("Unexpected value: " + op);
                 };
             }
@@ -316,7 +316,12 @@ public class ByteCodeReader {
                 }
                 args.clear();
 
-                return NomLanguage.callCtorNode(superClass, curMethodArgCount, regIndex, methArgs.length, methArgs);
+                var ret = NomLanguage.callCtorNode(superClass, curMethodArgCount, regIndex, methArgs.length, methArgs);
+                if (ret == null) {
+                    //TODO probably shouldnt do it this way
+                    return WriteToFrame(curMethodArgCount, regIndex, methArgs[0]);
+                }
+                return ret;
             }
             case Cast -> {
                 regIndex = s.readInt();

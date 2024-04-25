@@ -6,6 +6,7 @@ import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
 import com.nom.graalnom.runtime.constants.NomSuperClassConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomObject;
+import com.nom.graalnom.runtime.datatypes.NomTimer;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomBasicBlockNode;
@@ -33,6 +34,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,7 +54,13 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     private static final Shape initialObjectShape = Shape.newBuilder().layout(NomObject.class).build();
 
     public static NomObject createObject(NomClass cls) {
+        if (cls == null)
+            throw new RuntimeException("Class not found");
         return new NomObject(initialObjectShape, cls);
+    }
+
+    public static NomTimer createTimer() {
+        return new NomTimer(initialObjectShape, System.currentTimeMillis());
     }
 
     @Override
@@ -148,7 +156,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             }
         }
 
-        for(NomInterface nomInterface: NomContext.classes.values()){
+        for (NomInterface nomInterface : NomContext.classes.values()) {
             nomInterface.Register(this);
         }
 
@@ -188,8 +196,6 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             }
         }
 
-        //TODO resolve dependencies
-
         if (mainFunc == null) {
             throw new Exception("Main method not found");
         }
@@ -198,6 +204,10 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     }
 
     public static NomExpressionNode callCtorNode(NomSuperClassConstant superClass, int curMethodArgCount, int regIndex, int ctorArgLen, NomExpressionNode[] ctorArgs) {
+        //check built in
+        if (superClass.GetSuperClass().GetName().equals("Timer_0")) {
+            return null;
+        }
         return ByteCodeReader.WriteToFrame(curMethodArgCount, regIndex,
                 new NomInvokeNode<>(superClass,
                         su -> NomContext.classes.get(su.GetSuperClass().GetName()).GetName() + ".ctor",
