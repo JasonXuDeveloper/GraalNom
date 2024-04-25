@@ -7,6 +7,7 @@ import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.nom.graalnom.test.java.*;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.TypeLiteral;
 import org.graalvm.polyglot.Value;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
@@ -81,7 +82,7 @@ public class TestCases {
         return jo.toString(1);
     }
 
-    private static Value RunTest(){
+    private static Value RunTest() {
         String nameofCurrMethod = Thread.currentThread()
                 .getStackTrace()[2]
                 .getMethodName();

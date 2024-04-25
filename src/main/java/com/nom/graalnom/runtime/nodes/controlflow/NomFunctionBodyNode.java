@@ -99,7 +99,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
     }
 
     @Override
-    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.MERGE_EXPLODE)
+    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     public Object executeGeneric(VirtualFrame frame) {
         curIndex = 0;
         /* Execute the function body. */
@@ -132,7 +132,8 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                 }
                 case NomReturnNode ret -> {
                     if (ret.valueNode == null) return NomNull.SINGLETON;
-                    if (ret.valueNode instanceof NomInvokeNode<?> invokeNode) {
+                    //noinspection rawtypes
+                    if (ret.valueNode instanceof NomInvokeNode invokeNode) {
                         NomFunction func = invokeNode.getFunction();
                         NomExpressionNode body = null;
                         if (func != null) {//non-interface method
@@ -153,6 +154,8 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                             NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
                             body = rootNode.getBodyNode();
                         }
+
+//                        System.out.println("tail call: " + func.getName());
 
                         //begin tail call
                         NomFunctionBodyNode functionBodyNode = (NomFunctionBodyNode) body;
@@ -214,6 +217,8 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                                                 NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
                                                 body = rootNode.getBodyNode();
                                             }
+
+//                        System.out.println("tail call: " + func.getName());
 
                                             functionBodyNode = (NomFunctionBodyNode) body;
                                             retValue = Pair.create(functionBodyNode, args);

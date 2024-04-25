@@ -51,6 +51,7 @@ import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -75,8 +76,6 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     private T funcConst;
     @Node.Children
     private final NomExpressionNode[] argumentNodes;
-    @Node.Child
-    private InteropLibrary library;
 
 
     public NomInvokeNode(T funcConst, Function<T, String> getFuncQName, Function<T, String> getFuncName, Function<T, NomFunction> function, NomExpressionNode[] argumentNodes) {
@@ -85,7 +84,6 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         this.getFuncQName = getFuncQName;
         this.getFuncName = getFuncName;
         this.argumentNodes = argumentNodes;
-        this.library = InteropLibrary.getFactory().createDispatched(3);
     }
 
     public Object[] getArgumentValues(VirtualFrame frame) {
@@ -121,29 +119,19 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         return function.getCallTarget();
     }
 
-    @ExplodeLoop
     @Override
+    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL)
     public Object executeGeneric(VirtualFrame frame) {
-        /*
-         * The number of arguments is constant for one invoke node. During compilation, the loop is
-         * unrolled and the execute methods of all arguments are inlined. This is triggered by the
-         * ExplodeLoop annotation on the method. The compiler assertion below illustrates that the
-         * array length is really constant.
-         */
-        CompilerAsserts.compilationConstant(argumentNodes.length);
         Object[] argumentValues = getArgumentValues(frame);
         NomFunctionBodyNode.putArgs(argumentValues);
 
         try {
             NomFunction funcObj = getFunction(argumentValues);
-            Object ret = library.execute(funcObj, argumentValues);
+            Object ret = funcObj.directCallNode.call(argumentValues);
             NomFunctionBodyNode.leaveScope();
             return ret;
         } catch (StackOverflowError e) {
             throw new RuntimeException("Stack overflow in function: " + getFuncQName.apply(funcConst));
-        } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
-            /* Execute was not successful. */
-            throw new RuntimeException(e);
         }
     }
 
