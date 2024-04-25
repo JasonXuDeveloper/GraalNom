@@ -19,7 +19,7 @@
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="239.5,-228 16.5,-228 16.5,-88 239.5,-88 239.5,-228"/>
 <text text-anchor="middle" x="128" y="-210.7" font-family="Times,serif" font-size="14.00">reg[0] = SieveTest_0.GetPrimes()</text>
-<text text-anchor="middle" x="128" y="-194.2" font-family="Times,serif" font-size="14.00">reg[1] = 100</text>
+<text text-anchor="middle" x="128" y="-194.2" font-family="Times,serif" font-size="14.00">reg[1] = 3000</text>
 <text text-anchor="middle" x="128" y="-177.7" font-family="Times,serif" font-size="14.00">reg[2] = Stream_0.Get(reg[0], reg[1])</text>
 <text text-anchor="middle" x="128" y="-161.2" font-family="Times,serif" font-size="14.00">reg[3] = Int_0.ToString(reg[2])</text>
 <text text-anchor="middle" x="128" y="-144.7" font-family="Times,serif" font-size="14.00">reg[4] = String_0.Print(reg[3])</text>

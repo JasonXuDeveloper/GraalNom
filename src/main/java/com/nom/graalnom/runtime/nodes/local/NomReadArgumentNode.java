@@ -41,6 +41,7 @@
 package com.nom.graalnom.runtime.nodes.local;
 
 import com.nom.graalnom.runtime.datatypes.NomNull;
+import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -69,7 +70,7 @@ public class NomReadArgumentNode extends NomExpressionNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        Object[] args = frame.getArguments();
+        Object[] args = NomFunctionBodyNode.getArgs();
         if (index < args.length) {
             return args[index];
         } else {

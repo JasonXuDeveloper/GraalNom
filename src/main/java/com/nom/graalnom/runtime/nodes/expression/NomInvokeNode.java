@@ -43,6 +43,8 @@ package com.nom.graalnom.runtime.nodes.expression;
 import com.nom.graalnom.runtime.constants.NomConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomObject;
+import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
+import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
@@ -76,6 +78,7 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     @Node.Child
     private InteropLibrary library;
 
+
     public NomInvokeNode(T funcConst, Function<T, String> getFuncQName, Function<T, String> getFuncName, Function<T, NomFunction> function, NomExpressionNode[] argumentNodes) {
         this.funcConst = funcConst;
         this.function = function;
@@ -83,6 +86,39 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         this.getFuncName = getFuncName;
         this.argumentNodes = argumentNodes;
         this.library = InteropLibrary.getFactory().createDispatched(3);
+    }
+
+    public Object[] getArgumentValues(VirtualFrame frame) {
+        Object[] argumentValues = new Object[argumentNodes.length];
+        for (int i = 0; i < argumentNodes.length; i++) {
+            argumentValues[i] = argumentNodes[i].executeGeneric(frame);
+        }
+        return argumentValues;
+    }
+
+    public NomFunction getFunction() {
+        return function.apply(funcConst);
+    }
+
+    public NomFunction getFunction(Object[] argumentValues) {
+        NomFunction funcObj = function.apply(funcConst);
+        //plausibly interface method
+        if (funcObj == null) {
+            Object arg0 = argumentValues[0];
+            if (arg0 instanceof NomObject obj) {
+                funcObj = obj.GetFunction(getFuncName.apply(funcConst));
+            }
+        }
+
+        if (funcObj == null) {
+            throw new RuntimeException("Function not found: " + getFuncQName.apply(funcConst));
+        }
+
+        return funcObj;
+    }
+
+    public CallTarget getCallTarget(NomFunction function) {
+        return function.getCallTarget();
     }
 
     @ExplodeLoop
@@ -95,28 +131,16 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
          * array length is really constant.
          */
         CompilerAsserts.compilationConstant(argumentNodes.length);
-
-        Object[] argumentValues = new Object[argumentNodes.length];
-        for (int i = 0; i < argumentNodes.length; i++) {
-            argumentValues[i] = argumentNodes[i].executeGeneric(frame);
-        }
+        Object[] argumentValues = getArgumentValues(frame);
+        NomFunctionBodyNode.putArgs(argumentValues);
 
         try {
-            NomFunction funcObj = function.apply(funcConst);
-            //plausibly interface method
-            if(funcObj == null){
-                Object arg0 = argumentValues[0];
-                if(arg0 instanceof NomObject obj){
-                    funcObj = obj.GetFunction(getFuncName.apply(funcConst));
-                }
-            }
-
-            if(funcObj == null)
-            {
-                throw new RuntimeException("Function not found: " + getFuncQName.apply(funcConst));
-            }
-
-            return library.execute(funcObj, argumentValues);
+            NomFunction funcObj = getFunction(argumentValues);
+            Object ret = library.execute(funcObj, argumentValues);
+            NomFunctionBodyNode.leaveScope();
+            return ret;
+        } catch (StackOverflowError e) {
+            throw new RuntimeException("Stack overflow in function: " + getFuncQName.apply(funcConst));
         } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
             /* Execute was not successful. */
             throw new RuntimeException(e);

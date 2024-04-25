@@ -88,7 +88,8 @@ public class NomCallable {
         if (function == null) {
             NomFunctionBodyNode body = new NomFunctionBodyNode(basicBlocks.toArray(new NomBasicBlockNode[0]));
             FrameDescriptor.Builder builder = FrameDescriptor.newBuilder();
-            for (int i = 0; i < regCount - GetArgCount(); i++) {
+            int c = 100;
+            for (int i = 0; i < c/*regCount - GetArgCount()*/; i++) {
                 builder.addSlot(FrameSlotKind.Illegal, null, null);
             }
 

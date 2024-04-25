@@ -40,14 +40,23 @@
  */
 package com.nom.graalnom.runtime.nodes.controlflow;
 
+import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
+import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.nodes.*;
 import com.nom.graalnom.runtime.datatypes.NomNull;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
+import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import org.graalvm.collections.Pair;
+
+import java.util.Map;
+import java.util.Queue;
+import java.util.Stack;
 
 /**
  * The body of a user-defined Nom function. This is the node referenced by a {@link NomRootNode} for
@@ -72,6 +81,21 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
         for (NomBasicBlockNode bodyNode : bodyNodes) {
             bodyNode.mergeEndOfBlock();
         }
+    }
+
+    private static int depth;
+    private static final Map<Integer, Object[]> argsMap = new java.util.HashMap<>();
+
+    public static Object[] getArgs() {
+        return argsMap.get(depth);
+    }
+
+    public static void putArgs(Object[] args) {
+        argsMap.put(++depth, args);
+    }
+
+    public static void leaveScope() {
+        depth--;
     }
 
     @Override
@@ -108,6 +132,103 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                 }
                 case NomReturnNode ret -> {
                     if (ret.valueNode == null) return NomNull.SINGLETON;
+                    if (ret.valueNode instanceof NomInvokeNode<?> invokeNode) {
+                        NomFunction func = invokeNode.getFunction();
+                        NomExpressionNode body = null;
+                        if (func != null) {//non-interface method
+                            RootCallTarget callTarget = func.getCallTarget();
+                            NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
+                            body = rootNode.getBodyNode();
+                            if (body instanceof NomBuiltinNode) {
+                                invokeNode.executeGeneric(frame);
+                            }
+                        }
+
+                        //interface method
+                        Object[] args = invokeNode.getArgumentValues(frame);
+                        putArgs(args);
+                        if (func == null) {
+                            func = invokeNode.getFunction(args);
+                            RootCallTarget callTarget = func.getCallTarget();
+                            NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
+                            body = rootNode.getBodyNode();
+                        }
+
+                        //begin tail call
+                        NomFunctionBodyNode functionBodyNode = (NomFunctionBodyNode) body;
+                        Object retValue = Pair.create(functionBodyNode, args);
+                        leaveScope();
+                        while (retValue instanceof Pair<?, ?> p && p.getLeft() instanceof NomFunctionBodyNode) {
+                            functionBodyNode = (NomFunctionBodyNode) p.getLeft();
+                            args = (Object[]) p.getRight();
+                            putArgs(args);
+                            functionBodyNode.curIndex = 0;
+                            /* Execute the function body. */
+                            loop:
+                            while (true) {
+                                if (functionBodyNode.curIndex >= functionBodyNode.bodyNodes.length) {
+                                    throw new RuntimeException("Function body has no return statement");
+                                }
+                                block = functionBodyNode.bodyNodes[functionBodyNode.curIndex];
+                                block.executeVoid(frame);
+                                stmt = block.getTerminatingNode();
+                                switch (stmt) {
+                                    case NomBranchNode br -> {
+                                        for (NomStatementNode mapStmt : br.mappings) {
+                                            mapStmt.executeVoid(frame);
+                                        }
+                                        functionBodyNode.curIndex = br.getSuccessor();
+                                    }
+                                    case NomIfNode condBr -> {
+                                        if (condBr.cond(frame)) {
+                                            for (NomStatementNode mapStmt : condBr.trueBranch.mappings) {
+                                                mapStmt.executeVoid(frame);
+                                            }
+                                            functionBodyNode.curIndex = condBr.getTrueSuccessor();
+                                        } else {
+                                            for (NomStatementNode mapStmt : condBr.falseBranch.mappings) {
+                                                mapStmt.executeVoid(frame);
+                                            }
+                                            functionBodyNode.curIndex = condBr.getFalseSuccessor();
+                                        }
+                                    }
+                                    case NomReturnNode r -> {
+                                        if (r.valueNode == null) return NomNull.SINGLETON;
+                                        if (r.valueNode instanceof NomInvokeNode<?> node) {
+                                            func = node.getFunction();
+                                            body = null;
+                                            if (func != null) {//non-interface method
+                                                RootCallTarget callTarget = func.getCallTarget();
+                                                NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
+                                                body = rootNode.getBodyNode();
+                                                if (body instanceof NomBuiltinNode) {
+                                                    node.executeGeneric(frame);
+                                                }
+                                            }
+
+                                            //interface method
+                                            args = node.getArgumentValues(frame);
+                                            if (func == null) {
+                                                func = node.getFunction(args);
+                                                RootCallTarget callTarget = func.getCallTarget();
+                                                NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
+                                                body = rootNode.getBodyNode();
+                                            }
+
+                                            functionBodyNode = (NomFunctionBodyNode) body;
+                                            retValue = Pair.create(functionBodyNode, args);
+                                            break loop;
+                                        }
+                                        retValue = r.valueNode.executeGeneric(frame);
+                                        break loop;
+                                    }
+                                    case null, default -> throw new RuntimeException("Invalid terminating node");
+                                }
+                            }
+                            leaveScope();
+                        }
+                        return retValue;
+                    }
                     return ret.valueNode.executeGeneric(frame);
                 }
                 case null, default -> throw new RuntimeException("Invalid terminating node");

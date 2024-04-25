@@ -69,7 +69,6 @@ public class NomObject extends DynamicObject implements TruffleObject {
         Object result = objectLibrary.getOrDefault(this, name, null);
         if (result == null) {
             NomTypedField f = (NomTypedField) cls.GetField(name);
-            System.out.println(f);
             if (f != null) {
                 NomClassTypeConstant type = f.GetTypeConstant();
                 NomClassConstant typeCls = type.GetClass();
@@ -83,13 +82,14 @@ public class NomObject extends DynamicObject implements TruffleObject {
                     objectLibrary.put(this, name, false);
                     return false;
                 } else {
-                    objectLibrary.put(this, name, NomNull.SINGLETON);
+                    System.out.println("Unknown type: " + typeCls.GetName());
                     return NomNull.SINGLETON;
                 }
             }
             /* Property does not exist. */
             throw UnknownIdentifierException.create(name);
         }
+//        System.out.println("readMember: " + name + " = " + result);
         return result;
     }
 
@@ -182,5 +182,10 @@ public class NomObject extends DynamicObject implements TruffleObject {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof NomObject && ((NomObject) obj).Id == Id;
+    }
+
+    @Override
+    public String toString() {
+        return "NomObject(" + Id + ")";
     }
 }

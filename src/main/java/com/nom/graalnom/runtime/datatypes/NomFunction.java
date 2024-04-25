@@ -48,6 +48,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -76,7 +77,7 @@ import java.util.logging.Level;
 @ExportLibrary(InteropLibrary.class)
 @SuppressWarnings("static-method")
 public final class NomFunction implements TruffleObject {
-    public static final int INLINE_CACHE_SIZE = 100;
+    public static final int INLINE_CACHE_SIZE = 10000;
 
     private static final TruffleLogger LOG = TruffleLogger.getLogger(NomLanguage.ID, NomFunction.class);
 
@@ -160,7 +161,7 @@ public final class NomFunction implements TruffleObject {
     @SuppressWarnings("static-method")
     @ExportMessage
     boolean hasSourceLocation() {
-        return true;
+        return false;
     }
 
     /**
