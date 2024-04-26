@@ -167,7 +167,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
                             new NomBasicBlockNode(new NomStatementNode[]{
                                     new NomReturnNode(null)
                             }, "method entry")
-                    }),
+                    }, 0),
                     "Invalid", 0).getCallTarget();
         }
 

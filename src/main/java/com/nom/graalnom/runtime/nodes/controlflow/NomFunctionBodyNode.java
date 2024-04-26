@@ -73,8 +73,11 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
     @Node.Children
     public NomBasicBlockNode[] bodyNodes;
 
-    public NomFunctionBodyNode(NomBasicBlockNode[] bodyNodes) {
+    public int regCount;
+
+    public NomFunctionBodyNode(NomBasicBlockNode[] bodyNodes, int regCount) {
         this.bodyNodes = bodyNodes;
+        this.regCount = regCount;
         for (NomBasicBlockNode bodyNode : bodyNodes) {
             bodyNode.mergeEndOfBlock();
         }
@@ -96,10 +99,15 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
         return regsMap.get(depth);
     }
 
-    public static void enterScope(Object[] args) {
+    public static void enterScope(int regSize, Object[] args) {
         depth++;
         if(regsMap.size() <= depth || getRegs() == null){
-            regsMap.add(new Object[10]);
+            regsMap.add(new Object[20]);
+        }
+        if(regsMap.get(depth).length < regSize){
+            Object[] newRegs = new Object[regSize * 2];
+            System.arraycopy(regsMap.get(depth), 0, newRegs, 0, regsMap.get(depth).length);
+            regsMap.set(depth, newRegs);
         }
         if(argsMap.length <= depth){
             Object[][] newArgsMap = new Object[depth * 2][];
@@ -157,7 +165,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                         NomExpressionNode body = rootNode.getBodyNode();
 
                         if (body instanceof NomBuiltinNode builtinNode) {
-                            enterScope(args);
+                            enterScope(0, args);
                             Object val = builtinNode.executeGeneric(frame);
                             leaveScope();
                             return val;

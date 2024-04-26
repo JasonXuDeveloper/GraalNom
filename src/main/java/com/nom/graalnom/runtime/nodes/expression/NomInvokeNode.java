@@ -116,19 +116,19 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     @Override
     @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL)
     public Object executeGeneric(VirtualFrame frame) {
-        Object[] args = getArgumentValues(frame);
-        NomFunctionBodyNode.enterScope(args);
 
         try {
+            Object[] args = getArgumentValues(frame);
             NomFunction funcObj = getFunction(args);
             RootCallTarget target = funcObj.getCallTarget();
             NomRootNode root = (NomRootNode) target.getRootNode();
             NomExpressionNode expr = root.getBodyNode();
+            NomFunctionBodyNode.enterScope(funcObj.regCount, args);
             Object ret = expr.executeGeneric(frame);
             while(ret instanceof Pair<?,?> pair && pair.getLeft() instanceof NomFunctionBodyNode fb){
                 NomFunctionBodyNode.leaveScope();//at tail we dont care previous args/regs
                 args = (Object[]) pair.getRight();
-                NomFunctionBodyNode.enterScope(args);
+                NomFunctionBodyNode.enterScope(fb.regCount, args);
                 ret = fb.executeGeneric(frame);
             }
             NomFunctionBodyNode.leaveScope();

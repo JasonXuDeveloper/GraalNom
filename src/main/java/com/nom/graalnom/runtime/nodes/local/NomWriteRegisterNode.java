@@ -35,8 +35,7 @@ public abstract class NomWriteRegisterNode extends NomExpressionNode {
         if(reg.length <= getRegIndex()) {
             Object[] newRegs = new Object[reg.length * 2];
             System.arraycopy(reg, 0, newRegs, 0, reg.length);
-            NomFunctionBodyNode.regsMap.remove(NomFunctionBodyNode.depth);
-            NomFunctionBodyNode.regsMap.add(newRegs);
+            NomFunctionBodyNode.regsMap.set(NomFunctionBodyNode.depth, newRegs);
             reg = newRegs;
         }
         reg[getRegIndex()] = value;

@@ -86,7 +86,7 @@ public class NomCallable {
 
     public NomFunction GetFunction(NomLanguage language) {
         if (function == null) {
-            NomFunctionBodyNode body = new NomFunctionBodyNode(basicBlocks.toArray(new NomBasicBlockNode[0]));
+            NomFunctionBodyNode body = new NomFunctionBodyNode(basicBlocks.toArray(new NomBasicBlockNode[0]), regCount);
             FrameDescriptor.Builder builder = FrameDescriptor.newBuilder();
             int c = 100;
             for (int i = 0; i < c/*regCount - GetArgCount()*/; i++) {
@@ -94,7 +94,7 @@ public class NomCallable {
             }
 
             NomRootNode root = new NomRootNode(language, builder.build(), body, qName, GetArgCount());
-            function = new NomFunction(qName, root.getCallTarget());
+            function = new NomFunction(qName, root.getCallTarget(), regCount);
         }
 
         return function;

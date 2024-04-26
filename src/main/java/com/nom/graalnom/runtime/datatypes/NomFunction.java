@@ -83,9 +83,12 @@ public final class NomFunction implements TruffleObject {
      */
     private RootCallTarget callTarget;
 
+    public int regCount;
 
-    public NomFunction(String name, RootCallTarget callTarget) {
+
+    public NomFunction(String name, RootCallTarget callTarget,int regCount) {
         this.name = name;
+        this.regCount = regCount;
         setCallTarget(callTarget);
     }
 
