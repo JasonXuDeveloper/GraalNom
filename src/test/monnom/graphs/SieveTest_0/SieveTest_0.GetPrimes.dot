@@ -1,8 +1,8 @@
 digraph {
   rankdir=TB;
   b0_l0 -> b0_ret
-  b0_l0 [label="reg[0] = 2\nreg[1] = SieveTest_0.CountFrom(reg[0])\n", shape=box]
-  b0_ret [label="return SieveTest_0.Sieve(reg[1])"]
+  b0_l0 [label="reg[0] = 2\n", shape=box]
+  b0_ret [label="return SieveTest_0.Sieve(SieveTest_0.CountFrom(reg[0]))"]
   subgraph cluster_b0 {
     label = "blk0";
     b0_l0;

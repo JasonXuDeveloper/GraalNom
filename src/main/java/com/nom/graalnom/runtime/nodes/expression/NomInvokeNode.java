@@ -76,7 +76,7 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     private final String funcName;
     private final T funcConst;
     @Node.Children
-    private final NomExpressionNode[] argumentNodes;
+    public NomExpressionNode[] argumentNodes;
 
     private final boolean instanceMethodCall;
 

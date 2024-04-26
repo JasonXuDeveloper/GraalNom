@@ -80,6 +80,8 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
         this.regCount = regCount;
         for (NomBasicBlockNode bodyNode : bodyNodes) {
             bodyNode.mergeEndOfBlock();
+            bodyNode.optimiseFCP();
+            bodyNode.optimiseTail();
         }
     }
 
