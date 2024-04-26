@@ -124,7 +124,7 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     }
 
     @Override
-    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL)
+    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     public Object executeGeneric(VirtualFrame frame) {
         Object[] args = getArgumentValues(frame);
         NomFunction funcObj = getFunction(args);

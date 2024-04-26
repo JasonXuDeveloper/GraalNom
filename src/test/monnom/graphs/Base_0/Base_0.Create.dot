@@ -1,6 +1,6 @@
 digraph {
   rankdir=TB;
-  b0_l0 [label="return MyObj_0.ctor(new MyObj_0(), arg[0], arg[1])"]
+  b0_l0 [label="return _Constructor_MyObj_0_2(new MyObj_0(), arg[0], arg[1])"]
   subgraph cluster_b0 {
     label = "blk0";
     b0_l0;

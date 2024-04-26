@@ -200,6 +200,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             throw new Exception("Main method not found");
         }
 
+        NomFunctionBodyNode.enterScope(mainFunc.regCount, new Object[0]);
         return mainFunc.getCallTarget();
     }
 
@@ -207,6 +208,14 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         //check built in
         if (superClass.GetSuperClass().GetName().equals("Timer_0")) {
             return null;
+        }
+        var f = NomContext.ctorFunctions.get(superClass.GetSuperClass().GetTruffleName());
+        if (f != null) {
+            var meth = f.get(ctorArgLen);
+            if (meth != null) {
+                return ByteCodeReader.WriteToFrame(curMethodArgCount, regIndex,
+                        new NomInvokeNode<>(meth, superClass.GetSuperClass().GetName() + ".ctor", ctorArgs));
+            }
         }
         return ByteCodeReader.WriteToFrame(curMethodArgCount, regIndex,
                 new NomInvokeNode<>(false, superClass,

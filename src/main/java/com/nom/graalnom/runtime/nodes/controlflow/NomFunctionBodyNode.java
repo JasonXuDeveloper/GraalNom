@@ -85,12 +85,9 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
         }
     }
 
-    public static int depth;
-    public static Object[][] argsMap =  new Object[10][];
+    public static int depth = -1;
+    public static Object[][] argsMap = new Object[1024][];
     public static final ArrayList<Object[]> regsMap = new ArrayList<>() {
-        {
-            add(new Object[10]);
-        }
     };
 
     public static Object[] getArgs() {
@@ -103,15 +100,15 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
 
     public static void enterScope(int regSize, Object[] args) {
         depth++;
-        if(regsMap.size() <= depth || getRegs() == null){
+        if (regsMap.size() <= depth || getRegs() == null) {
             regsMap.add(new Object[20]);
         }
-        if(regsMap.get(depth).length < regSize){
+        if (regsMap.get(depth).length < regSize) {
             Object[] newRegs = new Object[regSize * 2];
             System.arraycopy(regsMap.get(depth), 0, newRegs, 0, regsMap.get(depth).length);
             regsMap.set(depth, newRegs);
         }
-        if(argsMap.length <= depth){
+        if (argsMap.length <= depth) {
             Object[][] newArgsMap = new Object[depth * 2][];
             System.arraycopy(argsMap, 0, newArgsMap, 0, depth);
             argsMap = newArgsMap;
