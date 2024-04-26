@@ -40,6 +40,7 @@
  */
 package com.nom.graalnom.runtime.nodes.local;
 
+import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -66,44 +67,41 @@ public abstract class NomReadRegisterNode extends NomExpressionNode {
      */
     public abstract int getRegIndex();
 
-    @Specialization(guards = "frame.isLong(getRegIndex())")
+    protected boolean isLong(){
+        return NomFunctionBodyNode.getRegs()[getRegIndex()] instanceof Long;
+    }
+
+    protected boolean isBoolean(){
+        return NomFunctionBodyNode.getRegs()[getRegIndex()] instanceof Boolean;
+    }
+
+    protected boolean isDouble(){
+        return NomFunctionBodyNode.getRegs()[getRegIndex()] instanceof Double;
+    }
+
+    @Specialization(guards = "isLong()")
     protected long readLong(VirtualFrame frame) {
         /*
          * When the FrameSlotKind is Long, we know that only primitive long values have ever been
          * written to the local variable. So we do not need to check that the frame really contains
          * a primitive long value.
          */
-        return frame.getLong(getRegIndex());
+        return (long)NomFunctionBodyNode.getRegs()[getRegIndex()];
     }
 
-    @Specialization(guards = "frame.isBoolean(getRegIndex())")
+    @Specialization(guards = "isBoolean()")
     protected boolean readBoolean(VirtualFrame frame) {
-        return frame.getBoolean(getRegIndex());
+        return (boolean)NomFunctionBodyNode.getRegs()[getRegIndex()];
     }
 
-    @Specialization(guards = "frame.isDouble(getRegIndex())")
+    @Specialization(guards = "isDouble()")
     protected double readDouble(VirtualFrame frame) {
-        return frame.getDouble(getRegIndex());
+        return (double)NomFunctionBodyNode.getRegs()[getRegIndex()];
     }
 
     @Specialization(replaces = {"readLong", "readBoolean", "readDouble"})
     protected Object readObject(VirtualFrame frame) {
-        if (!frame.isObject(getRegIndex())) {
-            /*
-             * The FrameSlotKind has been set to Object, so from now on all writes to the local
-             * variable will be Object writes. However, now we are in a frame that still has an old
-             * non-Object value. This is a slow-path operation: we read the non-Object value, and
-             * write it immediately as an Object value so that we do not hit this path again
-             * multiple times for the same variable of the same frame.
-             */
-            CompilerDirectives.transferToInterpreter();
-            Object result = frame.getValue(getRegIndex());
-            frame.getFrameDescriptor().setSlotKind(getRegIndex(), FrameSlotKind.Object);
-            frame.setObject(getRegIndex(), result);
-            return result;
-        }
-
-        return frame.getObject(getRegIndex());
+        return NomFunctionBodyNode.getRegs()[getRegIndex()];
     }
 
     @Override

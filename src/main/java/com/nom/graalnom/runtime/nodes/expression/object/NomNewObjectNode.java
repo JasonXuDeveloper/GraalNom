@@ -30,6 +30,6 @@ public class NomNewObjectNode extends NomExpressionNode {
 
     @Override
     public String toString() {
-        return "new()";
+        return "new "+ superClassConstant.GetSuperClass().GetName() +"()";
     }
 }

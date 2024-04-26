@@ -84,14 +84,29 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
     }
 
     private static int depth;
-    private static final Map<Integer, Object[]> argsMap = new java.util.HashMap<>();
+    private static final Map<Integer, Object[]> argsMap = new java.util.HashMap<>() {
+        {
+            put(0, new Object[100]);
+        }
+    };
+    private static final Map<Integer, Object[]> regsMap = new java.util.HashMap<>() {
+        {
+            put(0, new Object[100]);
+        }
+    };
 
     public static Object[] getArgs() {
         return argsMap.get(depth);
     }
 
-    public static void putArgs(Object[] args) {
-        argsMap.put(++depth, args);
+    public static Object[] getRegs() {
+        return regsMap.get(depth);
+    }
+
+    public static void enterScope(Object[] args) {
+        depth++;
+        regsMap.putIfAbsent(depth, new Object[100]);
+        argsMap.put(depth, args);
     }
 
     public static void leaveScope() {
@@ -134,25 +149,18 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                     if (ret.valueNode == null) return NomNull.SINGLETON;
                     //noinspection rawtypes
                     if (ret.valueNode instanceof NomInvokeNode invokeNode) {
-                        NomFunction func = invokeNode.getFunction();
-                        NomExpressionNode body = null;
-                        if (func != null) {//non-interface method
-                            RootCallTarget callTarget = func.getCallTarget();
-                            NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
-                            body = rootNode.getBodyNode();
-                            if (body instanceof NomBuiltinNode) {
-                                invokeNode.executeGeneric(frame);
-                            }
-                        }
-
-                        //interface method
+                        NomFunction func;
                         Object[] args = invokeNode.getArgumentValues(frame);
-                        putArgs(args);
-                        if (func == null) {
-                            func = invokeNode.getFunction(args);
-                            RootCallTarget callTarget = func.getCallTarget();
-                            NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
-                            body = rootNode.getBodyNode();
+                        func = invokeNode.getFunction(args);
+                        RootCallTarget callTarget = func.getCallTarget();
+                        NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
+                        NomExpressionNode body = rootNode.getBodyNode();
+
+                        if (body instanceof NomBuiltinNode builtinNode) {
+                            enterScope(args);
+                            Object val = builtinNode.executeGeneric(frame);
+                            leaveScope();
+                            return val;
                         }
 
 //                        System.out.println("tail call: " + func.getName());
@@ -160,11 +168,10 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                         //begin tail call
                         NomFunctionBodyNode functionBodyNode = (NomFunctionBodyNode) body;
                         Object retValue = Pair.create(functionBodyNode, args);
-                        leaveScope();
                         while (retValue instanceof Pair<?, ?> p && p.getLeft() instanceof NomFunctionBodyNode) {
                             functionBodyNode = (NomFunctionBodyNode) p.getLeft();
                             args = (Object[]) p.getRight();
-                            putArgs(args);
+                            enterScope(args);
                             functionBodyNode.curIndex = 0;
                             /* Execute the function body. */
                             loop:
@@ -198,28 +205,20 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                                     case NomReturnNode r -> {
                                         if (r.valueNode == null) return NomNull.SINGLETON;
                                         if (r.valueNode instanceof NomInvokeNode<?> node) {
-                                            func = node.getFunction();
-                                            body = null;
-                                            if (func != null) {//non-interface method
-                                                RootCallTarget callTarget = func.getCallTarget();
-                                                NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
-                                                body = rootNode.getBodyNode();
-                                                if (body instanceof NomBuiltinNode) {
-                                                    node.executeGeneric(frame);
-                                                }
-                                            }
-
-                                            //interface method
                                             args = node.getArgumentValues(frame);
-                                            if (func == null) {
-                                                func = node.getFunction(args);
-                                                RootCallTarget callTarget = func.getCallTarget();
-                                                NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
-                                                body = rootNode.getBodyNode();
+                                            func = node.getFunction(args);
+                                            callTarget = func.getCallTarget();
+                                            rootNode = (NomRootNode) callTarget.getRootNode();
+                                            body = rootNode.getBodyNode();
+
+                                            if (body instanceof NomBuiltinNode builtinNode) {
+                                                enterScope(args);
+                                                retValue = builtinNode.executeGeneric(frame);
+                                                leaveScope();
+                                                break loop;
                                             }
 
-//                        System.out.println("tail call: " + func.getName());
-
+                                            //begin tail call
                                             functionBodyNode = (NomFunctionBodyNode) body;
                                             retValue = Pair.create(functionBodyNode, args);
                                             break loop;

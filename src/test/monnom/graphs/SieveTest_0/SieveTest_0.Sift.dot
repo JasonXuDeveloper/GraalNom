@@ -19,8 +19,8 @@ digraph {
     b1_ret;
   }
   b2_l0 -> b2_ret
-  b2_l0 [label="reg[7] = SiftFun_0.ctor(new(), arg[0], arg[1])\n", shape=box]
-  b2_ret [label="return Stream_0.ctor(new(), reg[0], reg[7])"]
+  b2_l0 [label="reg[7] = SiftFun_0.ctor(new SiftFun_0(), arg[0], arg[1])\n", shape=box]
+  b2_ret [label="return Stream_0.ctor(new Stream_0(), reg[0], reg[7])"]
   subgraph cluster_b2 {
     label = "blk2";
     b2_l0;

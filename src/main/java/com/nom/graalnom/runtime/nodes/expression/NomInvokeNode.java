@@ -40,12 +40,15 @@
  */
 package com.nom.graalnom.runtime.nodes.expression;
 
+import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
 import com.nom.graalnom.runtime.constants.NomConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomObject;
+import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -91,6 +94,7 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         for (int i = 0; i < argumentNodes.length; i++) {
             argumentValues[i] = argumentNodes[i].executeGeneric(frame);
         }
+
         return argumentValues;
     }
 
@@ -122,12 +126,15 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     @Override
     @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL)
     public Object executeGeneric(VirtualFrame frame) {
-        Object[] argumentValues = getArgumentValues(frame);
-        NomFunctionBodyNode.putArgs(argumentValues);
+        Object[] args = getArgumentValues(frame);
+        NomFunctionBodyNode.enterScope(args);
 
         try {
-            NomFunction funcObj = getFunction(argumentValues);
-            Object ret = funcObj.directCallNode.call(argumentValues);
+            NomFunction funcObj = getFunction(args);
+            RootCallTarget target = funcObj.getCallTarget();
+            NomRootNode root = (NomRootNode) target.getRootNode();
+            NomExpressionNode expr = root.getBodyNode();
+            Object ret = expr.executeGeneric(frame);
             NomFunctionBodyNode.leaveScope();
             return ret;
         } catch (StackOverflowError e) {

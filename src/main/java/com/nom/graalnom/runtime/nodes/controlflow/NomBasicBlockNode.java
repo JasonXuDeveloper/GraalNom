@@ -4,6 +4,7 @@ import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.local.NomReadRegisterNode;
 import com.nom.graalnom.runtime.nodes.local.NomWriteRegisterNode;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.*;
@@ -14,6 +15,7 @@ import java.util.Arrays;
  * A {@link NomStatementNode} that contains a basic block of other nodes to execute
  */
 @NodeInfo(shortName = "block", description = "The node implementing a block of instructions")
+@GenerateInline
 public final class NomBasicBlockNode extends NomStatementNode {
     @Children
     public NomStatementNode[] bodyNodes;

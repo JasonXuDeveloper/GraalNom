@@ -70,7 +70,6 @@ import java.util.logging.Level;
 @ExportLibrary(InteropLibrary.class)
 @SuppressWarnings("static-method")
 public final class NomFunction implements TruffleObject {
-    public static final int INLINE_CACHE_SIZE = 10000;
 
     private static final TruffleLogger LOG = TruffleLogger.getLogger(NomLanguage.ID, NomFunction.class);
 
@@ -84,7 +83,6 @@ public final class NomFunction implements TruffleObject {
      */
     private RootCallTarget callTarget;
 
-    public DirectCallNode directCallNode;
 
     public NomFunction(String name, RootCallTarget callTarget) {
         this.name = name;
@@ -102,7 +100,6 @@ public final class NomFunction implements TruffleObject {
          * was stable.
          */
         LOG.log(Level.FINE, "Installed call target for: {0}", name);
-        directCallNode = DirectCallNode.create(callTarget);
     }
 
     public RootCallTarget getCallTarget() {
@@ -111,7 +108,7 @@ public final class NomFunction implements TruffleObject {
 
     @ExportMessage
     Object execute(Object[] arguments) throws UnsupportedTypeException, ArityException, UnsupportedMessageException {
-        return directCallNode.call(arguments);
+        throw UnsupportedMessageException.create();
     }
 
 
