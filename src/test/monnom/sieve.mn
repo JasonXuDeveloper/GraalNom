@@ -105,7 +105,7 @@ class SieveTest
 	public static fun Main() : Void
 	{
 		Timer t = new Timer();
-		Int p = Stream.Get(SieveTest.GetPrimes(),6400);
+		Int p = Stream.Get(SieveTest.GetPrimes(),7000);
 		t.PrintDifference();
 		"\n".Print();
 		p.ToString().Print();
