@@ -211,7 +211,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         return ByteCodeReader.WriteToFrame(curMethodArgCount, regIndex,
                 new NomInvokeNode<>(false, superClass,
                         su -> NomContext.classes.get(su.GetSuperClass().GetName()).GetName() + ".ctor",
-                        NomContext.classes.get(superClass.GetSuperClass().GetName()).GetName() + ".ctor",
+                        superClass.GetSuperClass().GetName() + ".ctor",
                         su -> NomContext.ctorFunctions.get(su.GetSuperClass().GetTruffleName()).get(ctorArgLen), ctorArgs));
     }
 

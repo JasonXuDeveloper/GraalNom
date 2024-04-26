@@ -67,39 +67,7 @@ public abstract class NomReadRegisterNode extends NomExpressionNode {
      */
     public abstract int getRegIndex();
 
-    protected boolean isLong(){
-        return NomFunctionBodyNode.getRegs()[getRegIndex()] instanceof Long;
-    }
-
-    protected boolean isBoolean(){
-        return NomFunctionBodyNode.getRegs()[getRegIndex()] instanceof Boolean;
-    }
-
-    protected boolean isDouble(){
-        return NomFunctionBodyNode.getRegs()[getRegIndex()] instanceof Double;
-    }
-
-    @Specialization(guards = "isLong()")
-    protected long readLong(VirtualFrame frame) {
-        /*
-         * When the FrameSlotKind is Long, we know that only primitive long values have ever been
-         * written to the local variable. So we do not need to check that the frame really contains
-         * a primitive long value.
-         */
-        return (long)NomFunctionBodyNode.getRegs()[getRegIndex()];
-    }
-
-    @Specialization(guards = "isBoolean()")
-    protected boolean readBoolean(VirtualFrame frame) {
-        return (boolean)NomFunctionBodyNode.getRegs()[getRegIndex()];
-    }
-
-    @Specialization(guards = "isDouble()")
-    protected double readDouble(VirtualFrame frame) {
-        return (double)NomFunctionBodyNode.getRegs()[getRegIndex()];
-    }
-
-    @Specialization(replaces = {"readLong", "readBoolean", "readDouble"})
+    @Specialization
     protected Object readObject(VirtualFrame frame) {
         return NomFunctionBodyNode.getRegs()[getRegIndex()];
     }

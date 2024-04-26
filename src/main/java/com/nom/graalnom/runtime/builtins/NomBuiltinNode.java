@@ -1,8 +1,12 @@
 package com.nom.graalnom.runtime.builtins;
 
+import com.nom.graalnom.NomLanguage;
+import com.nom.graalnom.runtime.NomContext;
+import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
@@ -38,4 +42,9 @@ public abstract class NomBuiltinNode extends NomExpressionNode {
     }
 
     protected abstract Object execute(VirtualFrame frame);
+
+    @Specialization
+    protected Object doNomObject(NomObject obj) {
+        return obj.GetFunction(NomLanguage.lookupNodeInfo(this.getClass()).shortName()).getCallTarget().call(obj);
+    }
 }
