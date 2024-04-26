@@ -40,24 +40,18 @@
  */
 package com.nom.graalnom.runtime.nodes.expression;
 
-import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
 import com.nom.graalnom.runtime.constants.NomConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import org.graalvm.collections.Pair;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -73,10 +67,10 @@ import java.util.function.Function;
 @NodeInfo(shortName = "invoke")
 public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNode {
 
-    private Function<T, NomFunction> function;
-    private Function<T, String> getFuncQName;
-    private Function<T, String> getFuncName;
-    private T funcConst;
+    private final Function<T, NomFunction> function;
+    private final Function<T, String> getFuncQName;
+    private final Function<T, String> getFuncName;
+    private final T funcConst;
     @Node.Children
     private final NomExpressionNode[] argumentNodes;
 
@@ -119,10 +113,6 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         return funcObj;
     }
 
-    public CallTarget getCallTarget(NomFunction function) {
-        return function.getCallTarget();
-    }
-
     @Override
     @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL)
     public Object executeGeneric(VirtualFrame frame) {
@@ -135,6 +125,12 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
             NomRootNode root = (NomRootNode) target.getRootNode();
             NomExpressionNode expr = root.getBodyNode();
             Object ret = expr.executeGeneric(frame);
+            while(ret instanceof Pair<?,?> pair && pair.getLeft() instanceof NomFunctionBodyNode fb){
+                NomFunctionBodyNode.leaveScope();//at tail we dont care previous args/regs
+                args = (Object[]) pair.getRight();
+                NomFunctionBodyNode.enterScope(args);
+                ret = fb.executeGeneric(frame);
+            }
             NomFunctionBodyNode.leaveScope();
             return ret;
         } catch (StackOverflowError e) {

@@ -2,10 +2,7 @@ package com.nom.graalnom.runtime.nodes.local;
 
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.dsl.*;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
@@ -34,7 +31,15 @@ public abstract class NomWriteRegisterNode extends NomExpressionNode {
          *
          * No-op if kind is already Object.
          */
-        NomFunctionBodyNode.getRegs()[getRegIndex()] = value;
+        Object[] reg = NomFunctionBodyNode.getRegs();
+        if(reg.length <= getRegIndex()) {
+            Object[] newRegs = new Object[reg.length * 2];
+            System.arraycopy(reg, 0, newRegs, 0, reg.length);
+            NomFunctionBodyNode.regsMap.remove(NomFunctionBodyNode.depth);
+            NomFunctionBodyNode.regsMap.add(newRegs);
+            reg = newRegs;
+        }
+        reg[getRegIndex()] = value;
 //        System.out.println("Wrote " + value.getClass().getSimpleName() + " to " + getRegName());
         return value;
     }
