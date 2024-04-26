@@ -23,7 +23,7 @@
 <text text-anchor="middle" x="125" y="-144.7" font-family="Times,serif" font-size="14.00">reg[2] = reg[0] + reg[1]</text>
 <text text-anchor="middle" x="125" y="-128.2" font-family="Times,serif" font-size="14.00">reg[3] = Base_0.SetX(arg[0], reg[2])</text>
 <text text-anchor="middle" x="125" y="-111.7" font-family="Times,serif" font-size="14.00">reg[4] = arg[0].y</text>
-<text text-anchor="middle" x="125" y="-95.2" font-family="Times,serif" font-size="14.00">reg[5] = String_0.Print(reg[4])</text>
+<text text-anchor="middle" x="125" y="-95.2" font-family="Times,serif" font-size="14.00">reg[5] = Print(reg[4])</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">

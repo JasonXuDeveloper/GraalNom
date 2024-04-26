@@ -10,6 +10,7 @@ import com.google.common.io.LittleEndianDataInputStream;
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.*;
+import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.*;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
@@ -242,10 +243,20 @@ public class ByteCodeReader {
                 for (int i = 0; i < args.size(); i++) {
                     methArgs[i + 1] = args.get(i);
                 }
+
+                NomFunction function = NomContext.getMethod(method);
+                if (function != null) {
+                    NomExpressionNode ret = WriteToFrame(
+                            curMethodArgCount, regIndex,
+                            new NomInvokeNode<>(function, method.MethodName(), methArgs));
+                    args.clear();
+                    return ret;
+                }
+
                 NomExpressionNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(method, NomMethodConstant::QualifiedMethodName,
-                                NomMethodConstant::MethodName, NomContext::getMethod, methArgs));
+                        new NomInvokeNode<>(true, method, NomMethodConstant::QualifiedMethodName,
+                                method.MethodName(), NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }
@@ -258,10 +269,20 @@ public class ByteCodeReader {
                 for (int i = 0; i < args.size(); i++) {
                     methArgs[i] = args.get(i);
                 }
+
+                NomFunction function = NomContext.getMethod(staticMethod);
+                if (function != null) {
+                    NomExpressionNode ret = WriteToFrame(
+                            curMethodArgCount, regIndex,
+                            new NomInvokeNode<>(function, staticMethod.MethodName(), methArgs));
+                    args.clear();
+                    return ret;
+                }
+
                 NomExpressionNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(staticMethod, NomStaticMethodConstant::QualifiedMethodName,
-                                NomStaticMethodConstant::QualifiedMethodName, NomContext::getMethod, methArgs));
+                        new NomInvokeNode<>(false, staticMethod, NomStaticMethodConstant::QualifiedMethodName,
+                                staticMethod.MethodName(), NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
             }

@@ -45,6 +45,7 @@ import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
+import com.nom.graalnom.runtime.reflections.NomClass;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -54,6 +55,8 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import org.graalvm.collections.Pair;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -69,18 +72,33 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
 
     private final Function<T, NomFunction> function;
     private final Function<T, String> getFuncQName;
-    private final Function<T, String> getFuncName;
+//    private final Function<T, String> getFuncName;
+    private final String funcName;
     private final T funcConst;
     @Node.Children
     private final NomExpressionNode[] argumentNodes;
 
+    private final boolean instanceMethodCall;
 
-    public NomInvokeNode(T funcConst, Function<T, String> getFuncQName, Function<T, String> getFuncName, Function<T, NomFunction> function, NomExpressionNode[] argumentNodes) {
+    public NomInvokeNode(boolean instanceMethodCall, T funcConst, Function<T, String> getFuncQName, String funcName, Function<T, NomFunction> function, NomExpressionNode[] argumentNodes) {
         this.funcConst = funcConst;
         this.function = function;
         this.getFuncQName = getFuncQName;
-        this.getFuncName = getFuncName;
+        this.funcName = funcName;
         this.argumentNodes = argumentNodes;
+        this.instanceMethodCall = instanceMethodCall;
+    }
+
+    private NomFunction func;
+
+    public NomInvokeNode(NomFunction func,String funcName, NomExpressionNode[] argumentNodes) {
+        this.func = func;
+        this.argumentNodes = argumentNodes;
+        this.funcConst = null;
+        this.function = null;
+        this.getFuncQName = null;
+        this.funcName = funcName;
+        this.instanceMethodCall = false;
     }
 
     public Object[] getArgumentValues(VirtualFrame frame) {
@@ -92,40 +110,32 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         return argumentValues;
     }
 
-    public NomFunction getFunction() {
-        return function.apply(funcConst);
-    }
 
     public NomFunction getFunction(Object[] argumentValues) {
-        NomFunction funcObj = function.apply(funcConst);
-        //plausibly interface method
-        if (funcObj == null) {
-            Object arg0 = argumentValues[0];
-            if (arg0 instanceof NomObject obj) {
-                funcObj = obj.GetFunction(getFuncName.apply(funcConst));
-            }
+        if (func != null) return func;
+
+        if (instanceMethodCall) {
+            return ((NomObject) argumentValues[0]).GetFunction(funcName);
         }
 
-        if (funcObj == null) {
-            throw new RuntimeException("Function not found: " + getFuncQName.apply(funcConst));
-        }
-
-        return funcObj;
+        assert function != null;
+        func = function.apply(funcConst);
+        return func;
     }
 
     @Override
     @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL)
     public Object executeGeneric(VirtualFrame frame) {
+        Object[] args = getArgumentValues(frame);
+        NomFunction funcObj = getFunction(args);
 
         try {
-            Object[] args = getArgumentValues(frame);
-            NomFunction funcObj = getFunction(args);
             RootCallTarget target = funcObj.getCallTarget();
             NomRootNode root = (NomRootNode) target.getRootNode();
             NomExpressionNode expr = root.getBodyNode();
             NomFunctionBodyNode.enterScope(funcObj.regCount, args);
             Object ret = expr.executeGeneric(frame);
-            while(ret instanceof Pair<?,?> pair && pair.getLeft() instanceof NomFunctionBodyNode fb){
+            while (ret instanceof Pair<?, ?> pair && pair.getLeft() instanceof NomFunctionBodyNode fb) {
                 NomFunctionBodyNode.leaveScope();//at tail we dont care previous args/regs
                 args = (Object[]) pair.getRight();
                 NomFunctionBodyNode.enterScope(fb.regCount, args);
@@ -134,13 +144,19 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
             NomFunctionBodyNode.leaveScope();
             return ret;
         } catch (StackOverflowError e) {
-            throw new RuntimeException("Stack overflow in function: " + getFuncQName.apply(funcConst));
+            throw new RuntimeException("Stack overflow in function: " + funcObj.getName());
         }
     }
 
     @Override
     public String toString() {
-        return getFuncQName.apply(funcConst) + "(" + String.join(", ",
+        String funcName;
+        if (func != null) {
+            funcName = func.getName();
+        } else {
+            funcName = getFuncQName.apply(funcConst);
+        }
+        return funcName + "(" + String.join(", ",
                 Arrays.stream(argumentNodes).map(Object::toString)
                         .toArray(String[]::new)) + ")";
     }

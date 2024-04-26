@@ -1,13 +1,5 @@
 digraph {
   rankdir=TB;
-  b0_l0 -> b0_ret
-  b0_l0 [label="reg[0] = 0\nreg[1] = 'Hello'\nreg[2] = MyObj_0.ctor(new MyObj_0(), reg[0], reg[1])\nreg[3] = 1\nreg[4] = 'World'\nreg[5] = MyObj_0.ctor(new MyObj_0(), reg[3], reg[4])\nreg[6] = 3\nreg[7] = '!'\nreg[8] = Base_0.Create(reg[6], reg[7])\nreg[9] = (MyObj_0)\nreg[10] = MyObj_0.Print(reg[2])\nreg[11] = MyObj_0.Print(reg[5])\nreg[12] = reg[9].y\nreg[13] = String_0.Print(reg[12])\nreg[14] = Base_0.GetX(reg[2])\nreg[15] = MyObj_0.StaticGetX(reg[5])\nreg[16] = reg[14] + reg[15]\nreg[17] = Base_0.GetX(reg[9])\n", shape=box]
-  b0_ret [label="return reg[16] + reg[17]"]
-  subgraph cluster_b0 {
-    label = "blk0";
-    b0_l0;
-    b0_ret;
-  }
   labelloc="t"
   label="ObjectTest_0.Main"
 }

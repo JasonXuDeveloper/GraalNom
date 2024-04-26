@@ -2,12 +2,9 @@ package com.nom.graalnom.test;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
-import com.nom.graalnom.runtime.datatypes.NomObject;
-import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.nom.graalnom.test.java.*;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.TypeLiteral;
 import org.graalvm.polyglot.Value;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
@@ -100,9 +97,17 @@ public class TestCases {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        System.out.println(nameofCurrMethod + " output:");
+        //warm up
+        System.out.println("Warm up:");
+        for (int i = 0; i < 3; i++) {
+            System.out.println("Warm up " + i);
+            context.eval(NomLanguage.ID,
+                    GetTestString(nameofCurrMethod, true, debug, !debug));
+        }
+
         Value ret = context.eval(NomLanguage.ID,
                 GetTestString(nameofCurrMethod, true, debug, !debug));
+        System.out.println(nameofCurrMethod + " output:");
         System.out.println();
         System.out.println("Returned value:");
         System.out.println(ret);

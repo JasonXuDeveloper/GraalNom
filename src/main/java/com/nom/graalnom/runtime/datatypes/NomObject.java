@@ -15,6 +15,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 
+import java.util.Map;
+
 @ExportLibrary(InteropLibrary.class)
 public class NomObject extends DynamicObject implements TruffleObject {
     private final NomClass cls;
@@ -43,10 +45,13 @@ public class NomObject extends DynamicObject implements TruffleObject {
         return (int) Id;
     }
 
+    private final Map<String, NomFunction> methodTable;
+
     public NomObject(Shape shape, NomClass cls) {
         super(shape);
         this.cls = cls;
         this.Id = nextId++;
+        this.methodTable = NomContext.functionsObject.get(cls);
     }
 
     @ExportMessage
@@ -59,7 +64,7 @@ public class NomObject extends DynamicObject implements TruffleObject {
     }
 
     public NomFunction GetFunction(String name) {
-        return NomContext.functionsObject.get(cls).get(name);
+        return methodTable.get(name);
     }
 
     @ExportMessage
