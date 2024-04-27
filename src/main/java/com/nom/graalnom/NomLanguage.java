@@ -204,7 +204,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         return mainFunc.getCallTarget();
     }
 
-    public static NomExpressionNode callCtorNode(NomSuperClassConstant superClass, int curMethodArgCount, int regIndex, int ctorArgLen, NomExpressionNode[] ctorArgs) {
+    public static NomStatementNode callCtorNode(NomSuperClassConstant superClass, int curMethodArgCount, int regIndex, int ctorArgLen, NomExpressionNode[] ctorArgs) {
         //check built in
         if (superClass.GetSuperClass().GetName().equals("Timer_0")) {
             return null;

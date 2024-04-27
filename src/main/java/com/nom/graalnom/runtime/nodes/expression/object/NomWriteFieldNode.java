@@ -19,7 +19,7 @@ public abstract class NomWriteFieldNode extends NomExpressionNode {
 
     public abstract NomExpressionNode getValueNode();
 
-    static final int LIBRARY_LIMIT = 3;
+    static final int LIBRARY_LIMIT = 100;
 
 
     @Specialization(limit = "LIBRARY_LIMIT")

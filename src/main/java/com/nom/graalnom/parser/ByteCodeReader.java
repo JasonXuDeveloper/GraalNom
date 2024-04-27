@@ -246,14 +246,14 @@ public class ByteCodeReader {
 
                 NomFunction function = NomContext.getMethod(method);
                 if (function != null) {
-                    NomExpressionNode ret = WriteToFrame(
+                    NomStatementNode ret = WriteToFrame(
                             curMethodArgCount, regIndex,
                             new NomInvokeNode<>(function, method.MethodName(), methArgs));
                     args.clear();
                     return ret;
                 }
 
-                NomExpressionNode ret = WriteToFrame(
+                NomStatementNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
                         new NomInvokeNode<>(true, method, NomMethodConstant::QualifiedMethodName,
                                 method.MethodName(), NomContext::getMethod, methArgs));
@@ -272,14 +272,14 @@ public class ByteCodeReader {
 
                 NomFunction function = NomContext.getMethod(staticMethod);
                 if (function != null) {
-                    NomExpressionNode ret = WriteToFrame(
+                    NomStatementNode ret = WriteToFrame(
                             curMethodArgCount, regIndex,
                             new NomInvokeNode<>(function, staticMethod.MethodName(), methArgs));
                     args.clear();
                     return ret;
                 }
 
-                NomExpressionNode ret = WriteToFrame(
+                NomStatementNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
                         new NomInvokeNode<>(false, staticMethod, NomStaticMethodConstant::QualifiedMethodName,
                                 staticMethod.MethodName(), NomContext::getMethod, methArgs));
@@ -447,9 +447,9 @@ public class ByteCodeReader {
         return NomReadRegisterNodeGen.create(index);
     }
 
-    public static NomExpressionNode WriteToFrame(int methodArgCnt, int index, NomExpressionNode value) {
+    public static NomStatementNode WriteToFrame(int methodArgCnt, int index, NomExpressionNode value) {
         index -= methodArgCnt;
-        return NomWriteRegisterNodeGen.create(value, index);
+        return new NomWriteRegisterNode(index, value);
     }
 
     public static void ReadInterface(LittleEndianDataInputStream s, Map<Long, Long> constants, NomLanguage language, boolean debug) throws Exception {

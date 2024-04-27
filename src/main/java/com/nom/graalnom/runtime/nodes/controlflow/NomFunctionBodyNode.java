@@ -161,9 +161,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                         NomFunction func;
                         Object[] args = invokeNode.getArgumentValues(frame);
                         func = invokeNode.getFunction(args);
-                        RootCallTarget callTarget = func.getCallTarget();
-                        NomRootNode rootNode = (NomRootNode) callTarget.getRootNode();
-                        NomExpressionNode body = rootNode.getBodyNode();
+                        NomExpressionNode body =  func.rootNode.getBodyNode();
 
                         if (body instanceof NomBuiltinNode builtinNode) {
                             enterScope(0, args);

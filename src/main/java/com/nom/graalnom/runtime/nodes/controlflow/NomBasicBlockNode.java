@@ -12,6 +12,7 @@ import com.oracle.truffle.api.nodes.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  * A {@link NomStatementNode} that contains a basic block of other nodes to execute
@@ -47,7 +48,8 @@ public final class NomBasicBlockNode extends NomStatementNode {
     public void executeVoid(VirtualFrame frame) {
         int index = 0;
         NomStatementNode cur = bodyNodes[index];
-        while (!(cur instanceof NomEndOfBasicBlockNode)) {
+        int cnt = bodyNodes.length - 1;
+        while (index < cnt) {
             cur.executeVoid(frame);
             cur = bodyNodes[++index];
         }
