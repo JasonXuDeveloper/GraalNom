@@ -27,7 +27,6 @@ public abstract class NomWriteFieldNode extends NomExpressionNode {
                                            @Bind("this") Node node,
                                            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
         receiver.writeMember(name, value, objectLibrary);
-//        System.out.println("writeNomObject: " + receiver + " " + name + " " + value);
         return receiver;
     }
 

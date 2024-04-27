@@ -46,7 +46,9 @@ import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.nom.graalnom.runtime.reflections.NomClass;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -60,24 +62,28 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * The node for function invocation in SL. Since SL has first class functions, the {@link NomFunction
+ * The node for function invocation in MonNom. The {@link NomFunction
  * target function} can be computed by an arbitrary expression. This node is responsible for
  * evaluating this expression, as well as evaluating the {@link #argumentNodes arguments}. The
  * actual invocation is delegated to a {@link InteropLibrary} instance.
  *
- * @see InteropLibrary#execute(Object, Object...)
  */
 @NodeInfo(shortName = "invoke")
+@GenerateInline
 public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNode {
 
+    @CompilerDirectives.CompilationFinal
     private final Function<T, NomFunction> function;
+    @CompilerDirectives.CompilationFinal
     private final Function<T, String> getFuncQName;
-//    private final Function<T, String> getFuncName;
-    private final String funcName;
+    @CompilerDirectives.CompilationFinal
+    public final String funcName;
+    @CompilerDirectives.CompilationFinal
     private final T funcConst;
     @Node.Children
     public NomExpressionNode[] argumentNodes;
 
+    @CompilerDirectives.CompilationFinal
     private final boolean instanceMethodCall;
 
     public NomInvokeNode(boolean instanceMethodCall, T funcConst, Function<T, String> getFuncQName, String funcName, Function<T, NomFunction> function, NomExpressionNode[] argumentNodes) {
@@ -130,16 +136,13 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         NomFunction funcObj = getFunction(args);
 
         try {
-            RootCallTarget target = funcObj.getCallTarget();
-            NomRootNode root = (NomRootNode) target.getRootNode();
-            NomExpressionNode expr = root.getBodyNode();
+            NomExpressionNode expr = funcObj.rootNode.getBodyNode();
             NomFunctionBodyNode.enterScope(funcObj.regCount, args);
             Object ret = expr.executeGeneric(frame);
-            while (ret instanceof Pair<?, ?> pair && pair.getLeft() instanceof NomFunctionBodyNode fb) {
+            while (ret instanceof NomFunctionBodyNode.TailResult tailResult) {
                 NomFunctionBodyNode.leaveScope();//at tail we dont care previous args/regs
-                args = (Object[]) pair.getRight();
-                NomFunctionBodyNode.enterScope(fb.regCount, args);
-                ret = fb.executeGeneric(frame);
+                NomFunctionBodyNode.enterScope(tailResult.functionBodyNode().regCount, tailResult.args());
+                ret = tailResult.functionBodyNode().executeGeneric(frame);
             }
             NomFunctionBodyNode.leaveScope();
             return ret;

@@ -94,7 +94,7 @@ public class NomCallable {
             }
 
             NomRootNode root = new NomRootNode(language, builder.build(), body, qName, GetArgCount());
-            function = new NomFunction(qName, root.getCallTarget(), regCount);
+            function = new NomFunction(qName,root,  root.getCallTarget(), regCount);
         }
 
         return function;

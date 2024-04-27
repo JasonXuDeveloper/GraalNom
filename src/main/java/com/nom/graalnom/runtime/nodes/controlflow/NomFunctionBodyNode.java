@@ -65,6 +65,7 @@ import java.util.ArrayList;
  * {@link NomNull#SINGLETON default null value}.
  */
 @NodeInfo(shortName = "body")
+@GenerateInline
 public final class NomFunctionBodyNode extends NomExpressionNode {
 
     /**
@@ -114,6 +115,10 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
             argsMap = newArgsMap;
         }
         argsMap[depth] = args;
+    }
+
+    public record TailResult(NomFunctionBodyNode functionBodyNode, Object[] args) {
+
     }
 
     public static void leaveScope() {
@@ -173,7 +178,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
 //                        System.out.println("tail call: " + func.getName());
                         //begin tail call
                         NomFunctionBodyNode functionBodyNode = (NomFunctionBodyNode) body;
-                        return Pair.create(functionBodyNode, args);
+                        return new TailResult(functionBodyNode, args);
                     }
                     return ret.valueNode.executeGeneric(frame);
                 }

@@ -4,6 +4,7 @@ import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.builtins.*;
 import com.nom.graalnom.runtime.constants.*;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
+import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -65,7 +66,7 @@ public class NomContext {
     public void installBuiltin(NodeFactory<? extends NomBuiltinNode> factory) {
         /* Register the builtin function in our function registry. */
         RootCallTarget target = language.lookupBuiltin(factory);
-        NomFunction function = new NomFunction(target.getRootNode().getName(), target,0);
+        NomFunction function = new NomFunction(target.getRootNode().getName(), (NomRootNode) target.getRootNode(), target,0);
         builtinFunctions.put(function.getName(), function);
     }
 

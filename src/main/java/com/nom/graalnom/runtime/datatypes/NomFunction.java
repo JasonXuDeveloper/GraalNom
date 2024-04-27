@@ -41,6 +41,7 @@
 package com.nom.graalnom.runtime.datatypes;
 
 import com.nom.graalnom.NomLanguage;
+import com.nom.graalnom.runtime.nodes.NomRootNode;
 import com.nom.graalnom.runtime.reflections.NomType;
 import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -83,12 +84,15 @@ public final class NomFunction implements TruffleObject {
      */
     private RootCallTarget callTarget;
 
+    public NomRootNode rootNode;
+
     public int regCount;
 
 
-    public NomFunction(String name, RootCallTarget callTarget,int regCount) {
+    public NomFunction(String name, NomRootNode rootNode, RootCallTarget callTarget, int regCount) {
         this.name = name;
         this.regCount = regCount;
+        this.rootNode = rootNode;
         setCallTarget(callTarget);
     }
 

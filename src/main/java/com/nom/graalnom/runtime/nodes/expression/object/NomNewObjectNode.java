@@ -25,7 +25,7 @@ public class NomNewObjectNode extends NomExpressionNode {
         if (name.equals("Timer_0")) {
             return NomLanguage.createTimer();
         }
-        return NomLanguage.createObject((NomClass) NomContext.classes.get(superClassConstant.GetSuperClass().GetName()));
+        return NomLanguage.createObject((NomClass) NomContext.classes.get(name));
     }
 
     @Override

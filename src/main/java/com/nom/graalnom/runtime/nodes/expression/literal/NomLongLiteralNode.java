@@ -1,6 +1,7 @@
 package com.nom.graalnom.runtime.nodes.expression.literal;
 
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
@@ -11,6 +12,7 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
  * the primitive value is automatically boxed by Java.
  */
 @NodeInfo(shortName = "const")
+@GenerateInline
 public final class NomLongLiteralNode extends NomExpressionNode {
     private final long value;
 

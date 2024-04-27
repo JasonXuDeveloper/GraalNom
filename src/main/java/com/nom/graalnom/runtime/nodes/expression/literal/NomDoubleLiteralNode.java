@@ -1,11 +1,13 @@
 package com.nom.graalnom.runtime.nodes.expression.literal;
 
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 @NodeInfo(shortName = "const")
+@GenerateInline
 public final class NomDoubleLiteralNode extends NomExpressionNode {
     private final double value;
 
