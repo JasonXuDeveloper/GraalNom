@@ -84,17 +84,13 @@ public class NomCallable {
         basicBlocks.add(new NomBasicBlockNode(stmts, "blk" + basicBlocks.size()));
     }
 
+    private final static FrameDescriptor f = new FrameDescriptor();
+
     public NomFunction GetFunction(NomLanguage language) {
         if (function == null) {
             NomFunctionBodyNode body = new NomFunctionBodyNode(basicBlocks.toArray(new NomBasicBlockNode[0]), regCount);
-            FrameDescriptor.Builder builder = FrameDescriptor.newBuilder();
-            int c = 100;
-            for (int i = 0; i < c/*regCount - GetArgCount()*/; i++) {
-                builder.addSlot(FrameSlotKind.Illegal, null, null);
-            }
-
-            NomRootNode root = new NomRootNode(language, builder.build(), body, qName, GetArgCount());
-            function = new NomFunction(qName,root,  root.getCallTarget(), regCount);
+            NomRootNode root = new NomRootNode(language, f, body, qName, GetArgCount());
+            function = new NomFunction(qName, root, root.getCallTarget(), regCount);
         }
 
         return function;

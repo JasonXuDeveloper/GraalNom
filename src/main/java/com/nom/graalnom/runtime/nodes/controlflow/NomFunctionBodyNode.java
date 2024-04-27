@@ -87,27 +87,27 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
     }
 
     public static int depth = -1;
-    public static Object[][] argsMap = new Object[1024][];
-    public static final ArrayList<Object[]> regsMap = new ArrayList<>() {
-    };
+    public static Object[][] argsMap = new Object[256][];
+    public static Object[][] regsMap = new Object[256][];
 
     public static Object[] getArgs() {
         return argsMap[depth];
     }
 
     public static Object[] getRegs() {
-        return regsMap.get(depth);
+        return regsMap[depth];
     }
 
     public static void enterScope(int regSize, Object[] args) {
         depth++;
-        if (regsMap.size() <= depth || getRegs() == null) {
-            regsMap.add(new Object[20]);
+        if (regsMap.length <= depth) {
+            Object[][] newRegsMap = new Object[depth * 2][];
+            System.arraycopy(regsMap, 0, newRegsMap, 0, depth);
+            regsMap = newRegsMap;
         }
-        if (regsMap.get(depth).length < regSize) {
-            Object[] newRegs = new Object[regSize * 2];
-            System.arraycopy(regsMap.get(depth), 0, newRegs, 0, regsMap.get(depth).length);
-            regsMap.set(depth, newRegs);
+        if (regsMap[depth] == null || regsMap[depth].length < regSize) {
+            Object[] newRegs = new Object[regSize];
+            regsMap[depth] = newRegs;
         }
         if (argsMap.length <= depth) {
             Object[][] newArgsMap = new Object[depth * 2][];
@@ -131,9 +131,6 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
         int curIndex = 0;
         /* Execute the function body. */
         while (true) {
-            if (curIndex >= bodyNodes.length) {
-                throw new RuntimeException("Function body has no return statement");
-            }
             NomBasicBlockNode block = bodyNodes[curIndex];
             block.executeVoid(frame);
             NomEndOfBasicBlockNode stmt = block.getTerminatingNode();

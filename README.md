@@ -9,4 +9,4 @@ AST interpreter for MonNom implemented in GraalVM
 
 
 ## TCO branch
-`Sieve` with 9999 -> `18.5`s
+`Sieve` with 9999 -> `17.3`s

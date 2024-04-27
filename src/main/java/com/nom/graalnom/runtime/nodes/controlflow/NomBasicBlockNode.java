@@ -34,9 +34,6 @@ public final class NomBasicBlockNode extends NomStatementNode {
     }
 
     public NomEndOfBasicBlockNode getTerminatingNode() {
-        if (this.bodyNodes.length == 0) {
-            return null;
-        }
         return (NomEndOfBasicBlockNode) this.bodyNodes[this.bodyNodes.length - 1];
     }
 
@@ -48,13 +45,11 @@ public final class NomBasicBlockNode extends NomStatementNode {
     @Override
     @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL)
     public void executeVoid(VirtualFrame frame) {
-        if (this.bodyNodes != null) {
-            int index = 0;
-            NomStatementNode cur = bodyNodes[index];
-            while (!(cur instanceof NomEndOfBasicBlockNode)) {
-                cur.executeVoid(frame);
-                cur = bodyNodes[++index];
-            }
+        int index = 0;
+        NomStatementNode cur = bodyNodes[index];
+        while (!(cur instanceof NomEndOfBasicBlockNode)) {
+            cur.executeVoid(frame);
+            cur = bodyNodes[++index];
         }
     }
 
@@ -130,8 +125,8 @@ public final class NomBasicBlockNode extends NomStatementNode {
                 }
             }
 
-            for(int j = i;j<bodyNodes.length - 1;j++){
-                NomStatementNode temp = this.bodyNodes[j+1];
+            for (int j = i; j < bodyNodes.length - 1; j++) {
+                NomStatementNode temp = this.bodyNodes[j + 1];
                 this.bodyNodes[j + 1] = this.bodyNodes[j];
                 this.bodyNodes[j] = temp;
             }
