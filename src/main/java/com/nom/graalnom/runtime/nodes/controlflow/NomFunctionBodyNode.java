@@ -132,7 +132,8 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
         /* Execute the function body. */
         while (true) {
             NomBasicBlockNode block = bodyNodes[curIndex];
-            block.executeVoid(frame);
+            if(block.bodyNodeCount() > 1)
+                block.executeVoid(frame);
             NomEndOfBasicBlockNode stmt = block.getTerminatingNode();
             switch (stmt) {
                 case NomBranchNode br -> {
