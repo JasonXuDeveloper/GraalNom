@@ -23,10 +23,8 @@ public abstract class NomWriteFieldNode extends NomExpressionNode {
 
 
     @Specialization(limit = "LIBRARY_LIMIT")
-    protected static Object writeNomObject(NomObject receiver, String name, Object value,
-                                           @Bind("this") Node node,
-                                           @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
-        receiver.writeMember(name, value, objectLibrary);
+    protected static Object writeNomObject(NomObject receiver, String name, Object value) {
+        receiver.writeMember(name, value);
         return receiver;
     }
 

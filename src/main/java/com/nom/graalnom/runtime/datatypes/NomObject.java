@@ -17,24 +17,11 @@ import com.oracle.truffle.api.object.Shape;
 
 import java.util.Map;
 
-@ExportLibrary(InteropLibrary.class)
-public class NomObject extends DynamicObject implements TruffleObject {
+public class NomObject {
     private final NomClass cls;
     private final long Id;
     private static long nextId = 0;
 
-    @DynamicField
-    private Object _object1;
-    @DynamicField
-    private Object _object2;
-    @DynamicField
-    private Object _object3;
-    @DynamicField
-    private long _long1;
-    @DynamicField
-    private long _long2;
-    @DynamicField
-    private long _long3;
 
     public long GetId() {
         return Id;
@@ -47,16 +34,10 @@ public class NomObject extends DynamicObject implements TruffleObject {
 
     private final Map<String, NomFunction> methodTable;
 
-    public NomObject(Shape shape, NomClass cls) {
-        super(shape);
+    public NomObject(NomClass cls) {
         this.cls = cls;
         this.Id = nextId++;
         this.methodTable = NomContext.functionsObject.get(cls);
-    }
-
-    @ExportMessage
-    boolean hasLanguage() {
-        return true;
     }
 
     public NomClass GetClass() {
@@ -67,28 +48,28 @@ public class NomObject extends DynamicObject implements TruffleObject {
         return methodTable.get(name);
     }
 
-    @ExportMessage
-    public Object readMember(String name,
-                             @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
+    public final Map<String, Object> objectMap = new java.util.HashMap<>();
+
+    public Object readMember(String name)
             throws UnknownIdentifierException {
-        Object result = objectLibrary.getOrDefault(this, name, null);
+        Object result = objectMap.get(name);
         if (result == null) {
             NomTypedField f = (NomTypedField) cls.GetField(name);
             if (f != null) {
                 NomClassTypeConstant type = f.GetTypeConstant();
                 NomClassConstant typeCls = type.GetClass();
                 if (typeCls.GetName().equals("Int_0")) {
-                    objectLibrary.putLong(this, name, 0);
+                    objectMap.put(name, 0L);
                     return 0L;
                 } else if (typeCls.GetName().equals("Float_0")) {
-                    objectLibrary.putDouble(this, name, 0.0);
+                    objectMap.put(name, 0.0);
                     return 0.0;
                 } else if (typeCls.GetName().equals("Bool_0")) {
-                    objectLibrary.put(this, name, false);
+                    objectMap.put(name, false);
                     return false;
                 } else {
                     System.out.println("Unknown type: " + typeCls.GetName());
-                    return NomNull.SINGLETON;
+                    return 0;
                 }
             }
             /* Property does not exist. */
@@ -98,90 +79,8 @@ public class NomObject extends DynamicObject implements TruffleObject {
         return result;
     }
 
-    @ExportMessage
-    public void writeMember(String name, Object value,
-                            @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        objectLibrary.put(this, name, value);
-    }
-
-
-    @ExportMessage
-    public void removeMember(String member,
-                             @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
-        if (objectLibrary.containsKey(this, member)) {
-            objectLibrary.removeKey(this, member);
-        } else {
-            throw UnknownIdentifierException.create(member);
-        }
-    }
-
-    @ExportMessage
-    public final boolean hasMembers() {
-        return true;
-    }
-
-    @ExportMessage
-    public Object getMembers(@SuppressWarnings("unused") boolean includeInternal,
-                             @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        return new Keys(objectLibrary.getKeyArray(this));
-    }
-
-    @ExportMessage(name = "isMemberReadable")
-    @ExportMessage(name = "isMemberModifiable")
-    @ExportMessage(name = "isMemberRemovable")
-    public boolean existsMember(String member,
-                                @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        return objectLibrary.containsKey(this, member);
-    }
-
-    @ExportMessage
-    public boolean isMemberInsertable(String member,
-                                      @CachedLibrary("this") InteropLibrary receivers) {
-        return !receivers.isMemberExisting(this, member);
-    }
-
-    @ExportLibrary(InteropLibrary.class)
-    static final class Keys implements TruffleObject {
-
-        private final Object[] keys;
-
-        Keys(Object[] keys) {
-            this.keys = keys;
-        }
-
-        @ExportMessage
-        Object readArrayElement(long index) throws InvalidArrayIndexException {
-            if (!isArrayElementReadable(index)) {
-                throw InvalidArrayIndexException.create(index);
-            }
-            return keys[(int) index];
-        }
-
-        @ExportMessage
-        boolean hasArrayElements() {
-            return true;
-        }
-
-        @ExportMessage
-        long getArraySize() {
-            return keys.length;
-        }
-
-        @ExportMessage
-        boolean isArrayElementReadable(long index) {
-            return index >= 0 && index < keys.length;
-        }
-    }
-
-    @ExportMessage
-    Class<? extends TruffleLanguage<?>> getLanguage() {
-        return NomLanguage.class;
-    }
-
-
-    @ExportMessage
-    final Object toDisplayString(boolean allowSideEffects) {
-        return "NomObject(" + Id + ")";
+    public void writeMember(String name, Object value) {
+        objectMap.put(name, value);
     }
 
     @Override

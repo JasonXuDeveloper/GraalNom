@@ -68,9 +68,8 @@ import java.util.logging.Level;
  * redefined, the call target managed by this function object is changed (and {@link #callTarget} is
  * therefore not a final field).
  */
-@ExportLibrary(InteropLibrary.class)
 @SuppressWarnings("static-method")
-public final class NomFunction implements TruffleObject {
+public final class NomFunction {
 
     private static final TruffleLogger LOG = TruffleLogger.getLogger(NomLanguage.ID, NomFunction.class);
 
@@ -113,11 +112,6 @@ public final class NomFunction implements TruffleObject {
         return callTarget;
     }
 
-    @ExportMessage
-    Object execute(Object[] arguments) throws UnsupportedTypeException, ArityException, UnsupportedMessageException {
-        throw UnsupportedMessageException.create();
-    }
-
 
     /**
      * This method is, e.g., called when using a function literal in a string concatenation. So
@@ -127,67 +121,4 @@ public final class NomFunction implements TruffleObject {
     public String toString() {
         return name;
     }
-
-    @ExportMessage
-    boolean hasLanguage() {
-        return true;
-    }
-
-    @ExportMessage
-    Class<? extends TruffleLanguage<?>> getLanguage() {
-        return NomLanguage.class;
-    }
-
-    /**
-     * {@link NomFunction} instances are always visible as executable to other languages.
-     */
-    @SuppressWarnings("static-method")
-    @ExportMessage
-    @TruffleBoundary
-    SourceSection getSourceLocation() {
-        return getCallTarget().getRootNode().getSourceSection();
-    }
-
-    @SuppressWarnings("static-method")
-    @ExportMessage
-    boolean hasSourceLocation() {
-        return false;
-    }
-
-    /**
-     * {@link NomFunction} instances are always visible as executable to other languages.
-     */
-    @ExportMessage
-    boolean isExecutable() {
-        return true;
-    }
-
-    @ExportMessage
-    @SuppressWarnings("unused")
-    static final class IsIdenticalOrUndefined {
-        @Specialization
-        static TriState doNomFunction(NomFunction receiver, NomFunction other) {
-            /*
-             * NomFunctions are potentially identical to other NomFunctions.
-             */
-            return receiver == other ? TriState.TRUE : TriState.FALSE;
-        }
-
-        @Fallback
-        static TriState doOther(NomFunction receiver, Object other) {
-            return TriState.UNDEFINED;
-        }
-    }
-
-    @ExportMessage
-    @TruffleBoundary
-    static int identityHashCode(NomFunction receiver) {
-        return System.identityHashCode(receiver);
-    }
-
-    @ExportMessage
-    Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
-        return name;
-    }
-
 }

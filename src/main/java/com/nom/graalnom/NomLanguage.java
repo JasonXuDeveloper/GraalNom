@@ -51,16 +51,15 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     public static final String MIME_TYPE = "application/xml";
 
     private static final HashSet<String> loadedManifests = new HashSet<>();
-    private static final Shape initialObjectShape = Shape.newBuilder().layout(NomObject.class).build();
 
     public static NomObject createObject(NomClass cls) {
         if (cls == null)
             throw new RuntimeException("Class not found");
-        return new NomObject(initialObjectShape, cls);
+        return new NomObject(cls);
     }
 
     public static NomTimer createTimer() {
-        return new NomTimer(initialObjectShape, System.currentTimeMillis());
+        return new NomTimer(System.currentTimeMillis());
     }
 
     @Override

@@ -105,8 +105,8 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
             System.arraycopy(regsMap, 0, newRegsMap, 0, depth);
             regsMap = newRegsMap;
         }
-        if (regsMap[depth] == null || regsMap[depth].length < regSize) {
-            Object[] newRegs = new Object[regSize];
+        if (regsMap[depth] == null || regsMap[depth].length <= regSize) {
+            Object[] newRegs = new Object[regSize * 2];
             regsMap[depth] = newRegs;
         }
         if (argsMap.length <= depth) {
@@ -156,7 +156,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                     }
                 }
                 case NomReturnNode ret -> {
-                    if (ret.valueNode == null) return NomNull.SINGLETON;
+                    if (ret.valueNode == null) return 0;
                     //noinspection rawtypes
                     if (ret.valueNode instanceof NomInvokeNode invokeNode) {
                         NomFunction func;

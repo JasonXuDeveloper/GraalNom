@@ -145,7 +145,7 @@ public class TestCases {
     @MonNomTest(filename = "mini")
     public void MiniTest() {
         Value ret = RunTest();
-        assert ret.isNull();
+        assert ret.isNumber() && ret.asLong() == 0;
     }
 
     @MonNomTest(filename = "object")

@@ -56,9 +56,7 @@ import com.oracle.truffle.api.utilities.TriState;
  * language {@code null} as a singleton, as in {@link #SINGLETON this class}, is the recommended
  * practice.
  */
-@ExportLibrary(InteropLibrary.class)
-@SuppressWarnings("static-method")
-public final class NomNull implements TruffleObject {
+public final class NomNull{
 
     /**
      * The canonical value to represent {@code null} in SL.
@@ -79,46 +77,6 @@ public final class NomNull implements TruffleObject {
      */
     @Override
     public String toString() {
-        return "NULL";
-    }
-
-    @ExportMessage
-    boolean hasLanguage() {
-        return true;
-    }
-
-    @ExportMessage
-    Class<? extends TruffleLanguage<?>> getLanguage() {
-        return NomLanguage.class;
-    }
-
-    /**
-     * {@link NomNull} values are interpreted as null values by other languages.
-     */
-    @ExportMessage
-    boolean isNull() {
-        return true;
-    }
-
-
-    @ExportMessage
-    static TriState isIdenticalOrUndefined(@SuppressWarnings("unused") NomNull receiver, Object other) {
-        /*
-         * SLNull values are identical to other SLNull values.
-         */
-        return TriState.valueOf(NomNull.SINGLETON == other);
-    }
-
-    @ExportMessage
-    static int identityHashCode(@SuppressWarnings("unused") NomNull receiver) {
-        /*
-         * We do not use 0, as we want consistency with System.identityHashCode(receiver).
-         */
-        return IDENTITY_HASH;
-    }
-
-    @ExportMessage
-    Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
         return "NULL";
     }
 }

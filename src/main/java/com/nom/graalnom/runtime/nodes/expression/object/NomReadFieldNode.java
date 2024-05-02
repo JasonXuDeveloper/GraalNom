@@ -21,12 +21,10 @@ public abstract class NomReadFieldNode extends NomExpressionNode {
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization(limit = "LIBRARY_LIMIT")
-    protected Object readNomObject(NomObject receiver, String name,
-                                          @Bind("this") Node node,
-                                          @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
+    protected Object readNomObject(NomObject receiver, String name) {
         Object result = null;
         try {
-            result = receiver.readMember(name, objectLibrary);
+            result = receiver.readMember(name);
         } catch (UnknownIdentifierException e) {
             throw new RuntimeException(e);
         }

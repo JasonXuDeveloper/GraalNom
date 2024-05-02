@@ -18,7 +18,7 @@ public abstract class NomPrintDifferenceBuiltin extends NomBuiltinNode {
         long cur = System.currentTimeMillis();
         long diff = cur - t.curMs;
         NomContext.get(this).getOutput().println("Time difference: " + diff + "ms");
-        return NomNull.SINGLETON;
+        return 0;
     }
 
     @Fallback

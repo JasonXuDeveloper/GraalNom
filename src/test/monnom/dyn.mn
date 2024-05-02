@@ -27,8 +27,9 @@ class DynTest{
         a = x;
     }
 
-    public static fun Main(): A{
+    public static fun Main(): Int{
         DynTest d = new DynTest(new C());
-        return d.a;
+        A a = d.a;
+        return 0;
     }
 }
