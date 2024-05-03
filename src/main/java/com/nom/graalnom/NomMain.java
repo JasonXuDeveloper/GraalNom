@@ -8,9 +8,14 @@ public final class NomMain {
     public static void main(String[] args) {
         try (Context context = Context.newBuilder(NomLanguage.ID)
                 .in(System.in).out(System.out).allowAllAccess(true).build()) {
+            int i = 0;
             System.out.println("== running on " + context.getEngine());
-            context.eval(NomLanguage.ID,
-                    GetTestString(args[0],args[1], true, false, false));
+            while (true) {
+                System.in.read();
+                System.out.println("== iteration " + i++);
+                context.eval(NomLanguage.ID,
+                        GetTestString(args[0], args[1], true, false, false));
+            }
         } catch (Exception e) {
             System.err.println(e.getMessage());
             System.exit(1);
@@ -20,7 +25,7 @@ public final class NomMain {
     }
 
 
-    private static String GetTestString(String manifestPath,String mainClassName, boolean invokeMain,
+    private static String GetTestString(String manifestPath, String mainClassName, boolean invokeMain,
                                         boolean debug, boolean ignoreErrorBytecode) {
         JSONObject jo = new JSONObject();
         jo.put("manifestPath", manifestPath);

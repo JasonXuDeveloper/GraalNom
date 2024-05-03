@@ -124,7 +124,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
                 try {
                     if (debug)
                         System.out.println("Loading bytecode " + file);
-                    ByteCodeReader.ReadBytecodeFile(this, file, debug);
+                    ByteCodeReader.ReadBytecodeFile(file, debug);
                 } catch (Exception e) {
                     if (!ignoreErrorBytecode) {
                         throw e;
@@ -145,7 +145,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
                 try {
                     if (debug)
                         System.out.println("Loading bytecode " + file);
-                    ByteCodeReader.ReadBytecodeFile(this, file, debug);
+                    ByteCodeReader.ReadBytecodeFile( file, debug);
                 } catch (Exception e) {
                     if (!ignoreErrorBytecode) {
                         throw e;

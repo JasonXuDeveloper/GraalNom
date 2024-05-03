@@ -32,7 +32,7 @@ import org.graalvm.collections.Pair;
 public class ByteCodeReader {
     public static int BYTECODE_VERSION = 2;
 
-    public static void ReadBytecodeFile(NomLanguage language, String filename, boolean debug) throws Exception {
+    public static void ReadBytecodeFile(String filename, boolean debug) throws Exception {
         Path path = Paths.get(filename);
         if (!Files.exists(path)) {
             throw new IllegalArgumentException("file not found");
@@ -165,8 +165,8 @@ public class ByteCodeReader {
                         constants.put(localConstId, NomContext.constants.AddDynType(
                                 TryGetGlobalId(constants, localConstId)));
                     }
-                    case Class -> ReadClass(s, constants, language, debug);
-                    case Interface -> ReadInterface(s, constants, language, debug);
+                    case Class -> ReadClass(s, constants, debug);
+                    case Interface -> ReadInterface(s, constants, debug);
                     case null, default -> throw new IllegalArgumentException("unknown type (" + b + "): " + nextType);
                 }
                 if (constants.containsKey(localConstId) && debug) {
@@ -348,7 +348,6 @@ public class ByteCodeReader {
                 regIndex = s.readInt();
                 int value = s.readInt();
                 long typeId = GetGlobalId(constants, s.readLong());
-                System.out.println(typeId);
                 //assuming compiler DOES check on the types so that the cast
                 //object is always an instance under the type with typeId
                 return WriteToFrame(curMethodArgCount, regIndex, NomCastNodeGen.create(ReadFromFrame(curMethodArgCount, value), (int) typeId));
@@ -452,7 +451,7 @@ public class ByteCodeReader {
         return new NomWriteRegisterNode(index, value);
     }
 
-    public static void ReadInterface(LittleEndianDataInputStream s, Map<Long, Long> constants, NomLanguage language, boolean debug) throws Exception {
+    public static void ReadInterface(LittleEndianDataInputStream s, Map<Long, Long> constants, boolean debug) throws Exception {
         long nameId = GetGlobalId(constants, s.readLong());
         long typeParams = GetGlobalId(constants, s.readLong());
         byte visibility = s.readByte();
@@ -467,7 +466,7 @@ public class ByteCodeReader {
         }
     }
 
-    public static void ReadClass(LittleEndianDataInputStream s, Map<Long, Long> constants, NomLanguage language, boolean debug) throws Exception {
+    public static void ReadClass(LittleEndianDataInputStream s, Map<Long, Long> constants, boolean debug) throws Exception {
         long nameId = GetGlobalId(constants, s.readLong());
         long typeArgsId = GetGlobalId(constants, s.readLong());
         byte visibility = s.readByte();
