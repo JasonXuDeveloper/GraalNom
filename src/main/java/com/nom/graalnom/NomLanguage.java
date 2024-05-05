@@ -32,6 +32,7 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
+import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
@@ -59,7 +60,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     }
 
     public static NomTimer createTimer() {
-        return new NomTimer(System.currentTimeMillis());
+        return new NomTimer(ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime());
     }
 
     @Override
@@ -174,6 +175,10 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
             for (var cls : NomContext.classes.values()) {
                 if (NomContext.functionsObject.get(cls) == null) continue;//interface has no method table
                 for (var func : NomContext.functionsObject.get(cls).values()) {
+                    System.out.println(func.getCallTarget().getRootNode().toString());
+                    System.out.println();
+                }
+                for (var func: NomContext.ctorFunctions.get(cls.GetName()).values()) {
                     System.out.println(func.getCallTarget().getRootNode().toString());
                     System.out.println();
                 }

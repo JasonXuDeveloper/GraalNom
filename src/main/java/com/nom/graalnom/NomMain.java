@@ -3,24 +3,34 @@ package com.nom.graalnom;
 import org.graalvm.polyglot.Context;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 
 public final class NomMain {
-    public static void main(String[] args) {
-        try (Context context = Context.newBuilder(NomLanguage.ID)
-                .in(System.in).out(System.out).allowAllAccess(true).build()) {
-            int i = 0;
-            System.out.println("== running on " + context.getEngine());
-            while (true) {
-                System.in.read();
-                System.out.println("== iteration " + i++);
+    public static void main(String[] args) throws IOException {
+        System.out.println("== running on " + System.getProperty("java.version"));
+        Context context = Context.newBuilder(NomLanguage.ID)
+                .in(System.in).out(System.out).allowAllAccess(true).build();
+        System.out.println("== running on " + context.getEngine());
+        //find all subfolders in args[0] that starts with ".BM_"
+        String[] subFolders = new java.io.File(args[0])
+                .list((current, name) ->
+                        new java.io.File(current, name).isDirectory() && name.startsWith(".BM_")
+                                && ((!name.contains("L") && !name.contains("J")
+                                && !name.contains("K") && !name.contains("S"))
+                                || name.equals(".BM_DJDDDD"))
+                );
+        assert subFolders != null;
+        int testCount = args.length > 2 ? Integer.parseInt(args[2]) : 5;
+        for (int j = 0, subFoldersLength = subFolders.length; j < subFoldersLength; j++) {
+            String f = subFolders[j];
+            System.out.println("Testing " + f + " (" + (j + 1) + "/" + subFoldersLength + ")");
+            for (int i = 0; i < testCount; i++) {
+                System.out.println("== iteration " + i);
                 context.eval(NomLanguage.ID,
-                        GetTestString(args[0], args[1], true, false, false));
+                        GetTestString(Path.of(args[0], f, "Program.manifest").toAbsolutePath().toString(), args[1], true, false, false));
             }
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-        } finally {
-            System.exit(0);
         }
     }
 

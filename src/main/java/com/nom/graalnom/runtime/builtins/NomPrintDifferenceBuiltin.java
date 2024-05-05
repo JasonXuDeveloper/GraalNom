@@ -1,12 +1,12 @@
 package com.nom.graalnom.runtime.builtins;
 
-import com.nom.graalnom.runtime.NomContext;
-import com.nom.graalnom.runtime.datatypes.NomNull;
 import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.datatypes.NomTimer;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import java.lang.management.ManagementFactory;
 
 @NodeInfo(shortName = "PrintDifference")
 public abstract class NomPrintDifferenceBuiltin extends NomBuiltinNode {
@@ -15,9 +15,11 @@ public abstract class NomPrintDifferenceBuiltin extends NomBuiltinNode {
     @Override
     protected Object doNomObject(NomObject obj) {
         if (!(obj instanceof NomTimer t)) return super.doNomObject(obj);
-        long cur = System.currentTimeMillis();
+        long cur = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
         long diff = cur - t.curMs;
-        NomContext.get(this).getOutput().println("Time difference: " + diff + "ms");
+        //nano to milli
+        diff /= 1000000;
+        System.out.println("Time difference: " + diff + "ms");
         return 0;
     }
 

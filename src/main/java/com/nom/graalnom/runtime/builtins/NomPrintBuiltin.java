@@ -12,7 +12,7 @@ public abstract class NomPrintBuiltin extends NomBuiltinNode {
 
     @Specialization
     protected Object doDefault(String str) {
-        NomContext.get(this).getOutput().println(str);
+        System.out.println(str);
         return NomNull.SINGLETON;
     }
 

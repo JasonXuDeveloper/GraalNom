@@ -83,7 +83,9 @@ public class NomClass extends NomInterface {
 
     public HashSet<NomClass> superClasses = new HashSet<>();
 
+    @Override
     public void Register(NomLanguage language) {
+        super.Register(language);
         //copy methods from superclass
         NomSuperClassConstant sc = NomContext.constants.GetSuperClass(SuperClass);
         NomClassConstant superClassRef = sc.GetSuperClass();

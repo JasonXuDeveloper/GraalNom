@@ -132,7 +132,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
         /* Execute the function body. */
         while (true) {
             NomBasicBlockNode block = bodyNodes[curIndex];
-            if(block.bodyNodeCount() > 1)
+            if (block.bodyNodeCount() > 1)
                 block.executeVoid(frame);
             NomEndOfBasicBlockNode stmt = block.getTerminatingNode();
             switch (stmt) {
@@ -162,7 +162,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
                         NomFunction func;
                         Object[] args = invokeNode.getArgumentValues(frame);
                         func = invokeNode.getFunction(args);
-                        NomExpressionNode body =  func.rootNode.getBodyNode();
+                        NomExpressionNode body = func.rootNode.getBodyNode();
 
                         if (body instanceof NomBuiltinNode builtinNode) {
                             enterScope(0, args);

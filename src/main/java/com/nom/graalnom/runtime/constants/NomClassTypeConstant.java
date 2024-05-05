@@ -3,7 +3,7 @@ package com.nom.graalnom.runtime.constants;
 import com.nom.graalnom.runtime.NomContext;
 
 public class NomClassTypeConstant extends NomConstant {
-    private long cls;
+    public long cls;
     private long args;
 
     public NomClassTypeConstant(long cls, long args) {

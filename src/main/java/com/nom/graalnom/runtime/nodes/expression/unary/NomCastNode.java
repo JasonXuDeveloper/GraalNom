@@ -24,7 +24,17 @@ public abstract class NomCastNode extends NomUnaryNode {
     public Object cast(Object value) {
         NomConstant c = NomContext.constants.Get(getType());
         if (c instanceof NomClassTypeConstant ct) {
-            String cName = ct.GetClass().GetName();
+            String cName;
+            if(ct.GetClass() == null){
+                NomInterfaceConstant inter = ct.GetInterface();
+                if(inter == null){
+                    throw new RuntimeException("Constant is wrong");
+                }
+                cName = inter.GetName();
+            }
+            else{
+                cName = ct.GetClass().GetName();
+            }
             if (cName.equals("Int_0")) {
                 if (value instanceof Long) {
                     return value;
@@ -93,6 +103,6 @@ public abstract class NomCastNode extends NomUnaryNode {
         if (!(NomContext.constants.Get(getType()) instanceof NomClassTypeConstant ct)) {
             return "(INVALID CAST)";
         }
-        return "(" + ct.GetClass().GetName() + ")";
+        return "(" + ct.GetClass().GetName() + ") " + getNode().toString();
     }
 }

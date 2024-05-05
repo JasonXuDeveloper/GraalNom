@@ -40,7 +40,10 @@
  */
 package com.nom.graalnom.runtime.nodes.expression;
 
+import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.NomConstant;
+import com.nom.graalnom.runtime.constants.NomInterfaceConstant;
+import com.nom.graalnom.runtime.constants.NomSuperInterfacesConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
@@ -51,6 +54,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -97,7 +101,7 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
 
     private NomFunction func;
 
-    public NomInvokeNode(NomFunction func,String funcName, NomExpressionNode[] argumentNodes) {
+    public NomInvokeNode(NomFunction func, String funcName, NomExpressionNode[] argumentNodes) {
         this.func = func;
         this.argumentNodes = argumentNodes;
         this.funcConst = null;
@@ -120,8 +124,34 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     public NomFunction getFunction(Object[] argumentValues) {
         if (func != null) return func;
 
-        if (instanceMethodCall) {
-            return ((NomObject) argumentValues[0]).GetFunction(funcName);
+        if (instanceMethodCall && argumentValues[0] instanceof NomObject obj){
+            NomFunction f = obj.GetFunction(funcName);
+            if (f == null && obj.GetClass() != null) {
+                try {
+                    Object member = obj.readMember(funcName);
+                    if (member instanceof NomObject memObj) {
+                        for (var s : memObj.methodTable.entrySet()) {
+                            String methName = s.getKey();
+                            NomSuperInterfacesConstant sc = NomContext.constants.GetSuperInterfaces(memObj.GetClass().SuperInterfaces);
+                            for (Pair<Long, Long> pair : sc.entries) {
+                                long classNameId = pair.getLeft();
+                                NomInterfaceConstant inter = NomContext.constants.GetInterface((int) classNameId);
+                                if (inter.GetName().equals(methName)) {
+                                    f = s.getValue();
+                                    argumentValues[0] = memObj;
+                                    return f;
+                                }
+                            }
+                        }
+                    }
+                } catch (UnknownIdentifierException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            if (f != null) {
+                return f;
+            }
         }
 
         assert function != null;
@@ -134,9 +164,9 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     public Object executeGeneric(VirtualFrame frame) {
         Object[] args = getArgumentValues(frame);
         NomFunction funcObj = getFunction(args);
+        NomExpressionNode expr = funcObj.rootNode.getBodyNode();
 
         try {
-            NomExpressionNode expr = funcObj.rootNode.getBodyNode();
             NomFunctionBodyNode.enterScope(funcObj.regCount, args);
             Object ret = expr.executeGeneric(frame);
             while (ret instanceof NomFunctionBodyNode.TailResult tailResult) {
@@ -149,6 +179,11 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         } catch (StackOverflowError e) {
             throw new RuntimeException("Stack overflow in function: " + funcObj.getName());
         }
+//        catch (Exception e) {
+//            System.out.println(this);
+//            System.out.println(expr);
+//            throw new RuntimeException(e);
+//        }
     }
 
     @Override

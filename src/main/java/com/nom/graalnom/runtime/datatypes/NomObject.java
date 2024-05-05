@@ -32,7 +32,7 @@ public class NomObject {
         return (int) Id;
     }
 
-    private final Map<String, NomFunction> methodTable;
+    public final Map<String, NomFunction> methodTable;
 
     public NomObject(NomClass cls) {
         this.cls = cls;
@@ -45,6 +45,9 @@ public class NomObject {
     }
 
     public NomFunction GetFunction(String name) {
+        if(methodTable == null){
+            return null;
+        }
         return methodTable.get(name);
     }
 

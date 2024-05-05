@@ -206,6 +206,10 @@ public class ByteCodeReader {
                 nameId = GetGlobalId(constants, s.readLong());
                 receiverRegIndex = s.readInt();
             }
+            case EnsureDynamicMethod -> {
+                nameId = GetGlobalId(constants, s.readLong());
+                receiverRegIndex = s.readInt();
+            }
             case LoadIntConstant -> {
                 long longVal = s.readLong();
                 regIndex = s.readInt();
@@ -257,6 +261,25 @@ public class ByteCodeReader {
                         curMethodArgCount, regIndex,
                         new NomInvokeNode<>(true, method, NomMethodConstant::QualifiedMethodName,
                                 method.MethodName(), NomContext::getMethod, methArgs));
+                args.clear();
+                return ret;
+            }
+            case CallDispatchBest -> {
+                regIndex = s.readInt();
+                receiverRegIndex = s.readInt();
+                nameId = GetGlobalId(constants, s.readLong());
+                typeArgsId = GetGlobalId(constants, s.readLong());
+                String methName = NomContext.constants.GetString(nameId).Value();
+                NomExpressionNode[] methArgs = new NomExpressionNode[args.size() + 1];
+                methArgs[0] = ReadFromFrame(curMethodArgCount, receiverRegIndex);
+                for (int i = 0; i < args.size(); i++) {
+                    methArgs[i + 1] = args.get(i);
+                }
+
+                NomStatementNode ret = WriteToFrame(
+                        curMethodArgCount, regIndex,
+                        new NomInvokeNode<>(true, null, (a) -> methName,
+                                methName, (a) -> NomContext.builtinFunctions.get(methName), methArgs));
                 args.clear();
                 return ret;
             }

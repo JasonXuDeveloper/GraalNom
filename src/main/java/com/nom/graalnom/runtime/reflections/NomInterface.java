@@ -43,8 +43,8 @@ public class NomInterface extends NomNamed {
         sc.entries.forEach(pair -> {
             // (classNameId, typeListId)
             long classNameId = pair.getLeft();
-            NomStringConstant className = NomContext.constants.GetString(classNameId);
-            NomInterface inter = NomContext.classes.get(className.Value());
+            String className = NomContext.constants.GetInterface((int) classNameId).GetName();
+            NomInterface inter = NomContext.classes.get(className);
             if (inter != null) {
                 if (!inter.registered) {
                     inter.Register(language);
@@ -52,7 +52,7 @@ public class NomInterface extends NomNamed {
                     superInterfaces.addAll(inter.superInterfaces);
                 }
 
-                superInterfaces.add(this);
+                superInterfaces.add(inter);
             }
         });
         //TODO use sc.ClassNameId with sc.TypeArgList to find methods and add
