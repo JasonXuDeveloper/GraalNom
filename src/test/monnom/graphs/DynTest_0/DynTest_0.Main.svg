@@ -21,7 +21,7 @@
 <text text-anchor="middle" x="196" y="-144.7" font-family="Times,serif" font-size="14.00">reg[0] = _Constructor_C_0_0(new C_0())</text>
 <text text-anchor="middle" x="196" y="-128.2" font-family="Times,serif" font-size="14.00">reg[1] = _Constructor_DynTest_0_1(new DynTest_0(), reg[0])</text>
 <text text-anchor="middle" x="196" y="-111.7" font-family="Times,serif" font-size="14.00">reg[2] = reg[1].a</text>
-<text text-anchor="middle" x="196" y="-95.2" font-family="Times,serif" font-size="14.00">reg[3] = (A_0)</text>
+<text text-anchor="middle" x="196" y="-95.2" font-family="Times,serif" font-size="14.00">reg[3] = (A_0) reg[2]</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">

@@ -17,9 +17,8 @@ public final class NomMain {
         String[] subFolders = new java.io.File(args[0])
                 .list((current, name) ->
                         new java.io.File(current, name).isDirectory() && name.startsWith(".BM_")
-                                && ((!name.contains("L") && !name.contains("J")
+                                && (!name.contains("L")
                                 && !name.contains("K") && !name.contains("S"))
-                                || name.equals(".BM_DJDDDD"))
                 );
         assert subFolders != null;
         int testCount = args.length > 2 ? Integer.parseInt(args[2]) : 5;
