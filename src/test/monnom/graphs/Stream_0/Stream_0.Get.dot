@@ -24,7 +24,7 @@ digraph {
   }
   b2_l0 -> b2_jmp
   b2_jmp -> b1_l0
-  b2_l0 [label="reg[2] = 1\nreg[3] = reg[6] - reg[2]\nreg[4] = reg[7].Rest\nreg[5] = IFun_1.IInterface_0(reg[4])\n", shape=box]
+  b2_l0 [label="reg[2] = 1\nreg[3] = reg[6] - reg[2]\nreg[4] = reg[7].Rest\nreg[5] = IFun_1.(reg[4])\n", shape=box]
   b2_jmp [label="reg[6] = reg[3]\nreg[7] = reg[5]\n", shape=box]
   subgraph cluster_b2 {
     label = "blk2";

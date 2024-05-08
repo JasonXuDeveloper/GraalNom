@@ -1,495 +1,2752 @@
 == running on 21.0.2
-== running on org.graalvm.polyglot.Engine@12d4bf7e
-Testing .BM_DICDCD (1/33)
+== running on org.graalvm.polyglot.Engine@3b07a0d6
+Testing .BM_CJCDDC (1/64)
 == iteration 0
-Time difference: 13178ms
+Time difference: 13046ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 13640ms
+Time difference: 13238ms
 
 
 104729
 
 
-Testing .BM_DIDCDC (2/33)
+== iteration 2
+Time difference: 13197ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13164ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13279ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13416ms
+
+
+104729
+
+
+Testing .BM_DICDCD (2/64)
 == iteration 0
-Time difference: 14774ms
+Time difference: 12906ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14697ms
+Time difference: 12850ms
 
 
 104729
 
 
-Testing .BM_DIDDDD (3/33)
+== iteration 2
+Time difference: 12827ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 12832ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 12813ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 12783ms
+
+
+104729
+
+
+Testing .BM_DIDCDC (3/64)
 == iteration 0
-Time difference: 15194ms
+Time difference: 14702ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 15139ms
+Time difference: 14618ms
 
 
 104729
 
 
-Testing .BM_CIDCCD (4/33)
+== iteration 2
+Time difference: 14655ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14651ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14653ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14707ms
+
+
+104729
+
+
+Testing .BM_DIDDDD (4/64)
 == iteration 0
-Time difference: 15509ms
+Time difference: 15160ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 15461ms
+Time difference: 14903ms
 
 
 104729
 
 
-Testing .BM_CIDCDD (5/33)
+== iteration 2
+Time difference: 14910ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15090ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15007ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15043ms
+
+
+104729
+
+
+Testing .BM_CJCCCC (5/64)
 == iteration 0
-Time difference: 16181ms
+Time difference: 14047ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 16164ms
+Time difference: 14008ms
 
 
 104729
 
 
-Testing .BM_DICDDC (6/33)
+== iteration 2
+Time difference: 14007ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14007ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14006ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14001ms
+
+
+104729
+
+
+Testing .BM_DJDCDC (6/64)
 == iteration 0
-Time difference: 15349ms
+Time difference: 12034ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 15326ms
+Time difference: 12001ms
 
 
 104729
 
 
-Testing .BM_DIDCCC (7/33)
+== iteration 2
+Time difference: 12116ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 11978ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 11975ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 11984ms
+
+
+104729
+
+
+Testing .BM_CJDCDC (7/64)
 == iteration 0
-Time difference: 13796ms
+Time difference: 13887ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 13805ms
+Time difference: 13905ms
 
 
 104729
 
 
-Testing .BM_CICCCC (8/33)
+== iteration 2
+Time difference: 13974ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13975ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13923ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13937ms
+
+
+104729
+
+
+Testing .BM_DJDDDC (8/64)
 == iteration 0
-Time difference: 14964ms
+Time difference: 13338ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14988ms
+Time difference: 13206ms
 
 
 104729
 
 
-Testing .BM_DICDDD (9/33)
+== iteration 2
+Time difference: 13148ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13101ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13145ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13119ms
+
+
+104729
+
+
+Testing .BM_CIDCCD (9/64)
 == iteration 0
-Time difference: 14426ms
+Time difference: 16068ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14424ms
+Time difference: 16043ms
 
 
 104729
 
 
-Testing .BM_DICCDD (10/33)
+== iteration 2
+Time difference: 16052ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 16084ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 16078ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 16078ms
+
+
+104729
+
+
+Testing .BM_CIDCDD (10/64)
 == iteration 0
-Time difference: 14970ms
+Time difference: 15886ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14941ms
+Time difference: 15970ms
 
 
 104729
 
 
-Testing .BM_CIDCDC (11/33)
+== iteration 2
+Time difference: 15937ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15916ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15970ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15932ms
+
+
+104729
+
+
+Testing .BM_DICDDC (11/64)
 == iteration 0
-Time difference: 14355ms
+Time difference: 14711ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14352ms
+Time difference: 14582ms
 
 
 104729
 
 
-Testing .BM_CIDDCC (12/33)
+== iteration 2
+Time difference: 14587ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14589ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14657ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14605ms
+
+
+104729
+
+
+Testing .BM_DIDCCC (12/64)
 == iteration 0
-Time difference: 14977ms
+Time difference: 13951ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14901ms
+Time difference: 13886ms
 
 
 104729
 
 
-Testing .BM_CICCDC (13/33)
+== iteration 2
+Time difference: 13896ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13896ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13883ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13895ms
+
+
+104729
+
+
+Testing .BM_DJCDDC (13/64)
 == iteration 0
-Time difference: 17345ms
+Time difference: 16620ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 17360ms
+Time difference: 16607ms
 
 
 104729
 
 
-Testing .BM_CIDCCC (14/33)
+== iteration 2
+Time difference: 16611ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 16610ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 16610ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 16609ms
+
+
+104729
+
+
+Testing .BM_CICCCC (14/64)
 == iteration 0
-Time difference: 13761ms
+Time difference: 12274ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 13726ms
+Time difference: 12411ms
 
 
 104729
 
 
-Testing .BM_CICCCD (15/33)
+== iteration 2
+Time difference: 12423ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 12443ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 12398ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 12282ms
+
+
+104729
+
+
+Testing .BM_DICDDD (15/64)
 == iteration 0
-Time difference: 15809ms
+Time difference: 13799ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 15790ms
+Time difference: 13727ms
 
 
 104729
 
 
-Testing .BM_CICDDC (16/33)
+== iteration 2
+Time difference: 13712ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13708ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13714ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13713ms
+
+
+104729
+
+
+Testing .BM_DJCCDC (16/64)
 == iteration 0
-Time difference: 15128ms
+Time difference: 14338ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 15107ms
+Time difference: 14354ms
 
 
 104729
 
 
-Testing .BM_CICCDD (17/33)
+== iteration 2
+Time difference: 14349ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14338ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14356ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14328ms
+
+
+104729
+
+
+Testing .BM_DJCCDD (17/64)
 == iteration 0
-Time difference: 14411ms
+Time difference: 13952ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14405ms
+Time difference: 13798ms
 
 
 104729
 
 
-Testing .BM_DJDDDD (18/33)
+== iteration 2
+Time difference: 13825ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13799ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13809ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13826ms
+
+
+104729
+
+
+Testing .BM_CJCCDC (18/64)
 == iteration 0
-Time difference: 12474ms
+Time difference: 14553ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 12367ms
+Time difference: 14499ms
 
 
 104729
 
 
-Testing .BM_CICDCC (19/33)
+== iteration 2
+Time difference: 14419ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14477ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14443ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14508ms
+
+
+104729
+
+
+Testing .BM_DJDDCC (19/64)
 == iteration 0
-Time difference: 12635ms
+Time difference: 11981ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 12552ms
+Time difference: 11836ms
 
 
 104729
 
 
-Testing .BM_DIDCDD (20/33)
+== iteration 2
+Time difference: 11915ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 11858ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 12081ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 12062ms
+
+
+104729
+
+
+Testing .BM_DJCDCD (20/64)
 == iteration 0
-Time difference: 13693ms
+Time difference: 16892ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 13739ms
+Time difference: 16796ms
 
 
 104729
 
 
-Testing .BM_CICDDD (21/33)
+== iteration 2
+Time difference: 16801ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 16809ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 16801ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 16803ms
+
+
+104729
+
+
+Testing .BM_DICCDD (21/64)
 == iteration 0
-Time difference: 15522ms
+Time difference: 14448ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 15467ms
+Time difference: 14469ms
 
 
 104729
 
 
-Testing .BM_CIDDCD (22/33)
+== iteration 2
+Time difference: 14582ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14630ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14575ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14573ms
+
+
+104729
+
+
+Testing .BM_CIDCDC (22/64)
 == iteration 0
-Time difference: 15309ms
+Time difference: 14676ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 15339ms
+Time difference: 14610ms
 
 
 104729
 
 
-Testing .BM_DICCCC (23/33)
+== iteration 2
+Time difference: 14611ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14550ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14577ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14583ms
+
+
+104729
+
+
+Testing .BM_DJDCCC (23/64)
 == iteration 0
-Time difference: 14083ms
+Time difference: 13619ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14050ms
+Time difference: 13555ms
 
 
 104729
 
 
-Testing .BM_DIDDCD (24/33)
+== iteration 2
+Time difference: 13627ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13583ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13592ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13648ms
+
+
+104729
+
+
+Testing .BM_CIDDCC (24/64)
 == iteration 0
-Time difference: 14776ms
+Time difference: 16821ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14803ms
+Time difference: 16782ms
 
 
 104729
 
 
-Testing .BM_DICCCD (25/33)
+== iteration 2
+Time difference: 16761ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 16706ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 16601ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 16595ms
+
+
+104729
+
+
+Testing .BM_CICCDC (25/64)
 == iteration 0
-Time difference: 15245ms
+Time difference: 16653ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 15428ms
+Time difference: 16574ms
 
 
 104729
 
 
-Testing .BM_CIDDDC (26/33)
+== iteration 2
+Time difference: 16594ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 16596ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 16596ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 16589ms
+
+
+104729
+
+
+Testing .BM_CIDCCC (26/64)
 == iteration 0
-Time difference: 14430ms
+Time difference: 13944ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14429ms
+Time difference: 13924ms
 
 
 104729
 
 
-Testing .BM_CICDCD (27/33)
+== iteration 2
+Time difference: 14126ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14238ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14208ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14229ms
+
+
+104729
+
+
+Testing .BM_DJDCDD (27/64)
 == iteration 0
-Time difference: 14224ms
+Time difference: 14660ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14161ms
+Time difference: 14646ms
 
 
 104729
 
 
-Testing .BM_DIDDDC (28/33)
+== iteration 2
+Time difference: 14648ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14633ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14633ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14671ms
+
+
+104729
+
+
+Testing .BM_CICCCD (28/64)
 == iteration 0
-Time difference: 14269ms
+Time difference: 13661ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14214ms
+Time difference: 13682ms
 
 
 104729
 
 
-Testing .BM_CIDDDD (29/33)
+== iteration 2
+Time difference: 13691ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13703ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13731ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13714ms
+
+
+104729
+
+
+Testing .BM_CICDDC (29/64)
 == iteration 0
-Time difference: 14877ms
+Time difference: 14302ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 14800ms
+Time difference: 14302ms
 
 
 104729
 
 
-Testing .BM_DIDCCD (30/33)
+== iteration 2
+Time difference: 14322ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14331ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14325ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14338ms
+
+
+104729
+
+
+Testing .BM_CICCDD (30/64)
 == iteration 0
-Time difference: 15276ms
+Time difference: 13902ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 15227ms
+Time difference: 13855ms
 
 
 104729
 
 
-Testing .BM_DIDDCC (31/33)
+== iteration 2
+Time difference: 13835ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13820ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13848ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13835ms
+
+
+104729
+
+
+Testing .BM_DJDDDD (31/64)
 == iteration 0
-Time difference: 16139ms
+Time difference: 12547ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 15847ms
+Time difference: 12476ms
 
 
 104729
 
 
-Testing .BM_DICCDC (32/33)
+== iteration 2
+Time difference: 12472ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 12493ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 12529ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 12494ms
+
+
+104729
+
+
+Testing .BM_CICDCC (32/64)
 == iteration 0
-Time difference: 17078ms
+Time difference: 12695ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 17064ms
+Time difference: 12714ms
 
 
 104729
 
 
-Testing .BM_DICDCC (33/33)
+== iteration 2
+Time difference: 12721ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 12723ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 12689ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 12712ms
+
+
+104729
+
+
+Testing .BM_DIDCDD (33/64)
 == iteration 0
-Time difference: 11610ms
+Time difference: 13791ms
 
 
 104729
 
 
 == iteration 1
-Time difference: 11551ms
+Time difference: 13712ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 13743ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13702ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13720ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13718ms
+
+
+104729
+
+
+Testing .BM_DJDCCD (34/64)
+== iteration 0
+Time difference: 13672ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 13800ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 13711ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13719ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13661ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13762ms
+
+
+104729
+
+
+Testing .BM_CICDDD (35/64)
+== iteration 0
+Time difference: 16150ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 16077ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 16073ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 16091ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 16065ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 16092ms
+
+
+104729
+
+
+Testing .BM_CIDDCD (36/64)
+== iteration 0
+Time difference: 15439ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 15383ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 15452ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15372ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15408ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15429ms
+
+
+104729
+
+
+Testing .BM_DICCCC (37/64)
+== iteration 0
+Time difference: 14331ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 14267ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 14285ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14301ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14313ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14328ms
+
+
+104729
+
+
+Testing .BM_DIDDCD (38/64)
+== iteration 0
+Time difference: 14804ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 14827ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 14850ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14839ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14814ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14799ms
+
+
+104729
+
+
+Testing .BM_DICCCD (39/64)
+== iteration 0
+Time difference: 15172ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 15261ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 15304ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15343ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15374ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15386ms
+
+
+104729
+
+
+Testing .BM_CJDCDD (40/64)
+== iteration 0
+Time difference: 12442ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 12500ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 12429ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 12507ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 12544ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 12513ms
+
+
+104729
+
+
+Testing .BM_CJCDCC (41/64)
+== iteration 0
+Time difference: 13991ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 13952ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 13952ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13953ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13907ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13912ms
+
+
+104729
+
+
+Testing .BM_CJDDDC (42/64)
+== iteration 0
+Time difference: 11954ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 11936ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 11997ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 11921ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 11860ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 11846ms
+
+
+104729
+
+
+Testing .BM_CIDDDC (43/64)
+== iteration 0
+Time difference: 15230ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 15114ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 15146ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15131ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15143ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15126ms
+
+
+104729
+
+
+Testing .BM_CICDCD (44/64)
+== iteration 0
+Time difference: 14389ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 14415ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 14380ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14376ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14330ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14350ms
+
+
+104729
+
+
+Testing .BM_DJCDCC (45/64)
+== iteration 0
+Time difference: 13906ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 13874ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 13872ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13880ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14053ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14261ms
+
+
+104729
+
+
+Testing .BM_DIDDDC (46/64)
+== iteration 0
+Time difference: 13992ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 13999ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 13984ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13970ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14059ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14104ms
+
+
+104729
+
+
+Testing .BM_CJCCDD (47/64)
+== iteration 0
+Time difference: 15206ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 15108ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 15111ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15098ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15102ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15109ms
+
+
+104729
+
+
+Testing .BM_DJCCCD (48/64)
+== iteration 0
+Time difference: 14955ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 14914ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 14922ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15042ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15161ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15154ms
+
+
+104729
+
+
+Testing .BM_CJDDCC (49/64)
+== iteration 0
+Time difference: 12612ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 12532ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 12589ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 12616ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 12481ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 12476ms
+
+
+104729
+
+
+Testing .BM_CJDCCC (50/64)
+== iteration 0
+Time difference: 14990ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 15221ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 15179ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15146ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15176ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15049ms
+
+
+104729
+
+
+Testing .BM_CJCDDD (51/64)
+== iteration 0
+Time difference: 17164ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 17060ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 17010ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 17033ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 17011ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 16978ms
+
+
+104729
+
+
+Testing .BM_CIDDDD (52/64)
+== iteration 0
+Time difference: 14121ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 14108ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 14130ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14157ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14095ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14111ms
+
+
+104729
+
+
+Testing .BM_CJDDDD (53/64)
+== iteration 0
+Time difference: 12704ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 12673ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 12622ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 12604ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 12631ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 12641ms
+
+
+104729
+
+
+Testing .BM_DIDCCD (54/64)
+== iteration 0
+Time difference: 15542ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 15646ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 15656ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15652ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15646ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15695ms
+
+
+104729
+
+
+Testing .BM_DIDDCC (55/64)
+== iteration 0
+Time difference: 15912ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 15910ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 15885ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15822ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15624ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15662ms
+
+
+104729
+
+
+Testing .BM_DJCCCC (56/64)
+== iteration 0
+Time difference: 15698ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 15647ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 15669ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15650ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15644ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15633ms
+
+
+104729
+
+
+Testing .BM_CJCCCD (57/64)
+== iteration 0
+Time difference: 13938ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 14114ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 14129ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14122ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14140ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14248ms
+
+
+104729
+
+
+Testing .BM_CJDDCD (58/64)
+== iteration 0
+Time difference: 13664ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 13562ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 13401ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13426ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13383ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13364ms
+
+
+104729
+
+
+Testing .BM_DICCDC (59/64)
+== iteration 0
+Time difference: 15756ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 15752ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 15754ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15753ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15873ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15888ms
+
+
+104729
+
+
+Testing .BM_CJCDCD (60/64)
+== iteration 0
+Time difference: 14049ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 14049ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 14032ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14052ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14053ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14065ms
+
+
+104729
+
+
+Testing .BM_DJDDCD (61/64)
+== iteration 0
+Time difference: 13441ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 13428ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 13447ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13568ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13452ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13470ms
+
+
+104729
+
+
+Testing .BM_DJCDDD (62/64)
+== iteration 0
+Time difference: 15911ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 15910ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 15911ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 15920ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 15910ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 15917ms
+
+
+104729
+
+
+Testing .BM_CJDCCD (63/64)
+== iteration 0
+Time difference: 13457ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 13552ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 13553ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 13503ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 13524ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 13591ms
+
+
+104729
+
+
+Testing .BM_DICDCC (64/64)
+== iteration 0
+Time difference: 14155ms
+
+
+104729
+
+
+== iteration 1
+Time difference: 14064ms
+
+
+104729
+
+
+== iteration 2
+Time difference: 14046ms
+
+
+104729
+
+
+== iteration 3
+Time difference: 14044ms
+
+
+104729
+
+
+== iteration 4
+Time difference: 14039ms
+
+
+104729
+
+
+== iteration 5
+Time difference: 14076ms
 
 
 104729

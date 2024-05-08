@@ -13,6 +13,7 @@ import com.nom.graalnom.runtime.constants.*;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.*;
+import com.nom.graalnom.runtime.nodes.expression.NomCastNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
 import com.nom.graalnom.runtime.nodes.expression.binary.*;
@@ -20,7 +21,6 @@ import com.nom.graalnom.runtime.nodes.expression.literal.*;
 import com.nom.graalnom.runtime.nodes.expression.object.NomNewObjectNode;
 import com.nom.graalnom.runtime.nodes.expression.object.NomReadFieldNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.object.NomWriteFieldNodeGen;
-import com.nom.graalnom.runtime.nodes.expression.unary.NomCastNode;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomCastNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNegateNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNotNodeGen;
@@ -63,7 +63,7 @@ public class ByteCodeReader {
                             chars[i] = s.readChar();
                         }
                         String str = new String(chars);
-                        constants.put(localConstId, NomContext.constants.AddString(str, TryGetGlobalId(constants, localConstId)));
+                        constants.put(localConstId, NomContext.constants.AddString(str, GetGlobalId(constants, localConstId)));
                     }
                     case ClassConstant -> {
                         localConstId = s.readLong();
@@ -259,7 +259,7 @@ public class ByteCodeReader {
 
                 NomStatementNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(true, method, NomMethodConstant::QualifiedMethodName,
+                        new NomInvokeNode<>(true, null, method, NomMethodConstant::QualifiedMethodName,
                                 method.MethodName(), NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
@@ -278,7 +278,7 @@ public class ByteCodeReader {
 
                 NomStatementNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(true, null, (a) -> methName,
+                        new NomInvokeNode<>(true, methName + "_dyn", null, (a) -> methName + "_dyn",
                                 methName, (a) -> NomContext.builtinFunctions.get(methName), methArgs));
                 args.clear();
                 return ret;
@@ -304,7 +304,7 @@ public class ByteCodeReader {
 
                 NomStatementNode ret = WriteToFrame(
                         curMethodArgCount, regIndex,
-                        new NomInvokeNode<>(false, staticMethod, NomStaticMethodConstant::QualifiedMethodName,
+                        new NomInvokeNode<>(false, null, staticMethod, NomStaticMethodConstant::QualifiedMethodName,
                                 staticMethod.MethodName(), NomContext::getMethod, methArgs));
                 args.clear();
                 return ret;
@@ -373,7 +373,7 @@ public class ByteCodeReader {
                 long typeId = GetGlobalId(constants, s.readLong());
                 //assuming compiler DOES check on the types so that the cast
                 //object is always an instance under the type with typeId
-                return WriteToFrame(curMethodArgCount, regIndex, NomCastNodeGen.create(ReadFromFrame(curMethodArgCount, value), (int) typeId));
+                return WriteToFrame(curMethodArgCount, regIndex, new NomCastNode(ReadFromFrame(curMethodArgCount, value), (int) typeId));
             }
             case WriteField -> {
                 receiverRegIndex = s.readInt();//this

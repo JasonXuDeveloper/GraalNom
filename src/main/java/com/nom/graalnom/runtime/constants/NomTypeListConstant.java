@@ -5,7 +5,7 @@ import com.nom.graalnom.runtime.NomContext;
 import java.util.List;
 
 public class NomTypeListConstant extends NomConstant{
-    private List<Long> types;
+    public List<Long> types;
 
     public int Count() {
         return types.size();

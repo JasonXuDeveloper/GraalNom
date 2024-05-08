@@ -48,10 +48,9 @@ public class TestUtil {
         System.out.println();
         System.out.println(cls.GetName() + " Class methods control flow graphs:");
         Map<String, NomFunction> map = NomContext.functionsObject.get(cls);
-        Map<Integer, NomFunction> map2 = NomContext.ctorFunctions.get(cls.GetName());
         List<NomFunction> funcs = new ArrayList<>(List.copyOf(map.values()));
-        funcs.addAll(map2.values());
         for (var method : funcs) {
+            if (method == null) continue;
             String dot = ((NomRootNode) method.getCallTarget().getRootNode()).toDotGraph();
             String dotOutputPath = Paths.get(directory, method.getName() + ".dot").toString();
             try {

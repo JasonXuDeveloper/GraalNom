@@ -9,8 +9,10 @@ import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomBasicBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomEndOfBasicBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
+import com.nom.graalnom.runtime.nodes.expression.NomCastNode;
+import com.nom.graalnom.runtime.nodes.expression.unary.NomCastNodeGen;
+import com.nom.graalnom.runtime.nodes.local.NomReadArgumentNode;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,7 @@ public class NomCallable {
     protected long typeArgsId;//type parameters
     private final List<NomBasicBlockNode> basicBlocks;
     private NomFunction function;
+    private NomFunction dynFunction;
 
     public NomCallable(String name, String qName, long regCount, long typeArgsId, long argTypesId, boolean declOnly) {
         this.name = name;
@@ -94,5 +97,33 @@ public class NomCallable {
         }
 
         return function;
+    }
+
+    public NomFunction GetDynFunction(NomLanguage language) {
+        if (dynFunction == null) {
+            NomTypeListConstant typeListConstant = NomContext.constants.GetTypeList(argTypesId);
+            if (typeListConstant == null) {
+                dynFunction = function;
+                return dynFunction;
+            }
+
+            NomBasicBlockNode firstBlock = basicBlocks.getFirst();
+            NomStatementNode[] newNodes = new NomStatementNode[firstBlock.bodyNodes.length + typeListConstant.types.size()];
+            List<Long> types = typeListConstant.types;
+            for (int j = 0; j < types.size(); j++) {
+                long i = types.get(j);
+                int typeId = (int)i;
+                newNodes[j] = new NomCastNode(new NomReadArgumentNode(1 + j), typeId);
+            }
+            //copy the rest of the nodes
+            System.arraycopy(firstBlock.bodyNodes, 0, newNodes, types.size(), firstBlock.bodyNodes.length);
+            basicBlocks.set(0, new NomBasicBlockNode(newNodes, firstBlock.blockName));
+
+            NomFunctionBodyNode body = new NomFunctionBodyNode(basicBlocks.toArray(new NomBasicBlockNode[0]), regCount);
+            NomRootNode root = new NomRootNode(language, f, body, qName, GetArgCount());
+            dynFunction = new NomFunction(qName+"_dyn", root, root.getCallTarget(), regCount);
+        }
+
+        return dynFunction;
     }
 }

@@ -63,6 +63,7 @@ import org.graalvm.collections.Pair;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -90,13 +91,17 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     @CompilerDirectives.CompilationFinal
     private final boolean instanceMethodCall;
 
-    public NomInvokeNode(boolean instanceMethodCall, T funcConst, Function<T, String> getFuncQName, String funcName, Function<T, NomFunction> function, NomExpressionNode[] argumentNodes) {
+    @CompilerDirectives.CompilationFinal
+    private final String dynName;
+
+    public NomInvokeNode(boolean instanceMethodCall, String dynName, T funcConst, Function<T, String> getFuncQName, String funcName, Function<T, NomFunction> function, NomExpressionNode[] argumentNodes) {
         this.funcConst = funcConst;
         this.function = function;
         this.getFuncQName = getFuncQName;
         this.funcName = funcName;
         this.argumentNodes = argumentNodes;
         this.instanceMethodCall = instanceMethodCall;
+        this.dynName = dynName;
     }
 
     private NomFunction func;
@@ -109,6 +114,7 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         this.getFuncQName = null;
         this.funcName = funcName;
         this.instanceMethodCall = false;
+        this.dynName = null;
     }
 
     public Object[] getArgumentValues(VirtualFrame frame) {
@@ -124,23 +130,20 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     public NomFunction getFunction(Object[] argumentValues) {
         if (func != null) return func;
 
-        if (instanceMethodCall && argumentValues[0] instanceof NomObject obj){
-            NomFunction f = obj.GetFunction(funcName);
+        if (instanceMethodCall && argumentValues[0] instanceof NomObject obj) {
+            if (funcName.endsWith("."))
+                return obj.thisFunction;
+            NomFunction f;
+            f = obj.GetFunction(Objects.requireNonNullElse(dynName, funcName));
             if (f == null && obj.GetClass() != null) {
                 try {
                     Object member = obj.readMember(funcName);
                     if (member instanceof NomObject memObj) {
                         for (var s : memObj.methodTable.entrySet()) {
                             String methName = s.getKey();
-                            NomSuperInterfacesConstant sc = NomContext.constants.GetSuperInterfaces(memObj.GetClass().SuperInterfaces);
-                            for (Pair<Long, Long> pair : sc.entries) {
-                                long classNameId = pair.getLeft();
-                                NomInterfaceConstant inter = NomContext.constants.GetInterface((int) classNameId);
-                                if (inter.GetName().equals(methName)) {
-                                    f = s.getValue();
-                                    argumentValues[0] = memObj;
-                                    return f;
-                                }
+                            if (methName.isEmpty()) {
+                                f = s.getValue();
+                                argumentValues[0] = memObj;
                             }
                         }
                     }

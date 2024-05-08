@@ -104,9 +104,11 @@ public class NomClass extends NomInterface {
         if (superClass != null) {
             for (var method : superClass.StaticMethods) {
                 clsFunctions.put(method.GetName(), method.GetFunction(language));
+                clsFunctions.put(method.GetName() + "_dyn", method.GetDynFunction(language));
             }
             for (var method : superClass.AllMethods) {
                 clsFunctions.put(method.GetName(), method.GetFunction(language));
+                clsFunctions.put(method.GetName() + "_dyn", method.GetDynFunction(language));
             }
             this.AllFields.addAll(superClass.AllFields);
         }
@@ -114,14 +116,17 @@ public class NomClass extends NomInterface {
         //constructors
         for (var constructor : Constructors) {
             ctorFunctions.put(constructor.GetArgCount(), constructor.GetFunction(language));
+            clsFunctions.put(constructor.GetName() + "_dyn", constructor.GetDynFunction(language));
         }
         //static methods
         for (var method : StaticMethods) {
             clsFunctions.put(method.GetName(), method.GetFunction(language));
+            clsFunctions.put(method.GetName() + "_dyn", method.GetDynFunction(language));
         }
         //methods
         for (var method : Methods) {
             clsFunctions.put(method.GetName(), method.GetFunction(language));
+            clsFunctions.put(method.GetName() + "_dyn", method.GetDynFunction(language));
         }
 
         AllFields.addAll(Fields);

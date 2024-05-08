@@ -38,6 +38,14 @@ public class NomObject {
         this.cls = cls;
         this.Id = nextId++;
         this.methodTable = NomContext.functionsObject.get(cls);
+        if(this.methodTable != null){
+            for (NomFunction func : this.methodTable.values()) {
+                if(func.getName().endsWith(".")){
+                    this.thisFunction = func;
+                    return;
+                }
+            }
+        }
     }
 
     public NomClass GetClass() {
@@ -45,11 +53,13 @@ public class NomObject {
     }
 
     public NomFunction GetFunction(String name) {
-        if(methodTable == null){
+        if (methodTable == null) {
             return null;
         }
         return methodTable.get(name);
     }
+
+    public NomFunction thisFunction;
 
     public final Map<String, Object> objectMap = new java.util.HashMap<>();
 

@@ -12,7 +12,7 @@ digraph {
   }
   b1_l0 -> b1_ret
   b1_l0 [label="reg[4] = arg[1].Rest\n", shape=box]
-  b1_ret [label="return SieveTest_0.Sift(arg[0], IFun_1.IInterface_0(reg[4]))"]
+  b1_ret [label="return SieveTest_0.Sift(arg[0], IFun_1.(reg[4]))"]
   subgraph cluster_b1 {
     label = "blk1";
     b1_l0;

@@ -1,0 +1,13 @@
+digraph {
+  rankdir=TB;
+  b0_l0 -> b0_ret
+  b0_l0 [label="reg[0] = arg[0].N\nreg[1] = 1\nreg[2] = reg[0] + reg[1]\n", shape=box]
+  b0_ret [label="return SieveTest_0.CountFrom(reg[2])"]
+  subgraph cluster_b0 {
+    label = "blk0";
+    b0_l0;
+    b0_ret;
+  }
+  labelloc="t"
+  label="CountFromFun_0."
+}

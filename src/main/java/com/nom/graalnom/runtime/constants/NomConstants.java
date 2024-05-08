@@ -36,7 +36,12 @@ public class NomConstants {
         return constants.size() - 1;
     }
 
+    private final NomStringConstant emptyString = new NomStringConstant("");
+
     public NomStringConstant GetString(long constant) {
+        if(constant == 0){
+            return emptyString;
+        }
         var cnstnt = constants.get((int) constant);
         if (cnstnt == null || cnstnt.Type != NomConstantType.CTString) {
             throw new RuntimeException("constant " + constant + " is not a string constant " + cnstnt);

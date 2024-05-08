@@ -33,7 +33,6 @@ public class NomContext {
     public static void clear() {
         classes.clear();
         functionsObject.clear();
-        constants = new NomConstants();
     }
 
     private static final TruffleLanguage.ContextReference<NomContext> REFERENCE = TruffleLanguage.ContextReference.create(NomLanguage.class);
