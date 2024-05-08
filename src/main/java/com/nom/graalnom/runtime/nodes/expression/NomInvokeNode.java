@@ -136,19 +136,17 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
             NomFunction f;
             f = obj.GetFunction(Objects.requireNonNullElse(dynName, funcName));
             if (f == null && obj.GetClass() != null) {
+                Object member;
                 try {
-                    Object member = obj.readMember(funcName);
-                    if (member instanceof NomObject memObj) {
-                        for (var s : memObj.methodTable.entrySet()) {
-                            String methName = s.getKey();
-                            if (methName.isEmpty()) {
-                                f = s.getValue();
-                                argumentValues[0] = memObj;
-                            }
-                        }
-                    }
+                    member = obj.readMember(funcName);
                 } catch (UnknownIdentifierException e) {
                     throw new RuntimeException(e);
+                }
+                if (member instanceof NomObject memObj) {
+                    if(memObj.thisFunction != null){
+                        f = memObj.thisFunction;
+                        argumentValues[0] = memObj;
+                    }
                 }
             }
 
