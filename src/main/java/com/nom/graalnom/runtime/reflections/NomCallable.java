@@ -112,7 +112,7 @@ public class NomCallable {
             List<Long> types = typeListConstant.types;
             for (int j = 0; j < types.size(); j++) {
                 long i = types.get(j);
-                int typeId = (int)i;
+                int typeId = (int) i;
                 newNodes[j] = new NomCastNode(new NomReadArgumentNode(1 + j), typeId);
             }
             //copy the rest of the nodes
@@ -120,8 +120,8 @@ public class NomCallable {
             basicBlocks.set(0, new NomBasicBlockNode(newNodes, firstBlock.blockName));
 
             NomFunctionBodyNode body = new NomFunctionBodyNode(basicBlocks.toArray(new NomBasicBlockNode[0]), regCount);
-            NomRootNode root = new NomRootNode(language, f, body, qName, GetArgCount());
-            dynFunction = new NomFunction(qName+"_dyn", root, root.getCallTarget(), regCount);
+            NomRootNode root = new NomRootNode(language, f, body, qName + "_dyn", GetArgCount());
+            dynFunction = new NomFunction(qName + "_dyn", root, root.getCallTarget(), regCount);
         }
 
         return dynFunction;

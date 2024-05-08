@@ -37,5 +37,5 @@ digraph {
     b3_l0;
   }
   labelloc="t"
-  label="Stream_0.Get"
+  label="Stream_0.Get_dyn"
 }

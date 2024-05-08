@@ -9,5 +9,5 @@ digraph {
     b0_ret;
   }
   labelloc="t"
-  label="SieveTest_0.Sieve"
+  label="SieveTest_0.Sieve_dyn"
 }

@@ -8,7 +8,7 @@
  viewBox="0.00 0.00 411.05 623.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 619.5)">
 <polygon fill="white" stroke="none" points="-4,4 -4,-619.5 407.05,-619.5 407.05,4 -4,4"/>
-<text text-anchor="middle" x="201.53" y="-598.2" font-family="Times,serif" font-size="14.00">Stream_0.Get</text>
+<text text-anchor="middle" x="201.53" y="-598.2" font-family="Times,serif" font-size="14.00">Stream_0.Get_dyn</text>
 <g id="clust1" class="cluster">
 <title>cluster_b0</title>
 <polygon fill="none" stroke="black" points="74,-423.5 74,-583 204,-583 204,-423.5 74,-423.5"/>

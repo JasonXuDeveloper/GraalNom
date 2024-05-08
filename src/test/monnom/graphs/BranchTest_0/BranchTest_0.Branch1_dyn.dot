@@ -57,5 +57,5 @@ digraph {
     b8_l0;
   }
   labelloc="t"
-  label="BranchTest_0.Branch1"
+  label="BranchTest_0.Branch1_dyn"
 }

@@ -30,5 +30,5 @@ digraph {
     b3_l0;
   }
   labelloc="t"
-  label="BranchTest_0.Branch2"
+  label="BranchTest_0.Branch2_dyn"
 }

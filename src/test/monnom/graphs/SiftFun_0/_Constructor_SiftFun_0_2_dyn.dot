@@ -9,5 +9,5 @@ digraph {
     b0_ret;
   }
   labelloc="t"
-  label="_Constructor_SiftFun_0_2"
+  label="_Constructor_SiftFun_0_2_dyn"
 }

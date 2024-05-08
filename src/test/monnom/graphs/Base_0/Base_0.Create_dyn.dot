@@ -9,5 +9,5 @@ digraph {
     b0_ret;
   }
   labelloc="t"
-  label="Base_0.Create"
+  label="Base_0.Create_dyn"
 }

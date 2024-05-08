@@ -9,5 +9,5 @@ digraph {
     b0_ret;
   }
   labelloc="t"
-  label="SimpleTest_0.Func2"
+  label="SimpleTest_0.Func2_dyn"
 }

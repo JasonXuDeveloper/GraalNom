@@ -24,5 +24,5 @@ digraph {
     b2_l0;
   }
   labelloc="t"
-  label="SieveTest_0.Sift"
+  label="SieveTest_0.Sift_dyn"
 }
