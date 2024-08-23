@@ -1,0 +1,27 @@
+class FibonacciTest
+{
+	public static fun Main() : Void
+	{
+		Int n = 10;
+		Int c = 0;
+		Int r = 0;
+		while(c < n)
+		{
+            r = Fib(c);
+            r.ToString().Print();
+            c = c + 1;
+		}
+	}
+
+	public static fun Fib(Int n) : Int{
+	    if(n<=1)
+	    {
+	        return n;
+        }
+	    else
+	    {
+	        return Fib(n-1) + Fib(n-2);
+        }
+	}
+
+}

@@ -1,0 +1,74 @@
+class OopTest{
+
+    public static fun Main() : Void
+    {
+
+                  People people = new People("Elio",18);
+                  people.GetName().Print();
+                  people.GetAge().ToString().Print();
+#                  ArrayList<String> courses = new ArrayList<String>();
+#                  courses.Add("a");
+#                  courses.Add("b");
+#                  courses.Add("c");
+
+
+#                  Student student = new Student("Peter",15,courses);
+#                  student.GetName().Print();
+#                  student.GetAge().ToString().Print();
+#                  student.PrintCourses();
+    }
+
+
+       public class People
+       {
+        public String n;
+        public Int a;
+        public dyn b;
+        public constructor(String s, Int i)
+            {
+               n = s;
+               a = i;
+            }
+
+        public fun GetName() : String
+         {
+               return n;
+         }
+        public fun GetAge() :Int
+        {
+               return a;
+        }
+
+        public fun SetName(String s) : Void
+        {
+              n = s;
+        }
+        public fun SetAge(Int i) : Void
+        {
+               a = i;
+        }
+       }
+
+       public class Student extends People{
+               public ArrayList<String> courses;
+
+                  public constructor(String name, Int age, ArrayList<String> a)
+                  {
+                      courses = a;
+                      super(name, age);
+                  }
+
+                  public fun PrintCourses(): Void
+                  {
+                       foreach(dyn course in courses){
+                            course.Print();
+                       }
+
+                  }
+
+       }
+
+
+ }
+
+

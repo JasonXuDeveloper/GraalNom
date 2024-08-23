@@ -1,0 +1,29 @@
+class DecimalTest{
+    # detect floating point precision
+    # miss float max min
+    # miss e (scientific notation)
+    public static fun Main(): Void{
+           Float float_max = 3.4028235 * Math.Sin(38.0);
+           Float float_min = 1.4 * Math.Sin(10.0);
+           add1(float_max).ToString().Print();
+           subtract0(float_min).ToString().Print();
+#           larger(float_max, 1).ToString().Print();
+#           smaller(float_min, 0).ToString().Print();
+    }
+
+    public static fun add1(Float num): Float{
+        return num + 1.0;
+    }
+
+    public static fun subtract0(Float num): Float{
+        return num - 0.0;
+    }
+
+#    public static fun larger(Float a, Float b): Float{
+#        return Math.Instance.FMax(a, b);
+#    }
+#
+#    public static fun smaller(Float a, Float b): Float{
+#        return Math.Instance.FMin(a, b);
+#    }
+ }
