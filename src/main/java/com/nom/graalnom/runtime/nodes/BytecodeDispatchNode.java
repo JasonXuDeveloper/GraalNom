@@ -16,6 +16,7 @@ import com.nom.graalnom.runtime.opcodes.unOp.*;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.HostCompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.nodes.BytecodeOSRNode;
@@ -92,7 +93,6 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
         }
     }
 
-    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.MERGE_EXPLODE)
     Object executeFromBCI(VirtualFrame frame, int bci) {
         while (true) {
             if (bci >= bytecode.length) {

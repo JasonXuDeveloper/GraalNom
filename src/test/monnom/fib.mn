@@ -1,0 +1,16 @@
+class FibTest{
+    public static fun Main(): Int{
+        Int n = 90;
+        Int a = 1;
+        Int b = 1;
+        Timer t = new Timer();
+        while (n > 0){
+            Int c = a + b;
+            a = b;
+            b = c;
+            n = n - 1;
+        }
+        t.PrintDifference();
+        return a;
+    }
+}

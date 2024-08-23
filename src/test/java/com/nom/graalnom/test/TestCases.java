@@ -155,6 +155,11 @@ public class TestCases {
         Value ret = RunTest();
     }
 
+    @MonNomTest(filename = "fib")
+    public void FibTest() {
+        Value ret = RunTest();
+    }
+
     @MonNomTest(filename = "dyn")
     public void DynTest() {
         Value ret = RunTest();
