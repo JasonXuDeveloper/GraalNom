@@ -14,6 +14,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.strings.TruffleString;
 
 import java.util.Map;
 
@@ -32,7 +33,7 @@ public class NomObject {
         return (int) Id;
     }
 
-    public final Map<String, NomFunction> methodTable;
+    public final Map<TruffleString, NomFunction> methodTable;
 
     public NomObject(NomClass cls) {
         this.cls = cls;
@@ -40,7 +41,7 @@ public class NomObject {
         this.methodTable = NomContext.functionsObject.get(cls);
         if(this.methodTable != null){
             for (NomFunction func : this.methodTable.values()) {
-                if(func.getName().endsWith(".")){
+                if(func.getName().toString().endsWith(".")){
                     this.thisFunction = func;
                     return;
                 }
@@ -52,7 +53,7 @@ public class NomObject {
         return cls;
     }
 
-    public NomFunction GetFunction(String name) {
+    public NomFunction GetFunction(TruffleString name) {
         if (methodTable == null) {
             return null;
         }
@@ -61,9 +62,9 @@ public class NomObject {
 
     public NomFunction thisFunction;
 
-    public final Map<String, Object> objectMap = new java.util.HashMap<>();
+    public final Map<TruffleString, Object> objectMap = new java.util.HashMap<>();
 
-    public Object readMember(String name)
+    public Object readMember(TruffleString name)
             throws UnknownIdentifierException {
         Object result = objectMap.get(name);
         if (result == null) {
@@ -71,13 +72,13 @@ public class NomObject {
             if (f != null) {
                 NomClassTypeConstant type = f.GetTypeConstant();
                 NomClassConstant typeCls = type.GetClass();
-                if (typeCls.GetName().equals("Int_0")) {
+                if (typeCls.GetName().equals(TruffleString.fromConstant("Int_0", TruffleString.Encoding.UTF_8))) {
                     objectMap.put(name, 0L);
                     return 0L;
-                } else if (typeCls.GetName().equals("Float_0")) {
+                } else if (typeCls.GetName().equals(TruffleString.fromConstant("Float_0", TruffleString.Encoding.UTF_8))) {
                     objectMap.put(name, 0.0);
                     return 0.0;
-                } else if (typeCls.GetName().equals("Bool_0")) {
+                } else if (typeCls.GetName().equals(TruffleString.fromConstant("Bool_0", TruffleString.Encoding.UTF_8))) {
                     objectMap.put(name, false);
                     return false;
                 } else {
@@ -86,13 +87,13 @@ public class NomObject {
                 }
             }
             /* Property does not exist. */
-            throw UnknownIdentifierException.create(name);
+            throw UnknownIdentifierException.create(name.toString());
         }
 //        System.out.println("readMember: " + name + " = " + result);
         return result;
     }
 
-    public void writeMember(String name, Object value) {
+    public void writeMember(TruffleString name, Object value) {
         objectMap.put(name, value);
     }
 

@@ -36,45 +36,6 @@ public class TestUtil {
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void ExportClassMethodsDotGraphs(NomInterface cls, String directory) {
-        if (!(cls instanceof NomClass)) return;
-        directory = Paths.get(directory, cls.GetName()).toString();
-        //create directory if not exists
-        File dir = new File(directory);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        System.out.println();
-        System.out.println(cls.GetName() + " Class methods control flow graphs:");
-        Map<String, NomFunction> map = NomContext.functionsObject.get(cls);
-        Map<Integer, NomFunction> ctor = NomContext.ctorFunctions.get(cls.GetName());
-        List<NomFunction> funcs = new ArrayList<>(List.copyOf(map.values()));
-        if (ctor != null) {
-            funcs.addAll(ctor.values());
-        }
-        for (var method : funcs) {
-            if (method == null) continue;
-            String dot = ((NomRootNode) method.getCallTarget().getRootNode()).toDotGraph();
-            String dotOutputPath = Paths.get(directory, method.getName() + ".dot").toString();
-            try {
-                Files.writeString(Paths.get(dotOutputPath), dot);
-                System.out.println("Exported " + method.getName() + " to " + dotOutputPath);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            String outputPath = Paths.get(directory, method.getName() + ".svg").toString();
-            //dot -Tsvg > $outputPath
-            String shellScript = "dot -Tsvg " + dotOutputPath + " > " + outputPath;
-            try {
-                ExecuteShell("sh", "-c", shellScript);
-                System.out.println("Exported " + method.getName() + " to " + outputPath);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
     public static void Compile(String nomProjPath) throws Exception {
         //call shell
         ExecuteShell("sh", "compiler.sh", "-p " + nomProjPath, "--project Test");

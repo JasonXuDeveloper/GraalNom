@@ -4,45 +4,44 @@ import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.NomTypeListConstant;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
+import com.nom.graalnom.runtime.nodes.BytecodeDispatchNode;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
-import com.nom.graalnom.runtime.nodes.NomStatementNode;
-import com.nom.graalnom.runtime.nodes.controlflow.NomBasicBlockNode;
-import com.nom.graalnom.runtime.nodes.controlflow.NomEndOfBasicBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
-import com.nom.graalnom.runtime.nodes.expression.NomCastNode;
-import com.nom.graalnom.runtime.nodes.expression.unary.NomCastNodeGen;
-import com.nom.graalnom.runtime.nodes.local.NomReadArgumentNode;
+import com.nom.graalnom.runtime.opcodes.TransformedOpCode;
+import com.nom.graalnom.runtime.opcodes.common.CastOpCode;
+import com.nom.graalnom.runtime.opcodes.control.*;
 import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.strings.TruffleString;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class NomCallable {
     protected boolean declOnly;
-    protected String name;
-    protected String qName;
+    protected TruffleString name;
+    protected TruffleString qName;
     protected short regCount;
     protected long argTypesId;
     protected long typeArgsId;//type parameters
-    private final List<NomBasicBlockNode> basicBlocks;
+    private final List<TransformedOpCode[]> bytecodes = new ArrayList<>();
     private NomFunction function;
     private NomFunction dynFunction;
 
-    public NomCallable(String name, String qName, long regCount, long typeArgsId, long argTypesId, boolean declOnly) {
+    public NomCallable(TruffleString name, TruffleString qName, long regCount, long typeArgsId, long argTypesId, boolean declOnly) {
         this.name = name;
         this.qName = qName;
         this.regCount = (short) regCount;
         this.argTypesId = argTypesId;
         this.typeArgsId = typeArgsId;
         this.declOnly = declOnly;
-        this.basicBlocks = new ArrayList<>();
     }
 
-    public String GetName() {
+    public TruffleString GetName() {
         return name;
     }
 
-    public String GetQName() {
+    public TruffleString GetQName() {
         return qName;
     }
 
@@ -62,37 +61,58 @@ public class NomCallable {
         return 0;
     }
 
-    public int GetBasicBlockCount() {
-        return basicBlocks.size();
-    }
+    public void AddBytecode(TransformedOpCode[] bytecode) {
+        for (TransformedOpCode code : bytecode) {
+            if (code instanceof BranchOpCode branchOpCode) {
+                //find the index of the n'th phi bytecode in TransformedOpCode[] bytecode
+                int index = -1;
+                for (int i = 0; i < bytecode.length; i++) {
+                    if (bytecode[i] instanceof PhiOpCode) {
+                        index++;
+                        if (index == branchOpCode.getTarget()) {
+                            branchOpCode.setTarget(i);
+                            break;
+                        }
+                    }
+                }
 
-    private final List<NomStatementNode> statementNodes = new ArrayList<>();
+            } else if (code instanceof CondBranchOpCode condBranchOpCode) {
+                int index = -1;
+                for (int i = 0; i < bytecode.length; i++) {
+                    if (bytecode[i] instanceof PhiOpCode) {
+                        index++;
+                        if (index == condBranchOpCode.getTrueTarget()) {
+                            condBranchOpCode.setTrueTarget(i);
+                            break;
+                        }
+                    }
+                }
 
-    public void AddInstruction(NomStatementNode stmt) {
-        if (stmt == null)
-            return;
-        statementNodes.add(stmt);
-        if (stmt instanceof NomEndOfBasicBlockNode) {
-            AddBasicBlock(statementNodes.toArray(new NomStatementNode[0]));
-            statementNodes.clear();
+                index = -1;
+                for (int i = 0; i < bytecode.length; i++) {
+                    if (bytecode[i] instanceof PhiOpCode) {
+                        index++;
+                        if (index == condBranchOpCode.getFalseTarget()) {
+                            condBranchOpCode.setFalseTarget(i);
+                            break;
+                        }
+                    }
+                }
+            }
         }
+        bytecodes.add(bytecode);
     }
-
-    private void AddBasicBlock(NomStatementNode... stmts) {
-        if (stmts.length == 0)
-            return;
-        if (!(stmts[stmts.length - 1] instanceof NomEndOfBasicBlockNode)) {
-            throw new IllegalArgumentException("Last statement in a basic block must be an end of block node");
-        }
-        basicBlocks.add(new NomBasicBlockNode(stmts, "blk" + basicBlocks.size()));
-    }
-
-    private final static FrameDescriptor f = new FrameDescriptor();
 
     public NomFunction GetFunction(NomLanguage language) {
         if (function == null) {
-            NomFunctionBodyNode body = new NomFunctionBodyNode(basicBlocks.toArray(new NomBasicBlockNode[0]), regCount);
-            NomRootNode root = new NomRootNode(language, f, body, qName, GetArgCount());
+            BytecodeDispatchNode[] bytecodeNodes = new BytecodeDispatchNode[this.bytecodes.size()];
+            for (int i = 0; i < this.bytecodes.size(); i++) {
+                bytecodeNodes[i] = new BytecodeDispatchNode(this.bytecodes.get(i), GetArgCount());
+            }
+            NomFunctionBodyNode body = new NomFunctionBodyNode(bytecodeNodes, regCount);
+            FrameDescriptor.Builder builder = FrameDescriptor.newBuilder();
+            builder.addSlots(regCount, FrameSlotKind.Illegal);
+            NomRootNode root = new NomRootNode(language, builder.build(), body, qName, GetArgCount());
             function = new NomFunction(qName, root, root.getCallTarget(), regCount);
         }
 
@@ -107,21 +127,26 @@ public class NomCallable {
                 return dynFunction;
             }
 
-            NomBasicBlockNode firstBlock = basicBlocks.getFirst();
-            NomStatementNode[] newNodes = new NomStatementNode[firstBlock.bodyNodes.length + typeListConstant.types.size()];
+            List<TransformedOpCode> castOpCodes = new ArrayList<>();
             List<Long> types = typeListConstant.types;
             for (int j = 0; j < types.size(); j++) {
                 long i = types.get(j);
                 int typeId = (int) i;
-                newNodes[j] = new NomCastNode(new NomReadArgumentNode(1 + j), typeId);
+                castOpCodes.add(new CastOpCode(1 + j, 1 + j, typeId));
             }
-            //copy the rest of the nodes
-            System.arraycopy(firstBlock.bodyNodes, 0, newNodes, types.size(), firstBlock.bodyNodes.length);
-            basicBlocks.set(0, new NomBasicBlockNode(newNodes, firstBlock.blockName));
 
-            NomFunctionBodyNode body = new NomFunctionBodyNode(basicBlocks.toArray(new NomBasicBlockNode[0]), regCount);
-            NomRootNode root = new NomRootNode(language, f, body, qName + "_dyn", GetArgCount());
-            dynFunction = new NomFunction(qName + "_dyn", root, root.getCallTarget(), regCount);
+            BytecodeDispatchNode[] bytecodeNodes = new BytecodeDispatchNode[this.bytecodes.size() + 1];
+            bytecodeNodes[0] = new BytecodeDispatchNode(castOpCodes.toArray(new TransformedOpCode[0]), GetArgCount());
+            for (int i = 0; i < this.bytecodes.size(); i++) {
+                bytecodeNodes[i + 1] = new BytecodeDispatchNode(this.bytecodes.get(i), GetArgCount());
+            }
+
+            NomFunctionBodyNode body = new NomFunctionBodyNode(bytecodeNodes, regCount);
+            TruffleString dynName = TruffleString.fromJavaStringUncached(qName.toString() + "_dyn", TruffleString.Encoding.UTF_8);
+            FrameDescriptor.Builder builder = FrameDescriptor.newBuilder();
+            builder.addSlots(regCount, FrameSlotKind.Illegal);
+            NomRootNode root = new NomRootNode(language, builder.build(), body, dynName, GetArgCount());
+            dynFunction = new NomFunction(dynName, root, root.getCallTarget(), regCount);
         }
 
         return dynFunction;

@@ -1,15 +1,17 @@
 package com.nom.graalnom.runtime.constants;
 
 
-public class NomStringConstant extends NomConstant{
-    public String Text;
+import com.oracle.truffle.api.strings.TruffleString;
 
-    public NomStringConstant(String text) {
+public class NomStringConstant extends NomConstant{
+    public TruffleString Text;
+
+    public NomStringConstant(TruffleString text) {
         super(NomConstantType.CTString);
         this.Text = text;
     }
 
-    public String Value() {
+    public TruffleString Value() {
         return Text;
     }
 
@@ -20,6 +22,6 @@ public class NomStringConstant extends NomConstant{
 
     @Override
     public String toString() {
-        return Text;
+        return Text.toString();
     }
 }

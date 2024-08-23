@@ -3,6 +3,7 @@ package com.nom.graalnom.runtime.constants;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class NomStaticMethodConstant extends NomMethodConstant {
     public NomStaticMethodConstant(long cls, long methodname, long typeArgs, long argTypes) {
@@ -11,8 +12,8 @@ public class NomStaticMethodConstant extends NomMethodConstant {
     }
 
     @Override
-    public String QualifiedMethodName() {
-        return Class().GetName() + "." + NomContext.constants.GetString(methodName).Value();
+    public TruffleString QualifiedMethodName() {
+        return TruffleString.fromJavaStringUncached(Class().GetName() + "." + NomContext.constants.GetString(methodName).Value(), TruffleString.Encoding.UTF_8);
     }
 
     @Override

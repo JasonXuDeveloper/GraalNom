@@ -56,6 +56,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import com.oracle.truffle.api.utilities.TriState;
 
@@ -76,7 +77,7 @@ public final class NomFunction {
     /**
      * The name of the function.
      */
-    private final String name;
+    private final TruffleString name;
 
     /**
      * The current implementation of this function.
@@ -88,14 +89,14 @@ public final class NomFunction {
     public int regCount;
 
 
-    public NomFunction(String name, NomRootNode rootNode, RootCallTarget callTarget, int regCount) {
+    public NomFunction(TruffleString name, NomRootNode rootNode, RootCallTarget callTarget, int regCount) {
         this.name = name;
         this.regCount = regCount;
         this.rootNode = rootNode;
         setCallTarget(callTarget);
     }
 
-    public String getName() {
+    public TruffleString getName() {
         return name;
     }
 
@@ -119,6 +120,6 @@ public final class NomFunction {
      */
     @Override
     public String toString() {
-        return name;
+        return name.toString();
     }
 }

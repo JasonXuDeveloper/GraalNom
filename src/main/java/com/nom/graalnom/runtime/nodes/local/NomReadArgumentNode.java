@@ -64,7 +64,7 @@ public class NomReadArgumentNode extends NomExpressionNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        return NomFunctionBodyNode.getArgs()[index];
+        return frame.getArguments()[index];
     }
 
     @Override

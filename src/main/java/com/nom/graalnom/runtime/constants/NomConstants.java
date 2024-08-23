@@ -1,6 +1,7 @@
 package com.nom.graalnom.runtime.constants;
 
 import com.nom.graalnom.runtime.reflections.NomInterface;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
 import java.util.Collections;
@@ -36,7 +37,7 @@ public class NomConstants {
         return constants.size() - 1;
     }
 
-    private final NomStringConstant emptyString = new NomStringConstant("");
+    private final NomStringConstant emptyString = new NomStringConstant(TruffleString.fromConstant("", TruffleString.Encoding.UTF_8));
 
     public NomStringConstant GetString(long constant) {
         if(constant == 0){
@@ -117,7 +118,7 @@ public class NomConstants {
         if (cid == 0) {
             cid = GetConstantId();
         }
-        constants.set((int) cid, new NomStringConstant(string));
+        constants.set((int) cid, new NomStringConstant(TruffleString.fromConstant(string, TruffleString.Encoding.UTF_8)));
         return cid;
     }
 

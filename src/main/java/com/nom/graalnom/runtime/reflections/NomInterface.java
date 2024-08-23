@@ -3,6 +3,7 @@ package com.nom.graalnom.runtime.reflections;
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.*;
+import com.oracle.truffle.api.strings.TruffleString;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,12 +23,12 @@ public class NomInterface extends NomNamed {
         this.AllMethods = new java.util.ArrayList<>();
     }
 
-    public static void RegisterClass(String name, NomInterface cls) {
+    public static void RegisterClass(TruffleString name, NomInterface cls) {
         NomContext.classes.put(name, cls);
     }
 
 
-    public NomMethod AddMethod(String name, String qname, long typeArgs, long returnType, long argTypes, int regCount, boolean isFinal) {
+    public NomMethod AddMethod(TruffleString name, TruffleString qname, long typeArgs, long returnType, long argTypes, int regCount, boolean isFinal) {
         NomMethod method = new NomMethod(name, this, qname, returnType, typeArgs, argTypes, regCount, false, isFinal);
         Methods.add(method);
         return method;
@@ -43,7 +44,7 @@ public class NomInterface extends NomNamed {
         sc.entries.forEach(pair -> {
             // (classNameId, typeListId)
             long classNameId = pair.getLeft();
-            String className = NomContext.constants.GetInterface((int) classNameId).GetName();
+            TruffleString className = NomContext.constants.GetInterface((int) classNameId).GetName();
             NomInterface inter = NomContext.classes.get(className);
             if (inter != null) {
                 if (!inter.registered) {

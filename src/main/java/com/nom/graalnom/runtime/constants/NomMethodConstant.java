@@ -3,6 +3,7 @@ package com.nom.graalnom.runtime.constants;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class NomMethodConstant extends NomConstant {
     public final long classConstant;
@@ -19,19 +20,18 @@ public class NomMethodConstant extends NomConstant {
         this.argTypes = argTypes;
     }
 
-    public String MethodName() {
+    public TruffleString MethodName() {
         return NomContext.constants.GetString(methodName).Value();
     }
 
-    public String QualifiedMethodName() {
-        String name;
-        if(ClassTypeConstant().GetClass() != null){
+    public TruffleString QualifiedMethodName() {
+        TruffleString name;
+        if (ClassTypeConstant().GetClass() != null) {
             name = ClassTypeConstant().GetClass().GetName();
-        }
-        else{
+        } else {
             name = ClassTypeConstant().GetInterface().GetName();
         }
-        return name + "." + NomContext.constants.GetString(methodName).Value();
+        return TruffleString.fromJavaStringUncached(name.toString() + "." + NomContext.constants.GetString(methodName).Value().toString(), TruffleString.Encoding.UTF_8);
     }
 
     public NomInterface Class() {
@@ -39,7 +39,7 @@ public class NomMethodConstant extends NomConstant {
         if (clsConst == null) {
             return null;
         }
-        if(clsConst.GetClass() == null){
+        if (clsConst.GetClass() == null) {
             return NomContext.classes.get(clsConst.GetInterface().GetName());
         }
         return NomContext.classes.get(clsConst.GetClass().GetName());
@@ -51,7 +51,7 @@ public class NomMethodConstant extends NomConstant {
 
     @Override
     public String toString() {
-        return QualifiedMethodName();
+        return QualifiedMethodName().toString();
     }
 
     /*

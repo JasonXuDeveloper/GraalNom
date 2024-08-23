@@ -1,6 +1,7 @@
 package com.nom.graalnom.runtime.reflections;
 
 import com.nom.graalnom.runtime.NomContext;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public abstract class NomNamed {
     protected final long name;
@@ -9,7 +10,7 @@ public abstract class NomNamed {
         this.name = name;
     }
 
-    public String GetName(){
+    public TruffleString GetName(){
         return NomContext.constants.GetString(name).Value();
     }
 }

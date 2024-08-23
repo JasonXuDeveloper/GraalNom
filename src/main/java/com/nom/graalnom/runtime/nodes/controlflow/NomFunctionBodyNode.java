@@ -44,10 +44,7 @@ import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
 import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.nodes.*;
 import com.nom.graalnom.runtime.datatypes.NomNull;
-import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
-import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -72,122 +69,34 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
      * The body of the function.
      */
     @Node.Children
-    public NomBasicBlockNode[] bodyNodes;
+    public BytecodeDispatchNode[] bodyNodes;
 
     public int regCount;
 
-    public NomFunctionBodyNode(NomBasicBlockNode[] bodyNodes, int regCount) {
+    public NomFunctionBodyNode(BytecodeDispatchNode[] bodyNodes, int regCount) {
         this.bodyNodes = bodyNodes;
         this.regCount = regCount;
-        for (NomBasicBlockNode bodyNode : bodyNodes) {
-            bodyNode.mergeEndOfBlock();
-            bodyNode.optimiseFCP();
-            bodyNode.optimiseTail();
-        }
     }
 
-    public static int depth = -1;
-    public static Object[][] argsMap = new Object[256][];
-    public static Object[][] regsMap = new Object[256][];
-
-    public static Object[] getArgs() {
-        return argsMap[depth];
-    }
-
-    public static Object[] getRegs() {
-        return regsMap[depth];
-    }
-
-    public static void enterScope(int regSize, Object[] args) {
-        depth++;
-        if (regsMap.length <= depth) {
-            Object[][] newRegsMap = new Object[depth * 2][];
-            System.arraycopy(regsMap, 0, newRegsMap, 0, depth);
-            regsMap = newRegsMap;
-        }
-        if (regsMap[depth] == null || regsMap[depth].length <= regSize) {
-            Object[] newRegs = new Object[regSize * 2];
-            regsMap[depth] = newRegs;
-        }
-        if (argsMap.length <= depth) {
-            Object[][] newArgsMap = new Object[depth * 2][];
-            System.arraycopy(argsMap, 0, newArgsMap, 0, depth);
-            argsMap = newArgsMap;
-        }
-        argsMap[depth] = args;
-    }
-
-    public record TailResult(NomFunctionBodyNode functionBodyNode, Object[] args) {
-
-    }
-
-    public static void leaveScope() {
-        depth--;
-    }
 
     @Override
     @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     public Object executeGeneric(VirtualFrame frame) {
-        int curIndex = 0;
-        /* Execute the function body. */
-        while (true) {
-            NomBasicBlockNode block = bodyNodes[curIndex];
-            if (block.bodyNodeCount() > 1)
-                block.executeVoid(frame);
-            NomEndOfBasicBlockNode stmt = block.getTerminatingNode();
-            switch (stmt) {
-                case NomBranchNode br -> {
-                    for (NomStatementNode mapStmt : br.mappings) {
-                        mapStmt.executeVoid(frame);
-                    }
-                    curIndex = br.getSuccessor();
-                }
-                case NomIfNode condBr -> {
-                    if (condBr.cond(frame)) {
-                        for (NomStatementNode mapStmt : condBr.trueBranch.mappings) {
-                            mapStmt.executeVoid(frame);
-                        }
-                        curIndex = condBr.getTrueSuccessor();
-                    } else {
-                        for (NomStatementNode mapStmt : condBr.falseBranch.mappings) {
-                            mapStmt.executeVoid(frame);
-                        }
-                        curIndex = condBr.getFalseSuccessor();
-                    }
-                }
-                case NomReturnNode ret -> {
-                    if (ret.valueNode == null) return 0;
-                    //noinspection rawtypes
-                    if (ret.valueNode instanceof NomInvokeNode invokeNode) {
-                        NomFunction func;
-                        Object[] args = invokeNode.getArgumentValues(frame);
-                        func = invokeNode.getFunction(args);
-                        NomExpressionNode body = func.rootNode.getBodyNode();
-
-                        if (body instanceof NomBuiltinNode builtinNode) {
-                            enterScope(0, args);
-                            Object val = builtinNode.executeGeneric(frame);
-                            leaveScope();
-                            return val;
-                        }
-
-//                        System.out.println("tail call: " + func.getName());
-                        //begin tail call
-                        NomFunctionBodyNode functionBodyNode = (NomFunctionBodyNode) body;
-                        return new TailResult(functionBodyNode, args);
-                    }
-                    return ret.valueNode.executeGeneric(frame);
-                }
-                case null, default -> throw new RuntimeException("Invalid terminating node");
-            }
+        Object result;
+        for (BytecodeDispatchNode node : bodyNodes) {
+            result = node.execute(frame);
+            if (result != null)
+                return result;
         }
+
+        return 0;
     }
 
     @Override
     public String toString() {
         StringBuilder ret = new StringBuilder();
-        for (NomBasicBlockNode node : bodyNodes) {
-            ret.append("\n\t").append(node.toString()).append("\n");
+        for (BytecodeDispatchNode node : bodyNodes) {
+            ret.append(node.toString()).append("\n");
         }
         return ret.toString();
     }

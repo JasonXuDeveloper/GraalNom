@@ -58,11 +58,6 @@ public class TestCases {
 
     @AfterAll
     public static void TearDown() throws Exception {
-        SetUp();
-        for (NomInterface cls : NomContext.classes.values()) {
-            TestUtil.ExportClassMethodsDotGraphs(cls,
-                    Paths.get(testPath, "graphs").toString());
-        }
         context.close();
     }
 

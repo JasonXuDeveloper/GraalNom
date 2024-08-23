@@ -46,7 +46,7 @@ public class NomTypedField extends NomField {
 
     @Override
     public String GetName() {
-        return NomContext.constants.GetString(Name).Value();
+        return NomContext.constants.GetString(Name).Value().toString();
     }
 
     @Override

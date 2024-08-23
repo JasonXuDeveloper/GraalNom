@@ -12,6 +12,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
 import java.io.BufferedReader;
@@ -24,11 +25,11 @@ import java.util.Map;
 public class NomContext {
     public static NomConstants constants = new NomConstants();
 
-    public static final Map<String, NomInterface> classes = new java.util.HashMap<>();
+    public static final Map<TruffleString, NomInterface> classes = new java.util.HashMap<>();
 
-    public static final Map<NomInterface, Map<String, NomFunction>> functionsObject = new HashMap<>();
-    public static final Map<String, Map<Integer, NomFunction>> ctorFunctions = new HashMap<>();
-    public static final Map<String, NomFunction> builtinFunctions = new HashMap<>();
+    public static final Map<NomInterface, Map<TruffleString, NomFunction>> functionsObject = new HashMap<>();
+    public static final Map<TruffleString, Map<Integer, NomFunction>> ctorFunctions = new HashMap<>();
+    public static final Map<TruffleString, NomFunction> builtinFunctions = new HashMap<>();
 
     public static void clear() {
         classes.clear();
@@ -65,7 +66,7 @@ public class NomContext {
     public void installBuiltin(NodeFactory<? extends NomBuiltinNode> factory) {
         /* Register the builtin function in our function registry. */
         RootCallTarget target = language.lookupBuiltin(factory);
-        NomFunction function = new NomFunction(target.getRootNode().getName(), (NomRootNode) target.getRootNode(), target,0);
+        NomFunction function = new NomFunction(TruffleString.fromJavaStringUncached(target.getRootNode().getName(), TruffleString.Encoding.UTF_8), (NomRootNode) target.getRootNode(), target,0);
         builtinFunctions.put(function.getName(), function);
     }
 
@@ -77,26 +78,18 @@ public class NomContext {
     }
 
 
-    /**
-     * Returns the default input, i.e., the source for the {@link SLReadlnBuiltin}. To allow unit
-     * testing, we do not use {@link System#in} directly.
-     */
     public BufferedReader getInput() {
         return input;
     }
 
-    /**
-     * The default default, i.e., the output for the {@link SLPrintlnBuiltin}. To allow unit
-     * testing, we do not use {@link System#out} directly.
-     */
     public PrintWriter getOutput() {
         return output;
     }
 
     public static NomFunction getMethod(NomMethodConstant method) {
-        String methName = method.MethodName();
+        TruffleString methName = method.MethodName();
         if (method.Class() != null && NomContext.functionsObject.containsKey(method.Class())) {
-            Map<String, NomFunction> clsFunctions = NomContext.functionsObject.get(method.Class());
+            Map<TruffleString, NomFunction> clsFunctions = NomContext.functionsObject.get(method.Class());
             if (clsFunctions.containsKey(methName)) {
                 return clsFunctions.get(methName);
             }

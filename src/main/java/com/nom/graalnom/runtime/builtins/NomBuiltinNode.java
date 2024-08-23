@@ -9,6 +9,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
+import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeChild(value = "arguments", type = NomExpressionNode[].class)
 @GenerateNodeFactory
@@ -45,6 +46,9 @@ public abstract class NomBuiltinNode extends NomExpressionNode {
 
     @Specialization
     protected Object doNomObject(NomObject obj) {
-        return obj.GetFunction(NomLanguage.lookupNodeInfo(this.getClass()).shortName()).getCallTarget().call(obj);
+        return obj.GetFunction(
+                TruffleString.fromJavaStringUncached(
+                        NomLanguage.lookupNodeInfo(this.getClass()).shortName(),
+                        TruffleString.Encoding.UTF_8)).getCallTarget().call(obj);
     }
 }
