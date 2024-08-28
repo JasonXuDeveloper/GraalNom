@@ -6,8 +6,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import java.lang.management.ManagementFactory;
-
 @NodeInfo(shortName = "PrintDifference")
 public abstract class NomPrintDifferenceBuiltin extends NomBuiltinNode {
 
@@ -15,10 +13,8 @@ public abstract class NomPrintDifferenceBuiltin extends NomBuiltinNode {
     @Override
     protected Object doNomObject(NomObject obj) {
         if (!(obj instanceof NomTimer t)) return super.doNomObject(obj);
-        long cur = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
+        long cur = System.currentTimeMillis();
         long diff = cur - t.curMs;
-        //nano to milli
-        diff /= 1000000;
         System.out.println("Time difference: " + diff + "ms");
         return 0;
     }

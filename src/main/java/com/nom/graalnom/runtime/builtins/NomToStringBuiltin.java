@@ -27,9 +27,4 @@ public abstract class NomToStringBuiltin extends NomBuiltinNode {
     protected Object doDefault(TruffleString str) {
         return str;
     }
-
-    @Specialization
-    protected Object doDefault(Object obj) {
-        return TruffleString.fromJavaStringUncached(obj.toString(), TruffleString.Encoding.UTF_8);
-    }
 }

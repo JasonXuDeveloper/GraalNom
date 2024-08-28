@@ -25,17 +25,14 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.json.JSONObject;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
-import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,7 +57,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
     }
 
     public static NomTimer createTimer() {
-        return new NomTimer(ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime());
+        return new NomTimer(System.currentTimeMillis());
     }
 
     @Override
@@ -148,10 +145,10 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
                     throw e;
                 }
             }
-        }
 
-        for (NomInterface nomInterface : NomContext.classes.values()) {
-            nomInterface.Register(this);
+            for (NomInterface nomInterface : NomContext.classes.values()) {
+                nomInterface.Register(this);
+            }
         }
 
         if (!invokeMain) {
