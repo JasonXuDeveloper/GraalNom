@@ -12,7 +12,7 @@ public final class NomMain {
         Context context = Context.newBuilder(NomLanguage.ID)
                 .allowExperimentalOptions(true)
                 .allowAllAccess(true)
-                .option("engine.BackgroundCompilation","false")
+                .option("engine.TraceCompilation","true")
                 .out(System.out).build();
         System.out.println("== running on " + context);
         String manifest = args[0];
