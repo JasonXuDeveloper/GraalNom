@@ -10,8 +10,11 @@ public final class NomMain {
     public static void main(String[] args) throws IOException {
         System.out.println("== running on " + System.getProperty("java.version"));
         Context context = Context.newBuilder(NomLanguage.ID)
-                .in(System.in).out(System.out).allowAllAccess(true).build();
-        System.out.println("== running on " + context.getEngine());
+                .allowExperimentalOptions(true)
+                .allowAllAccess(true)
+                .option("engine.BackgroundCompilation","false")
+                .out(System.out).build();
+        System.out.println("== running on " + context);
         String manifest = args[0];
         String mainClass = args[1];
         int testCount = args.length > 2 ? Integer.parseInt(args[2]) : 5;
