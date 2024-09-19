@@ -22,7 +22,6 @@
 <nomclass qname="C_0" file="C_0.mnil"/>
 <nomclass qname="D_0" file="D_0.mnil"/>
 <nomclass qname="DynTest_0" file="DynTest_0.mnil"/>
-<nomclass qname="FibonacciTest_0" file="FibonacciTest_0.mnil"/>
 </classes>
 <interfaces>
 <nominterface qname="IInterface_0" file="IInterface_0.mnil"/>

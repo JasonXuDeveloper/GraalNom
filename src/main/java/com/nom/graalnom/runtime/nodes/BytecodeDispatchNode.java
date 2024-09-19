@@ -19,40 +19,20 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.HostCompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.nodes.BytecodeOSRNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
 
 
-public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
+public class BytecodeDispatchNode extends Node {
     @CompilerDirectives.CompilationFinal
     TransformedOpCode[] bytecode;
-    @CompilerDirectives.CompilationFinal
-    private Object osrMetadata;
-
     @CompilerDirectives.CompilationFinal
     private int argCount;
 
     public BytecodeDispatchNode(TransformedOpCode[] bytecode, int argCount) {
         this.bytecode = bytecode;
         this.argCount = argCount;
-    }
-
-    public Object execute(VirtualFrame frame) {
-        return executeFromBCI(frame, 0);
-    }
-
-    public Object executeOSR(VirtualFrame osrFrame, int target, Object interpreterState) {
-        return executeFromBCI(osrFrame, target);
-    }
-
-    public Object getOSRMetadata() {
-        return osrMetadata;
-    }
-
-    public void setOSRMetadata(Object osrMetadata) {
-        this.osrMetadata = osrMetadata;
     }
 
     private Object getFromFrame(VirtualFrame frame, int regIndex) {
@@ -93,11 +73,11 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
         }
     }
 
-    Object executeFromBCI(VirtualFrame frame, int bci) {
-        while (true) {
-            if (bci >= bytecode.length) {
-                return null;
-            }
+    @HostCompilerDirectives.BytecodeInterpreterSwitch
+    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.MERGE_EXPLODE)
+    public Object execute(VirtualFrame frame) {
+        int bci = 0;
+        while (bci < bytecode.length) {
             int nextBCI = bci + 1;
             label:
             switch (bytecode[bci]) {
@@ -124,34 +104,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                     for (int i = 0; i < argIdxs.length; i++) {
                         args[i + 1] = getFromFrame(frame, argIdxs[i]);
                     }
-                    NomMethodConstant method = NomContext.constants.GetMethod(invokeInstanceMethod.getNameId());
-                    NomFunction function = NomContext.getMethod(method);
-                    if_branch:
-                    if (function == null) {
-                        if (instance instanceof NomObject obj) {
-                            if (method.MethodName().toString().endsWith(".")) {
-                                function = obj.thisFunction;
-                                break if_branch;
-                            }
-                            function = obj.GetFunction(method.MethodName());
-                            if (function == null && obj.GetClass() != null) {
-                                Object member;
-                                try {
-                                    member = obj.readMember(method.MethodName());
-                                } catch (UnknownIdentifierException e) {
-                                    throw new RuntimeException(e);
-                                }
-                                if (member instanceof NomObject memObj) {
-                                    if (memObj.thisFunction != null) {
-                                        function = memObj.thisFunction;
-                                        args[0] = memObj;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    assert function != null;
-                    Object methRet = function.getCallTarget().call(args);
+                    Object methRet = invokeInstanceMethod(invokeInstanceMethod, instance, args);
                     writeToFrame(frame, invokeInstanceMethod.getRegIdx(), methRet);
                 }
                 case InvokeStaticMethodOpCode invokeStaticMethod -> {
@@ -160,11 +113,8 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                     for (int i = 0; i < argIdxs.length; i++) {
                         args[i] = getFromFrame(frame, argIdxs[i]);
                     }
-                    NomMethodConstant method = NomContext.constants.GetStaticMethod(invokeStaticMethod.getNameId());
-                    NomFunction function = NomContext.getMethod(method);
-                    assert function != null;
-                    Object methRet = function.getCallTarget().call(args);
-                    writeToFrame(frame, invokeStaticMethod.getRegIdx(), methRet);
+                    Object ret = invokeStaticMethod(invokeStaticMethod, args);
+                    writeToFrame(frame, invokeStaticMethod.getRegIdx(), ret);
                 }
                 case InvokeCtorOpCode invokeCtorOpCode -> {
                     int[] argIdxs = invokeCtorOpCode.getArgIdxs();
@@ -173,11 +123,12 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                     NomObject object;
                     TruffleString name = superClassConstant.GetSuperClass().GetName();
                     if (name.equals(TruffleString.fromConstant("Timer_0", TruffleString.Encoding.UTF_8))) {//TODO avoid hardcode builtin types
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
                         object = NomLanguage.createTimer();
-                        writeToFrame(frame, invokeCtorOpCode.getRegIdx(), object);
                     } else {
                         Object[] args = new Object[argIdxs.length + 1];
                         if (!invokeCtorOpCode.getHasInstance()) {
+                            CompilerDirectives.transferToInterpreterAndInvalidate();
                             object = NomLanguage.createObject((NomClass) NomContext.classes.get(name));
                         } else {
                             object = (NomObject) getFromFrame(frame, 0);
@@ -187,16 +138,13 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                             args[i + 1] = getFromFrame(frame, argIdxs[i]);
                         }
 
-                        NomFunction function = NomContext.ctorFunctions
-                                .get(name).get(args.length);
-
-                        assert function != null;
-
-                        function.getCallTarget().call(args);
-                        writeToFrame(frame, invokeCtorOpCode.getRegIdx(), object);
+                        invokeConstructor(invokeCtorOpCode, args);
                     }
+
+                    writeToFrame(frame, invokeCtorOpCode.getRegIdx(), object);
                 }
                 case CastOpCode castOpCode -> {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
                     int regIdx = castOpCode.getRegIdx();
                     Object value = getFromFrame(frame, castOpCode.getValIdx());
                     NomConstant type = NomContext.constants.Get((int) castOpCode.getTypeId());
@@ -205,7 +153,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         if (ct.GetClass() == null) {
                             NomInterfaceConstant inter = ct.GetInterface();
                             if (inter == null) {
-                                throw new RuntimeException("Constant is wrong");
+                                throw CompilerDirectives.shouldNotReachHere("Constant is wrong");
                             }
                             cName = inter.GetName();
                         } else {
@@ -218,7 +166,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                                     break label;
                                 }
 
-                                throw new RuntimeException("Unsupported cast");
+                                throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
                             }
                             case "Float_0" -> {
                                 if (value instanceof Double) {
@@ -226,7 +174,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                                     break label;
                                 }
 
-                                throw new RuntimeException("Unsupported cast");
+                                throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
                             }
                             case "Bool_0" -> {
                                 if (value instanceof Boolean) {
@@ -234,7 +182,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                                     break label;
                                 }
 
-                                throw new RuntimeException("Unsupported cast");
+                                throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
                             }
                             case "String_0" -> {
                                 if (value instanceof TruffleString) {
@@ -242,7 +190,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                                     break label;
                                 }
 
-                                throw new RuntimeException("Unsupported cast");
+                                throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
                             }
                             case "Null_0" -> {
                                 if (value instanceof NomNull) {
@@ -250,11 +198,11 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                                     break label;
                                 }
 
-                                throw new RuntimeException("Unsupported cast");
+                                throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
                             }
                             default -> {
                                 if (!(value instanceof NomObject nomObj)) {
-                                    throw new RuntimeException("Unsupported cast");
+                                    throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
                                 }
 
                                 NomClass cls = nomObj.GetClass();
@@ -263,7 +211,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                                 if (cc == null) {
                                     NomInterfaceConstant inter = ct.GetInterface();
                                     if (inter == null) {
-                                        throw new RuntimeException("Constant is wrong");
+                                        throw CompilerDirectives.shouldNotReachHere("Constant is wrong");
                                     }
                                     name = inter.GetName();
                                 } else {
@@ -272,19 +220,19 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
 
                                 NomInterface inter = NomContext.classes.get(name);
                                 if (inter == null) {
-                                    throw new RuntimeException(name + " not found");
+                                    throw CompilerDirectives.shouldNotReachHere(name + " not found");
                                 }
 
                                 if (inter instanceof NomClass nc) {
                                     if (!cls.superClasses.contains(nc)) {
-                                        throw new RuntimeException(cls.GetName() + " is not a subclass of " + nc.GetName());
+                                        throw CompilerDirectives.shouldNotReachHere(cls.GetName() + " is not a subclass of " + nc.GetName());
                                     }
 
                                     writeToFrame(frame, regIdx, value);
                                     break label;
                                 } else {
                                     if (!cls.superInterfaces.contains(inter)) {
-                                        throw new RuntimeException(cls.GetName() + " is not a subclass of " + inter.GetName());
+                                        throw CompilerDirectives.shouldNotReachHere(cls.GetName() + " is not a subclass of " + inter.GetName());
                                     }
 
                                     writeToFrame(frame, regIdx, value);
@@ -307,7 +255,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 + d2);
                         case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l + d);
                         case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d + l);
-                        case null, default -> throw new RuntimeException("Unsupported add operation");
+                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case SubOpCode subOpCode -> {
@@ -319,7 +267,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 - d2);
                         case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l - d);
                         case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d - l);
-                        case null, default -> throw new RuntimeException("Unsupported sub operation");
+                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case MulOpCode mulOpCode -> {
@@ -331,7 +279,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 * d2);
                         case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l * d);
                         case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d * l);
-                        case null, default -> throw new RuntimeException("Unsupported mul operation");
+                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case DivOpCode divOpCode -> {
@@ -343,7 +291,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 / d2);
                         case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l / d);
                         case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d / l);
-                        case null, default -> throw new RuntimeException("Unsupported div operation");
+                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case ModOpCode modOpCode -> {
@@ -355,7 +303,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 % d2);
                         case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l % d);
                         case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d % l);
-                        case null, default -> throw new RuntimeException("Unsupported mod operation");
+                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case AndOpCode andOpCode -> {
@@ -365,7 +313,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                     if (left instanceof Boolean l1 && right instanceof Boolean l2) {
                         writeBooleanToFrame(frame, regIdx, l1 && l2);
                     } else {
-                        throw new RuntimeException("Unsupported and operation");
+                        throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case OrOpCode orOpCode -> {
@@ -375,7 +323,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                     if (left instanceof Boolean l1 && right instanceof Boolean l2) {
                         writeBooleanToFrame(frame, regIdx, l1 || l2);
                     } else {
-                        throw new RuntimeException("Unsupported or operation");
+                        throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case GTOpCode gtOpCode -> {
@@ -387,8 +335,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 > d2);
                         case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l > d);
                         case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d > l);
-                        case null, default ->
-                                throw new RuntimeException("Unsupported gt operation" + left + " " + right);
+                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case GTEOpCode gteOpCode -> {
@@ -400,7 +347,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 >= d2);
                         case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l >= d);
                         case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d >= l);
-                        case null, default -> throw new RuntimeException("Unsupported gte operation");
+                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case LTOpCode ltOpCode -> {
@@ -412,7 +359,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 < d2);
                         case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l < d);
                         case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d < l);
-                        case null, default -> throw new RuntimeException("Unsupported lt operation");
+                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case LTEOpCode lteOpCode -> {
@@ -424,14 +371,14 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 <= d2);
                         case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l <= d);
                         case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d <= l);
-                        case null, default -> throw new RuntimeException("Unsupported lte operation");
+                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case EQOpCode eqOpCode -> {
                     Object left = getFromFrame(frame, eqOpCode.getLeftRegIdx());
                     Object right = getFromFrame(frame, eqOpCode.getRightRegIdx());
                     int regIdx = eqOpCode.getRegIdx();
-                    writeBooleanToFrame(frame, regIdx, left.equals(right));
+                    writeBooleanToFrame(frame, regIdx, left == right);
                 }
                 case RefEqOpCode refEqOpCode -> {
                     Object left = getFromFrame(frame, refEqOpCode.getLeftRegIdx());
@@ -445,7 +392,7 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                     switch (value) {
                         case Long l -> writeLongToFrame(frame, regIdx, -l);
                         case Double d -> writeDoubleToFrame(frame, regIdx, -d);
-                        case null, default -> throw new RuntimeException("Unsupported negate operation");
+                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
                     }
                 }
                 case NotOpCode notOpCode -> {
@@ -454,30 +401,39 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                     if (value instanceof Boolean b) {
                         writeBooleanToFrame(frame, regIdx, !b);
                     } else {
-                        throw new RuntimeException("Unsupported not operation");
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        throw CompilerDirectives.shouldNotReachHere("Unsupported not operation");
                     }
                 }
                 case WriteFieldOpCode writeFieldOpCode -> {
                     Object receiver = getFromFrame(frame, writeFieldOpCode.getReceiverRegIdx());
-                    if (!(receiver instanceof NomObject nomObject))
-                        throw new RuntimeException("Receiver is not an object");
+                    if (!(receiver instanceof NomObject nomObject)) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        throw CompilerDirectives.shouldNotReachHere("Receiver is not an object");
+                    }
                     Object value = getFromFrame(frame, writeFieldOpCode.getArgRegIdx());
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
                     TruffleString fieldName = NomContext.constants.GetString(writeFieldOpCode.getNameId()).Value();
                     nomObject.writeMember(fieldName, value);
                 }
                 case ReadFieldOpCode readFieldOpCode -> {
                     Object receiver = getFromFrame(frame, readFieldOpCode.getReceiverRegIdx());
-                    if (!(receiver instanceof NomObject nomObject))
-                        throw new RuntimeException("Receiver is not an object");
+                    if (!(receiver instanceof NomObject nomObject)) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        throw CompilerDirectives.shouldNotReachHere("Receiver is not an object");
+                    }
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
                     TruffleString fieldName = NomContext.constants.GetString(readFieldOpCode.getNameId()).Value();
                     Object result;
                     try {
                         result = nomObject.readMember(fieldName);
                     } catch (UnknownIdentifierException e) {
-                        throw new RuntimeException(e);
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        throw CompilerDirectives.shouldNotReachHere(e);
                     }
                     if (result == null) {
-                        throw new RuntimeException("Field not found: " + fieldName);
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        throw CompilerDirectives.shouldNotReachHere("Field not found: " + fieldName);
                     }
                     writeToFrame(frame, readFieldOpCode.getRegIdx(), result);
                 }
@@ -497,8 +453,9 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                 }
                 case CondBranchOpCode condBranchOpCode -> {
                     Object conditionObj = getFromFrame(frame, condBranchOpCode.getCondRegIdx());
-                    if (!(conditionObj instanceof Boolean condition))
-                        throw new RuntimeException("Condition is not a boolean");
+                    if (!(conditionObj instanceof Boolean condition)) {
+                        throw CompilerDirectives.shouldNotReachHere("Condition is not a boolean");
+                    }
                     if (condition) {
                         int exchangeCnt = condBranchOpCode.getTrueIncomings().length;
                         for (int i = 0; i < exchangeCnt; i++) {
@@ -530,21 +487,67 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                 case PhiOpCode phiOpCode -> {
                     //ignore
                 }
-                case null -> throw new RuntimeException("Null opcode");
-                default -> throw new IllegalStateException("Unexpected value: " + bytecode[bci]);
+                case null, default -> CompilerDirectives.shouldNotReachHere();
             }
 
-            if (nextBCI < bci) { // back-edge
-                if (BytecodeOSRNode.pollOSRBackEdge(this)) { // OSR can be tried
-                    Object result = BytecodeOSRNode.tryOSR(this, nextBCI, null, null, frame);
-                    if (result != null) { // OSR was performed
-                        return result;
+            bci = nextBCI;
+        }
+
+        return null;
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    private void invokeConstructor(InvokeCtorOpCode invokeCtorOpCode, Object[] args) {
+        NomSuperClassConstant superClassConstant = NomContext.constants.GetSuperClass(invokeCtorOpCode.getNameId());
+        TruffleString name = superClassConstant.GetSuperClass().GetName();
+        NomFunction function = NomContext.ctorFunctions
+                .get(name).get(args.length);
+        assert function != null;
+
+        function.getCallTarget().call(args);
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    private Object invokeStaticMethod(InvokeStaticMethodOpCode invokeStaticMethod, Object[] args) {
+        NomMethodConstant method = NomContext.constants.GetStaticMethod(invokeStaticMethod.getNameId());
+        NomFunction function = NomContext.getMethod(method);
+        assert function != null;
+        return function.getCallTarget().call(args);
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    private Object invokeInstanceMethod(InvokeInstanceMethodOpCode invokeInstanceMethod, Object instance, Object[] args) {
+        NomMethodConstant method = NomContext.constants.GetMethod(invokeInstanceMethod.getNameId());
+        NomFunction function = NomContext.getMethod(method);
+        if_branch:
+        if (function == null) {
+            if (instance instanceof NomObject obj) {
+                if (method.MethodName().toString().endsWith(".")) {
+                    function = obj.thisFunction;
+                    break if_branch;
+                }
+                function = obj.GetFunction(method.MethodName());
+                if (function == null && obj.GetClass() != null) {
+                    Object member;
+                    try {
+                        member = obj.readMember(method.MethodName());
+                    } catch (UnknownIdentifierException e) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        throw CompilerDirectives.shouldNotReachHere(e);
+                    }
+                    if (member instanceof NomObject memObj) {
+                        if (memObj.thisFunction != null) {
+                            function = memObj.thisFunction;
+                            args[0] = memObj;
+                        }
                     }
                 }
             }
-            bci = nextBCI;
         }
+        assert function != null;
+        return function.getCallTarget().call(args);
     }
+
 
     @Override
     public String toString() {

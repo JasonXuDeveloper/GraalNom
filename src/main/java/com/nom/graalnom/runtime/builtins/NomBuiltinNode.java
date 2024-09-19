@@ -4,6 +4,7 @@ import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -46,6 +47,7 @@ public abstract class NomBuiltinNode extends NomExpressionNode {
 
     @Specialization
     protected Object doNomObject(NomObject obj) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         return obj.GetFunction(
                 TruffleString.fromJavaStringUncached(
                         NomLanguage.lookupNodeInfo(this.getClass()).shortName(),

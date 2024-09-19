@@ -1,6 +1,7 @@
 package com.nom.graalnom.runtime.constants;
 
 import com.nom.graalnom.runtime.reflections.NomInterface;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
 
@@ -45,7 +46,7 @@ public class NomConstants {
         }
         var cnstnt = constants.get((int) constant);
         if (cnstnt == null || cnstnt.Type != NomConstantType.CTString) {
-            throw new RuntimeException("constant " + constant + " is not a string constant " + cnstnt);
+            throw CompilerDirectives.shouldNotReachHere("constant " + constant + " is not a string constant " + cnstnt);
         }
         return (NomStringConstant) cnstnt;
     }

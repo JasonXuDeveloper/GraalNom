@@ -6,6 +6,7 @@ import com.nom.graalnom.runtime.constants.NomClassConstant;
 import com.nom.graalnom.runtime.constants.NomClassTypeConstant;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomTypedField;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.*;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -82,7 +83,7 @@ public class NomObject {
                     objectMap.put(name, false);
                     return false;
                 } else {
-                    System.out.println("Unknown type: " + typeCls.GetName());
+                    CompilerDirectives.shouldNotReachHere("Unknown type: " + typeCls.GetName());
                     return 0;
                 }
             }

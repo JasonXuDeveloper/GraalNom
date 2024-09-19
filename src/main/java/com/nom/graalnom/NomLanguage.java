@@ -17,6 +17,7 @@ import com.nom.graalnom.runtime.opcodes.control.ReturnVoidOpCode;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.debug.DebuggerTags;
@@ -52,7 +53,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
 
     public static NomObject createObject(NomClass cls) {
         if (cls == null)
-            throw new RuntimeException("Class not found");
+            throw CompilerDirectives.shouldNotReachHere("Class not found");
         return new NomObject(cls);
     }
 
