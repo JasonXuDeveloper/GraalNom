@@ -19,20 +19,40 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.HostCompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.nodes.BytecodeOSRNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
 
 
-public class BytecodeDispatchNode extends Node {
+public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
     @CompilerDirectives.CompilationFinal
     TransformedOpCode[] bytecode;
     @CompilerDirectives.CompilationFinal
     private int argCount;
 
+    @CompilerDirectives.CompilationFinal
+    private Object osrMetadata;
+
     public BytecodeDispatchNode(TransformedOpCode[] bytecode, int argCount) {
         this.bytecode = bytecode;
         this.argCount = argCount;
+    }
+
+    public Object execute(VirtualFrame frame) {
+        return executeFromBCI(frame, 0);
+    }
+
+    public Object executeOSR(VirtualFrame osrFrame, int target, Object interpreterState) {
+        return executeFromBCI(osrFrame, target);
+    }
+
+    public Object getOSRMetadata() {
+        return osrMetadata;
+    }
+
+    public void setOSRMetadata(Object osrMetadata) {
+        this.osrMetadata = osrMetadata;
     }
 
     private Object getFromFrame(VirtualFrame frame, int regIndex) {
@@ -73,13 +93,11 @@ public class BytecodeDispatchNode extends Node {
         }
     }
 
-    @HostCompilerDirectives.BytecodeInterpreterSwitch
     @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.MERGE_EXPLODE)
-    public Object execute(VirtualFrame frame) {
-        int bci = 0;
+    public Object executeFromBCI(VirtualFrame frame, int bci) {
         while (bci < bytecode.length) {
             int nextBCI = bci + 1;
-            label:
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             switch (bytecode[bci]) {
                 case ReturnOpCode ret -> {
                     return getFromFrame(frame, ret.getRegIndex());
@@ -87,15 +105,21 @@ public class BytecodeDispatchNode extends Node {
                 case ReturnVoidOpCode ignored -> {
                     return 0;
                 }
-                case LoadIntConstOpCode loadIntConst ->
-                        writeLongToFrame(frame, loadIntConst.getRegIndex(), loadIntConst.getValue());
-                case LoadFloatConstOpCode loadFloatConst ->
-                        writeDoubleToFrame(frame, loadFloatConst.getRegIndex(), loadFloatConst.getValue());
-                case LoadBoolConstOpCode loadBoolConst ->
-                        writeBooleanToFrame(frame, loadBoolConst.getRegIndex(), loadBoolConst.getValue());
-                case LoadNullConstOpCode loadNullConst -> writeNullToFrame(frame, loadNullConst.getRegIndex());
-                case LoadStringConstOpCode loadStringConst ->
-                        writeStringToFrame(frame, loadStringConst.getRegIndex(), loadStringConst.getValue());
+                case LoadIntConstOpCode loadIntConst ->{
+                    writeLongToFrame(frame, loadIntConst.getRegIndex(), loadIntConst.getValue());
+                }
+                case LoadFloatConstOpCode loadFloatConst ->{
+                    writeDoubleToFrame(frame, loadFloatConst.getRegIndex(), loadFloatConst.getValue());
+                }
+                case LoadBoolConstOpCode loadBoolConst -> {
+                    writeBooleanToFrame(frame, loadBoolConst.getRegIndex(), loadBoolConst.getValue());
+                }
+                case LoadNullConstOpCode loadNullConst -> {
+                    writeNullToFrame(frame, loadNullConst.getRegIndex());
+                }
+                case LoadStringConstOpCode loadStringConst -> {
+                    writeStringToFrame(frame, loadStringConst.getRegIndex(), loadStringConst.getValue());
+                }
                 case InvokeInstanceMethodOpCode invokeInstanceMethod -> {
                     Object instance = getFromFrame(frame, invokeInstanceMethod.getReceiverIdx());
                     int[] argIdxs = invokeInstanceMethod.getArgIdxs();
@@ -163,7 +187,7 @@ public class BytecodeDispatchNode extends Node {
                             case "Int_0" -> {
                                 if (value instanceof Long) {
                                     writeLongToFrame(frame, regIdx, (long) value);
-                                    break label;
+                                    break;
                                 }
 
                                 throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
@@ -171,7 +195,7 @@ public class BytecodeDispatchNode extends Node {
                             case "Float_0" -> {
                                 if (value instanceof Double) {
                                     writeDoubleToFrame(frame, regIdx, (double) value);
-                                    break label;
+                                    break;
                                 }
 
                                 throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
@@ -179,7 +203,7 @@ public class BytecodeDispatchNode extends Node {
                             case "Bool_0" -> {
                                 if (value instanceof Boolean) {
                                     writeBooleanToFrame(frame, regIdx, (boolean) value);
-                                    break label;
+                                    break;
                                 }
 
                                 throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
@@ -187,7 +211,7 @@ public class BytecodeDispatchNode extends Node {
                             case "String_0" -> {
                                 if (value instanceof TruffleString) {
                                     writeStringToFrame(frame, regIdx, (TruffleString) value);
-                                    break label;
+                                    break;
                                 }
 
                                 throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
@@ -195,7 +219,7 @@ public class BytecodeDispatchNode extends Node {
                             case "Null_0" -> {
                                 if (value instanceof NomNull) {
                                     writeNullToFrame(frame, regIdx);
-                                    break label;
+                                    break;
                                 }
 
                                 throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
@@ -229,14 +253,12 @@ public class BytecodeDispatchNode extends Node {
                                     }
 
                                     writeToFrame(frame, regIdx, value);
-                                    break label;
                                 } else {
                                     if (!cls.superInterfaces.contains(inter)) {
                                         throw CompilerDirectives.shouldNotReachHere(cls.GetName() + " is not a subclass of " + inter.GetName());
                                     }
 
                                     writeToFrame(frame, regIdx, value);
-                                    break label;
                                 }
                             }
                         }
@@ -244,7 +266,6 @@ public class BytecodeDispatchNode extends Node {
                     if (type instanceof NomDynamicTypeConstant) {
                         writeToFrame(frame, regIdx, value);
                     }
-
                 }
                 case AddOpCode addOpCode -> {
                     Object left = getFromFrame(frame, addOpCode.getLeftRegIdx());
@@ -401,14 +422,12 @@ public class BytecodeDispatchNode extends Node {
                     if (value instanceof Boolean b) {
                         writeBooleanToFrame(frame, regIdx, !b);
                     } else {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
                         throw CompilerDirectives.shouldNotReachHere("Unsupported not operation");
                     }
                 }
                 case WriteFieldOpCode writeFieldOpCode -> {
                     Object receiver = getFromFrame(frame, writeFieldOpCode.getReceiverRegIdx());
                     if (!(receiver instanceof NomObject nomObject)) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
                         throw CompilerDirectives.shouldNotReachHere("Receiver is not an object");
                     }
                     Object value = getFromFrame(frame, writeFieldOpCode.getArgRegIdx());
@@ -419,7 +438,6 @@ public class BytecodeDispatchNode extends Node {
                 case ReadFieldOpCode readFieldOpCode -> {
                     Object receiver = getFromFrame(frame, readFieldOpCode.getReceiverRegIdx());
                     if (!(receiver instanceof NomObject nomObject)) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
                         throw CompilerDirectives.shouldNotReachHere("Receiver is not an object");
                     }
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -485,11 +503,19 @@ public class BytecodeDispatchNode extends Node {
                     }
                 }
                 case PhiOpCode phiOpCode -> {
-                    //ignore
                 }
                 case null, default -> CompilerDirectives.shouldNotReachHere();
             }
 
+
+            if (nextBCI < bci) { // back-edge
+                if (BytecodeOSRNode.pollOSRBackEdge(this)) { // OSR can be tried
+                    Object result = BytecodeOSRNode.tryOSR(this, nextBCI, null, null, frame);
+                    if (result != null) { // OSR was performed
+                        return result;
+                    }
+                }
+            }
             bci = nextBCI;
         }
 

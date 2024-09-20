@@ -12,7 +12,14 @@ public final class NomMain {
         Context context = Context.newBuilder(NomLanguage.ID)
                 .allowExperimentalOptions(true)
                 .allowAllAccess(true)
-                .option("engine.TraceCompilation","true")
+//                .option("engine.TraceCompilationAST","true")
+                .option("engine.TraceInlining","true")
+//                .option("engine.TraceSplitting","true")
+//                .option("engine.CompilationStatistics","true")
+//                .option("engine.TraceMethodExpansion","truffleTier")
+//                .option("engine.TraceNodeExpansion","truffleTier")
+                .option("engine.MethodExpansionStatistics","truffleTier")
+                .option("engine.NodeExpansionStatistics","truffleTier")
                 .out(System.out).build();
         System.out.println("== running on " + context);
         String manifest = args[0];
