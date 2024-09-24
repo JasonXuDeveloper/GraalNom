@@ -1,9 +1,17 @@
 package com.nom.graalnom;
 
+import com.google.common.hash.BloomFilter;
+import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.tools.profiler.CPUSamplerData;
+import com.oracle.truffle.tools.profiler.ProfilerNode;
 import org.graalvm.polyglot.Context;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.*;
+
+import com.oracle.truffle.tools.profiler.CPUSampler;
 
 
 public final class NomMain {
@@ -12,15 +20,19 @@ public final class NomMain {
         Context context = Context.newBuilder(NomLanguage.ID)
                 .allowExperimentalOptions(true)
                 .allowAllAccess(true)
-//                .option("engine.TraceCompilationAST","true")
-                .option("engine.TraceInlining","true")
+//                .option("engine.BackgroundCompilation", "true")
+                //.option("engine.TraceCompilationAST","true")
+                //.option("engine.TraceCompilationDetails","true")
+//                .option("compiler.TraceInlining","true")
 //                .option("engine.TraceSplitting","true")
 //                .option("engine.CompilationStatistics","true")
 //                .option("engine.TraceMethodExpansion","truffleTier")
 //                .option("engine.TraceNodeExpansion","truffleTier")
-                .option("engine.MethodExpansionStatistics","truffleTier")
-                .option("engine.NodeExpansionStatistics","truffleTier")
-                .out(System.out).build();
+//                .option("compiler.NodeExpansionStatistics","truffleTier")
+//                .option("compiler.NodeExpansionStatistics","truffleTier")Å
+                .out(System.out).build().create();
+
+
         System.out.println("== running on " + context);
         String manifest = args[0];
         String mainClass = args[1];
@@ -28,8 +40,38 @@ public final class NomMain {
         for (int i = 0; i < testCount; i++) {
             System.out.println("== iteration " + i);
             context.eval(NomLanguage.ID,
-                    GetTestString(manifest, mainClass, true, false, false));
+                    GetTestString(manifest, mainClass, true, false, false));}
+
+
+        CPUSampler sampler = CPUSampler.find(context.getEngine());
+
+        sampler.setCollecting(true);
+
+
+        context.eval(NomLanguage.ID,
+                GetTestString(manifest, mainClass, true, false, false));
+
+        Map<TruffleContext,CPUSamplerData> data = sampler.getData();
+
+        List<CPUSamplerData> list = new ArrayList<>();
+
+        for (CPUSamplerData value : data.values()) {
+            list.add(value);
         }
+
+// Read information about the roots of the tree per thread.
+        for (Collection<ProfilerNode<CPUSampler.Payload>> nodes
+                : list.iterator().next().getThreadData().values()) {
+            for (ProfilerNode<CPUSampler.Payload> node : nodes) {
+                final String rootName = node.getRootName();
+                final int selfHitCount = node.getPayload().getSelfHitCount();
+                System.out.println(rootName);
+                System.out.println(selfHitCount);
+            }
+        }
+
+
+
 
 //        //find all subfolders in args[0] that starts with ".BM_"
 //        String[] subFolders = new java.io.File(args[0])
@@ -49,8 +91,9 @@ public final class NomMain {
 //                        GetTestString(Path.of(args[0], f, "Program.manifest").toAbsolutePath().toString(), args[1], true, false, false));
 //            }
 //        }
-    }
 
+
+    }
 
     private static String GetTestString(String manifestPath, String mainClassName, boolean invokeMain,
                                         boolean debug, boolean ignoreErrorBytecode) {

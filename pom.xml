@@ -219,5 +219,16 @@
             <artifactId>json</artifactId>
             <version>20240303</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.nom</groupId>-->
+<!--            <artifactId>GraalNom</artifactId>-->
+<!--            <version>1.0-SNAPSHOT</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.graalvm.tools</groupId>
+            <artifactId>profiler</artifactId>
+            <version>24.0.2</version>
+        </dependency>
+
     </dependencies>
 </project>
