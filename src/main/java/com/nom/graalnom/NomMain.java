@@ -20,6 +20,9 @@ public final class NomMain {
         Context context = Context.newBuilder(NomLanguage.ID)
                 .allowExperimentalOptions(true)
                 .allowAllAccess(true)
+                .option("cputracer","true")
+                .option("cputracer.TraceStatements","true")
+                .option("cputracer.FilterRootName","accept")
 //                .option("engine.BackgroundCompilation", "true")
                 //.option("engine.TraceCompilationAST","true")
                 //.option("engine.TraceCompilationDetails","true")
@@ -40,35 +43,42 @@ public final class NomMain {
         for (int i = 0; i < testCount; i++) {
             System.out.println("== iteration " + i);
             context.eval(NomLanguage.ID,
-                    GetTestString(manifest, mainClass, true, false, false));}
-
-
-        CPUSampler sampler = CPUSampler.find(context.getEngine());
-
-        sampler.setCollecting(true);
-
-
-        context.eval(NomLanguage.ID,
-                GetTestString(manifest, mainClass, true, false, false));
-
-        Map<TruffleContext,CPUSamplerData> data = sampler.getData();
-
-        List<CPUSamplerData> list = new ArrayList<>();
-
-        for (CPUSamplerData value : data.values()) {
-            list.add(value);
-        }
-
-// Read information about the roots of the tree per thread.
-        for (Collection<ProfilerNode<CPUSampler.Payload>> nodes
-                : list.iterator().next().getThreadData().values()) {
-            for (ProfilerNode<CPUSampler.Payload> node : nodes) {
-                final String rootName = node.getRootName();
-                final int selfHitCount = node.getPayload().getSelfHitCount();
-                System.out.println(rootName);
-                System.out.println(selfHitCount);
+                    GetTestString(manifest, mainClass, true, false, false));
             }
-        }
+
+
+
+
+//        CPUSampler sampler = CPUSampler.find(context.getEngine());
+//
+//        sampler.setCollecting(true);
+//
+//
+//        context.eval(NomLanguage.ID,
+//                GetTestString(manifest, mainClass, true, false, false));
+
+//        sampler.setCollecting(false);
+//        sampler.close();
+
+//        Map<TruffleContext,CPUSamplerData> data = sampler.getData();
+//
+//        List<CPUSamplerData> list = new ArrayList<>();
+//
+//        for (CPUSamplerData value : data.values()) {
+//            list.add(value);
+//        }
+//
+//// Read information about the roots of the tree per thread.
+//        for (Collection<ProfilerNode<CPUSampler.Payload>> nodes
+//                : list.iterator().next().getThreadData().values()) {
+//            for (ProfilerNode<CPUSampler.Payload> node : nodes) {
+//                final String rootName = node.getRootName();
+//                final int selfHitCount = node.getPayload().getSelfHitCount();
+//
+//                System.out.println(rootName);
+//                System.out.println(selfHitCount);
+//            }
+//        }
 
 
 
