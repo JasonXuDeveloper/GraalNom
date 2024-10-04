@@ -13,24 +13,35 @@ public final class NomMain {
         Context context = Context.newBuilder(NomLanguage.ID)
                 .in(System.in).out(System.out).allowAllAccess(true).build();
         System.out.println("== running on " + context.getEngine());
-        //find all subfolders in args[0] that starts with ".BM_"
-        String[] subFolders = new java.io.File(args[0])
-                .list((current, name) ->
-                        new java.io.File(current, name).isDirectory() && name.startsWith(".BM_")
-                                && (!name.contains("L")
-                                && !name.contains("K") && !name.contains("S"))
-                );
-        assert subFolders != null;
+
+
+        String manifest = args[0];
+        String mainClass = args[1];
         int testCount = args.length > 2 ? Integer.parseInt(args[2]) : 5;
-        for (int j = 0, subFoldersLength = subFolders.length; j < subFoldersLength; j++) {
-            String f = subFolders[j];
-            System.out.println("Testing " + f + " (" + (j + 1) + "/" + subFoldersLength + ")");
-            for (int i = 0; i < testCount; i++) {
-                System.out.println("== iteration " + i);
-                context.eval(NomLanguage.ID,
-                        GetTestString(Path.of(args[0], f, "Program.manifest").toAbsolutePath().toString(), args[1], true, false, false));
-            }
+        for (int i = 0; i < testCount; i++) {
+            System.out.println("== iteration " + i);
+            context.eval(NomLanguage.ID,
+                    GetTestString(manifest, mainClass, true, false, false));
         }
+
+//        //find all subfolders in args[0] that starts with ".BM_"
+//        String[] subFolders = new java.io.File(args[0])
+//                .list((current, name) ->
+//                        new java.io.File(current, name).isDirectory() && name.startsWith(".BM_")
+//                                && (!name.contains("L")
+//                                && !name.contains("K") && !name.contains("S"))
+//                );
+//        assert subFolders != null;
+//        int testCount = args.length > 2 ? Integer.parseInt(args[2]) : 5;
+//        for (int j = 0, subFoldersLength = subFolders.length; j < subFoldersLength; j++) {
+//            String f = subFolders[j];
+//            System.out.println("Testing " + f + " (" + (j + 1) + "/" + subFoldersLength + ")");
+//            for (int i = 0; i < testCount; i++) {
+//                System.out.println("== iteration " + i);
+//                context.eval(NomLanguage.ID,
+//                        GetTestString(Path.of(args[0], f, "Program.manifest").toAbsolutePath().toString(), args[1], true, false, false));
+//            }
+//        }
     }
 
 
