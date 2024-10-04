@@ -93,7 +93,6 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
         return regsMap[depth];
     }
 
-    @CompilerDirectives.TruffleBoundary
     public static void enterScope(int regSize, Object[] args) {
         depth++;
         regSize += args.length;

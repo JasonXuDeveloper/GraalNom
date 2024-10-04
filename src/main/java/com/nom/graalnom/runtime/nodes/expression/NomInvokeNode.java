@@ -117,7 +117,6 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     }
 
     public Object[] getArgumentValues(VirtualFrame frame) {
-        CompilerDirectives.transferToInterpreterAndInvalidate();
         Object[] argumentValues = new Object[argumentNodes.length];
         for (int i = 0; i < argumentNodes.length; i++) {
             argumentValues[i] = argumentNodes[i].executeGeneric(frame);
