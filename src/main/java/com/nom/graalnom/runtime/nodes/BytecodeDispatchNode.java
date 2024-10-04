@@ -25,35 +25,18 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
 
 
-public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
+public class BytecodeDispatchNode extends Node {
     @CompilerDirectives.CompilationFinal
     TransformedOpCode[] bytecode;
     @CompilerDirectives.CompilationFinal
     private int argCount;
 
-    @CompilerDirectives.CompilationFinal
-    private Object osrMetadata;
 
     public BytecodeDispatchNode(TransformedOpCode[] bytecode, int argCount) {
         this.bytecode = bytecode;
         this.argCount = argCount;
     }
 
-    public Object execute(VirtualFrame frame) {
-        return executeFromBCI(frame, 0);
-    }
-
-    public Object executeOSR(VirtualFrame osrFrame, int target, Object interpreterState) {
-        return executeFromBCI(osrFrame, target);
-    }
-
-    public Object getOSRMetadata() {
-        return osrMetadata;
-    }
-
-    public void setOSRMetadata(Object osrMetadata) {
-        this.osrMetadata = osrMetadata;
-    }
 
     private Object getFromFrame(VirtualFrame frame, int regIndex) {
         if (regIndex >= argCount) {
@@ -94,372 +77,364 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
     }
 
     @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.MERGE_EXPLODE)
-    public Object executeFromBCI(VirtualFrame frame, int bci) {
+    public Object execute(VirtualFrame frame) {
+        int bci = 0;
         while (bci < bytecode.length) {
             int nextBCI = bci + 1;
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            switch (bytecode[bci]) {
-                case ReturnOpCode ret -> {
-                    return getFromFrame(frame, ret.getRegIndex());
+            if (bytecode[bci] instanceof ReturnOpCode ret) {
+                return getFromFrame(frame, ret.getRegIndex());
+            } else if (bytecode[bci] instanceof ReturnVoidOpCode) {
+                return 0;
+            } else if (bytecode[bci] instanceof LoadIntConstOpCode loadIntConst) {
+                writeLongToFrame(frame, loadIntConst.getRegIndex(), loadIntConst.getValue());
+            } else if (bytecode[bci] instanceof LoadFloatConstOpCode loadFloatConst) {
+                writeDoubleToFrame(frame, loadFloatConst.getRegIndex(), loadFloatConst.getValue());
+            } else if (bytecode[bci] instanceof LoadBoolConstOpCode loadBoolConst) {
+                writeBooleanToFrame(frame, loadBoolConst.getRegIndex(), loadBoolConst.getValue());
+            } else if (bytecode[bci] instanceof LoadNullConstOpCode loadNullConst) {
+                writeNullToFrame(frame, loadNullConst.getRegIndex());
+            } else if (bytecode[bci] instanceof LoadStringConstOpCode loadStringConst) {
+                writeStringToFrame(frame, loadStringConst.getRegIndex(), loadStringConst.getValue());
+            } else if (bytecode[bci] instanceof InvokeInstanceMethodOpCode invokeInstanceMethod) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                Object instance = getFromFrame(frame, invokeInstanceMethod.getReceiverIdx());
+                int[] argIdxs = invokeInstanceMethod.getArgIdxs();
+                Object[] args = new Object[argIdxs.length + 1];
+                args[0] = instance;
+                for (int i = 0; i < argIdxs.length; i++) {
+                    args[i + 1] = getFromFrame(frame, argIdxs[i]);
                 }
-                case ReturnVoidOpCode ignored -> {
-                    return 0;
+                Object methRet = invokeInstanceMethod(invokeInstanceMethod, instance, args);
+                writeToFrame(frame, invokeInstanceMethod.getRegIdx(), methRet);
+            } else if (bytecode[bci] instanceof InvokeStaticMethodOpCode invokeStaticMethod) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                int[] argIdxs = invokeStaticMethod.getArgIdxs();
+                Object[] args = new Object[argIdxs.length];
+                for (int i = 0; i < argIdxs.length; i++) {
+                    args[i] = getFromFrame(frame, argIdxs[i]);
                 }
-                case LoadIntConstOpCode loadIntConst ->{
-                    writeLongToFrame(frame, loadIntConst.getRegIndex(), loadIntConst.getValue());
-                }
-                case LoadFloatConstOpCode loadFloatConst ->{
-                    writeDoubleToFrame(frame, loadFloatConst.getRegIndex(), loadFloatConst.getValue());
-                }
-                case LoadBoolConstOpCode loadBoolConst -> {
-                    writeBooleanToFrame(frame, loadBoolConst.getRegIndex(), loadBoolConst.getValue());
-                }
-                case LoadNullConstOpCode loadNullConst -> {
-                    writeNullToFrame(frame, loadNullConst.getRegIndex());
-                }
-                case LoadStringConstOpCode loadStringConst -> {
-                    writeStringToFrame(frame, loadStringConst.getRegIndex(), loadStringConst.getValue());
-                }
-                case InvokeInstanceMethodOpCode invokeInstanceMethod -> {
-                    Object instance = getFromFrame(frame, invokeInstanceMethod.getReceiverIdx());
-                    int[] argIdxs = invokeInstanceMethod.getArgIdxs();
+                Object ret = invokeStaticMethod(invokeStaticMethod, args);
+                writeToFrame(frame, invokeStaticMethod.getRegIdx(), ret);
+            } else if (bytecode[bci] instanceof InvokeCtorOpCode invokeCtorOpCode) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                int[] argIdxs = invokeCtorOpCode.getArgIdxs();
+                NomSuperClassConstant superClassConstant = NomContext.constants.GetSuperClass(invokeCtorOpCode.getNameId());
+
+                NomObject object;
+                TruffleString name = superClassConstant.GetSuperClass().GetName();
+                if (name.equals(TruffleString.fromConstant("Timer_0", TruffleString.Encoding.UTF_8))) {//TODO avoid hardcode builtin types
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    object = NomLanguage.createTimer();
+                } else {
                     Object[] args = new Object[argIdxs.length + 1];
-                    args[0] = instance;
+                    if (!invokeCtorOpCode.getHasInstance()) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        object = NomLanguage.createObject((NomClass) NomContext.classes.get(name));
+                    } else {
+                        object = (NomObject) getFromFrame(frame, 0);
+                    }
+                    args[0] = object;
                     for (int i = 0; i < argIdxs.length; i++) {
                         args[i + 1] = getFromFrame(frame, argIdxs[i]);
                     }
-                    Object methRet = invokeInstanceMethod(invokeInstanceMethod, instance, args);
-                    writeToFrame(frame, invokeInstanceMethod.getRegIdx(), methRet);
-                }
-                case InvokeStaticMethodOpCode invokeStaticMethod -> {
-                    int[] argIdxs = invokeStaticMethod.getArgIdxs();
-                    Object[] args = new Object[argIdxs.length];
-                    for (int i = 0; i < argIdxs.length; i++) {
-                        args[i] = getFromFrame(frame, argIdxs[i]);
-                    }
-                    Object ret = invokeStaticMethod(invokeStaticMethod, args);
-                    writeToFrame(frame, invokeStaticMethod.getRegIdx(), ret);
-                }
-                case InvokeCtorOpCode invokeCtorOpCode -> {
-                    int[] argIdxs = invokeCtorOpCode.getArgIdxs();
-                    NomSuperClassConstant superClassConstant = NomContext.constants.GetSuperClass(invokeCtorOpCode.getNameId());
 
-                    NomObject object;
-                    TruffleString name = superClassConstant.GetSuperClass().GetName();
-                    if (name.equals(TruffleString.fromConstant("Timer_0", TruffleString.Encoding.UTF_8))) {//TODO avoid hardcode builtin types
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        object = NomLanguage.createTimer();
+                    invokeConstructor(invokeCtorOpCode, args);
+                }
+
+                writeToFrame(frame, invokeCtorOpCode.getRegIdx(), object);
+            } else if (bytecode[bci] instanceof CastOpCode castOpCode) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                int regIdx = castOpCode.getRegIdx();
+                Object value = getFromFrame(frame, castOpCode.getValIdx());
+                NomConstant type = NomContext.constants.Get((int) castOpCode.getTypeId());
+                if (type instanceof NomClassTypeConstant ct) {
+                    TruffleString cName;
+                    if (ct.GetClass() == null) {
+                        NomInterfaceConstant inter = ct.GetInterface();
+                        if (inter == null) {
+                            throw CompilerDirectives.shouldNotReachHere("Constant is wrong");
+                        }
+                        cName = inter.GetName();
                     } else {
-                        Object[] args = new Object[argIdxs.length + 1];
-                        if (!invokeCtorOpCode.getHasInstance()) {
-                            CompilerDirectives.transferToInterpreterAndInvalidate();
-                            object = NomLanguage.createObject((NomClass) NomContext.classes.get(name));
-                        } else {
-                            object = (NomObject) getFromFrame(frame, 0);
-                        }
-                        args[0] = object;
-                        for (int i = 0; i < argIdxs.length; i++) {
-                            args[i + 1] = getFromFrame(frame, argIdxs[i]);
-                        }
-
-                        invokeConstructor(invokeCtorOpCode, args);
+                        cName = ct.GetClass().GetName();
                     }
-
-                    writeToFrame(frame, invokeCtorOpCode.getRegIdx(), object);
-                }
-                case CastOpCode castOpCode -> {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    int regIdx = castOpCode.getRegIdx();
-                    Object value = getFromFrame(frame, castOpCode.getValIdx());
-                    NomConstant type = NomContext.constants.Get((int) castOpCode.getTypeId());
-                    if (type instanceof NomClassTypeConstant ct) {
-                        TruffleString cName;
-                        if (ct.GetClass() == null) {
-                            NomInterfaceConstant inter = ct.GetInterface();
-                            if (inter == null) {
-                                throw CompilerDirectives.shouldNotReachHere("Constant is wrong");
+                    switch (cName.toString()) {
+                        case "Int_0" -> {
+                            if (value instanceof Long) {
+                                writeLongToFrame(frame, regIdx, (long) value);
+                                break;
                             }
-                            cName = inter.GetName();
-                        } else {
-                            cName = ct.GetClass().GetName();
+
+                            throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
                         }
-                        switch (cName.toString()) {
-                            case "Int_0" -> {
-                                if (value instanceof Long) {
-                                    writeLongToFrame(frame, regIdx, (long) value);
-                                    break;
-                                }
+                        case "Float_0" -> {
+                            if (value instanceof Double) {
+                                writeDoubleToFrame(frame, regIdx, (double) value);
+                                break;
+                            }
 
+                            throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
+                        }
+                        case "Bool_0" -> {
+                            if (value instanceof Boolean) {
+                                writeBooleanToFrame(frame, regIdx, (boolean) value);
+                                break;
+                            }
+
+                            throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
+                        }
+                        case "String_0" -> {
+                            if (value instanceof TruffleString) {
+                                writeStringToFrame(frame, regIdx, (TruffleString) value);
+                                break;
+                            }
+
+                            throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
+                        }
+                        case "Null_0" -> {
+                            if (value instanceof NomNull) {
+                                writeNullToFrame(frame, regIdx);
+                                break;
+                            }
+
+                            throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
+                        }
+                        default -> {
+                            if (!(value instanceof NomObject nomObj)) {
                                 throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
                             }
-                            case "Float_0" -> {
-                                if (value instanceof Double) {
-                                    writeDoubleToFrame(frame, regIdx, (double) value);
-                                    break;
-                                }
 
-                                throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
-                            }
-                            case "Bool_0" -> {
-                                if (value instanceof Boolean) {
-                                    writeBooleanToFrame(frame, regIdx, (boolean) value);
-                                    break;
-                                }
-
-                                throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
-                            }
-                            case "String_0" -> {
-                                if (value instanceof TruffleString) {
-                                    writeStringToFrame(frame, regIdx, (TruffleString) value);
-                                    break;
-                                }
-
-                                throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
-                            }
-                            case "Null_0" -> {
-                                if (value instanceof NomNull) {
-                                    writeNullToFrame(frame, regIdx);
-                                    break;
-                                }
-
-                                throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
-                            }
-                            default -> {
-                                if (!(value instanceof NomObject nomObj)) {
-                                    throw CompilerDirectives.shouldNotReachHere("Unsupported cast");
-                                }
-
-                                NomClass cls = nomObj.GetClass();
-                                NomClassConstant cc = ct.GetClass();
-                                TruffleString name;
-                                if (cc == null) {
-                                    NomInterfaceConstant inter = ct.GetInterface();
-                                    if (inter == null) {
-                                        throw CompilerDirectives.shouldNotReachHere("Constant is wrong");
-                                    }
-                                    name = inter.GetName();
-                                } else {
-                                    name = cc.GetName();
-                                }
-
-                                NomInterface inter = NomContext.classes.get(name);
+                            NomClass cls = nomObj.GetClass();
+                            NomClassConstant cc = ct.GetClass();
+                            TruffleString name;
+                            if (cc == null) {
+                                NomInterfaceConstant inter = ct.GetInterface();
                                 if (inter == null) {
-                                    throw CompilerDirectives.shouldNotReachHere(name + " not found");
+                                    throw CompilerDirectives.shouldNotReachHere("Constant is wrong");
+                                }
+                                name = inter.GetName();
+                            } else {
+                                name = cc.GetName();
+                            }
+
+                            NomInterface inter = NomContext.classes.get(name);
+                            if (inter == null) {
+                                throw CompilerDirectives.shouldNotReachHere(name + " not found");
+                            }
+
+                            if (inter instanceof NomClass nc) {
+                                if (!cls.superClasses.contains(nc)) {
+                                    throw CompilerDirectives.shouldNotReachHere(cls.GetName() + " is not a subclass of " + nc.GetName());
                                 }
 
-                                if (inter instanceof NomClass nc) {
-                                    if (!cls.superClasses.contains(nc)) {
-                                        throw CompilerDirectives.shouldNotReachHere(cls.GetName() + " is not a subclass of " + nc.GetName());
-                                    }
-
-                                    writeToFrame(frame, regIdx, value);
-                                } else {
-                                    if (!cls.superInterfaces.contains(inter)) {
-                                        throw CompilerDirectives.shouldNotReachHere(cls.GetName() + " is not a subclass of " + inter.GetName());
-                                    }
-
-                                    writeToFrame(frame, regIdx, value);
+                                writeToFrame(frame, regIdx, value);
+                            } else {
+                                if (!cls.superInterfaces.contains(inter)) {
+                                    throw CompilerDirectives.shouldNotReachHere(cls.GetName() + " is not a subclass of " + inter.GetName());
                                 }
+
+                                writeToFrame(frame, regIdx, value);
                             }
                         }
                     }
-                    if (type instanceof NomDynamicTypeConstant) {
-                        writeToFrame(frame, regIdx, value);
-                    }
                 }
-                case AddOpCode addOpCode -> {
-                    Object left = getFromFrame(frame, addOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, addOpCode.getRightRegIdx());
-                    int regIdx = addOpCode.getRegIdx();
-                    switch (left) {
-                        case Long l1 when right instanceof Long l2 -> writeLongToFrame(frame, regIdx, l1 + l2);
-                        case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 + d2);
-                        case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l + d);
-                        case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d + l);
-                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
-                    }
+                if (type instanceof NomDynamicTypeConstant) {
+                    writeToFrame(frame, regIdx, value);
                 }
-                case SubOpCode subOpCode -> {
-                    Object left = getFromFrame(frame, subOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, subOpCode.getRightRegIdx());
-                    int regIdx = subOpCode.getRegIdx();
-                    switch (left) {
-                        case Long l1 when right instanceof Long l2 -> writeLongToFrame(frame, regIdx, l1 - l2);
-                        case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 - d2);
-                        case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l - d);
-                        case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d - l);
-                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof AddOpCode addOpCode) {
+                Object left = getFromFrame(frame, addOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, addOpCode.getRightRegIdx());
+                int regIdx = addOpCode.getRegIdx();
+                switch (left) {
+                    case Long l1 when right instanceof Long l2 -> writeLongToFrame(frame, regIdx, l1 + l2);
+                    case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 + d2);
+                    case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l + d);
+                    case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d + l);
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
                 }
-                case MulOpCode mulOpCode -> {
-                    Object left = getFromFrame(frame, mulOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, mulOpCode.getRightRegIdx());
-                    int regIdx = mulOpCode.getRegIdx();
-                    switch (left) {
-                        case Long l1 when right instanceof Long l2 -> writeLongToFrame(frame, regIdx, l1 * l2);
-                        case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 * d2);
-                        case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l * d);
-                        case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d * l);
-                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof SubOpCode subOpCode) {
+                Object left = getFromFrame(frame, subOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, subOpCode.getRightRegIdx());
+                int regIdx = subOpCode.getRegIdx();
+                switch (left) {
+                    case Long l1 when right instanceof Long l2 -> writeLongToFrame(frame, regIdx, l1 - l2);
+                    case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 - d2);
+                    case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l - d);
+                    case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d - l);
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
                 }
-                case DivOpCode divOpCode -> {
-                    Object left = getFromFrame(frame, divOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, divOpCode.getRightRegIdx());
-                    int regIdx = divOpCode.getRegIdx();
-                    switch (left) {
-                        case Long l1 when right instanceof Long l2 -> writeLongToFrame(frame, regIdx, l1 / l2);
-                        case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 / d2);
-                        case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l / d);
-                        case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d / l);
-                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof MulOpCode mulOpCode) {
+                Object left = getFromFrame(frame, mulOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, mulOpCode.getRightRegIdx());
+                int regIdx = mulOpCode.getRegIdx();
+                switch (left) {
+                    case Long l1 when right instanceof Long l2 -> writeLongToFrame(frame, regIdx, l1 * l2);
+                    case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 * d2);
+                    case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l * d);
+                    case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d * l);
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
                 }
-                case ModOpCode modOpCode -> {
-                    Object left = getFromFrame(frame, modOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, modOpCode.getRightRegIdx());
-                    int regIdx = modOpCode.getRegIdx();
-                    switch (left) {
-                        case Long l1 when right instanceof Long l2 -> writeLongToFrame(frame, regIdx, l1 % l2);
-                        case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 % d2);
-                        case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l % d);
-                        case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d % l);
-                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof DivOpCode divOpCode) {
+                Object left = getFromFrame(frame, divOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, divOpCode.getRightRegIdx());
+                int regIdx = divOpCode.getRegIdx();
+                switch (left) {
+                    case Long l1 when right instanceof Long l2 -> writeLongToFrame(frame, regIdx, l1 / l2);
+                    case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 / d2);
+                    case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l / d);
+                    case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d / l);
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
                 }
-                case AndOpCode andOpCode -> {
-                    Object left = getFromFrame(frame, andOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, andOpCode.getRightRegIdx());
-                    int regIdx = andOpCode.getRegIdx();
-                    if (left instanceof Boolean l1 && right instanceof Boolean l2) {
-                        writeBooleanToFrame(frame, regIdx, l1 && l2);
-                    } else {
-                        throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof ModOpCode modOpCode) {
+                Object left = getFromFrame(frame, modOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, modOpCode.getRightRegIdx());
+                int regIdx = modOpCode.getRegIdx();
+                switch (left) {
+                    case Long l1 when right instanceof Long l2 -> writeLongToFrame(frame, regIdx, l1 % l2);
+                    case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 % d2);
+                    case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l % d);
+                    case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d % l);
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
                 }
-                case OrOpCode orOpCode -> {
-                    Object left = getFromFrame(frame, orOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, orOpCode.getRightRegIdx());
-                    int regIdx = orOpCode.getRegIdx();
-                    if (left instanceof Boolean l1 && right instanceof Boolean l2) {
-                        writeBooleanToFrame(frame, regIdx, l1 || l2);
-                    } else {
-                        throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof AndOpCode andOpCode) {
+                Object left = getFromFrame(frame, andOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, andOpCode.getRightRegIdx());
+                int regIdx = andOpCode.getRegIdx();
+                if (left instanceof Boolean l1 && right instanceof Boolean l2) {
+                    writeBooleanToFrame(frame, regIdx, l1 && l2);
+                } else {
+                    throw CompilerDirectives.shouldNotReachHere();
                 }
-                case GTOpCode gtOpCode -> {
-                    Object left = getFromFrame(frame, gtOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, gtOpCode.getRightRegIdx());
-                    int regIdx = gtOpCode.getRegIdx();
-                    switch (left) {
-                        case Long l1 when right instanceof Long l2 -> writeBooleanToFrame(frame, regIdx, l1 > l2);
-                        case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 > d2);
-                        case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l > d);
-                        case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d > l);
-                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof OrOpCode orOpCode) {
+                Object left = getFromFrame(frame, orOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, orOpCode.getRightRegIdx());
+                int regIdx = orOpCode.getRegIdx();
+                if (left instanceof Boolean l1 && right instanceof Boolean l2) {
+                    writeBooleanToFrame(frame, regIdx, l1 || l2);
+                } else {
+                    throw CompilerDirectives.shouldNotReachHere();
                 }
-                case GTEOpCode gteOpCode -> {
-                    Object left = getFromFrame(frame, gteOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, gteOpCode.getRightRegIdx());
-                    int regIdx = gteOpCode.getRegIdx();
-                    switch (left) {
-                        case Long l1 when right instanceof Long l2 -> writeBooleanToFrame(frame, regIdx, l1 >= l2);
-                        case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 >= d2);
-                        case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l >= d);
-                        case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d >= l);
-                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof GTOpCode gtOpCode) {
+                Object left = getFromFrame(frame, gtOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, gtOpCode.getRightRegIdx());
+                int regIdx = gtOpCode.getRegIdx();
+                switch (left) {
+                    case Long l1 when right instanceof Long l2 -> writeBooleanToFrame(frame, regIdx, l1 > l2);
+                    case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 > d2);
+                    case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l > d);
+                    case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d > l);
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
                 }
-                case LTOpCode ltOpCode -> {
-                    Object left = getFromFrame(frame, ltOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, ltOpCode.getRightRegIdx());
-                    int regIdx = ltOpCode.getRegIdx();
-                    switch (left) {
-                        case Long l1 when right instanceof Long l2 -> writeBooleanToFrame(frame, regIdx, l1 < l2);
-                        case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 < d2);
-                        case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l < d);
-                        case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d < l);
-                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof GTEOpCode gteOpCode) {
+                Object left = getFromFrame(frame, gteOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, gteOpCode.getRightRegIdx());
+                int regIdx = gteOpCode.getRegIdx();
+                switch (left) {
+                    case Long l1 when right instanceof Long l2 -> writeBooleanToFrame(frame, regIdx, l1 >= l2);
+                    case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 >= d2);
+                    case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l >= d);
+                    case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d >= l);
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
                 }
-                case LTEOpCode lteOpCode -> {
-                    Object left = getFromFrame(frame, lteOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, lteOpCode.getRightRegIdx());
-                    int regIdx = lteOpCode.getRegIdx();
-                    switch (left) {
-                        case Long l1 when right instanceof Long l2 -> writeBooleanToFrame(frame, regIdx, l1 <= l2);
-                        case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 <= d2);
-                        case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l <= d);
-                        case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d <= l);
-                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof LTOpCode ltOpCode) {
+                Object left = getFromFrame(frame, ltOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, ltOpCode.getRightRegIdx());
+                int regIdx = ltOpCode.getRegIdx();
+                switch (left) {
+                    case Long l1 when right instanceof Long l2 -> writeBooleanToFrame(frame, regIdx, l1 < l2);
+                    case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 < d2);
+                    case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l < d);
+                    case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d < l);
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
                 }
-                case EQOpCode eqOpCode -> {
-                    Object left = getFromFrame(frame, eqOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, eqOpCode.getRightRegIdx());
-                    int regIdx = eqOpCode.getRegIdx();
-                    writeBooleanToFrame(frame, regIdx, left == right);
+            } else if (bytecode[bci] instanceof LTEOpCode lteOpCode) {
+                Object left = getFromFrame(frame, lteOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, lteOpCode.getRightRegIdx());
+                int regIdx = lteOpCode.getRegIdx();
+                switch (left) {
+                    case Long l1 when right instanceof Long l2 -> writeBooleanToFrame(frame, regIdx, l1 <= l2);
+                    case Double d1 when right instanceof Double d2 -> writeBooleanToFrame(frame, regIdx, d1 <= d2);
+                    case Long l when right instanceof Double d -> writeBooleanToFrame(frame, regIdx, l <= d);
+                    case Double d when right instanceof Long l -> writeBooleanToFrame(frame, regIdx, d <= l);
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
                 }
-                case RefEqOpCode refEqOpCode -> {
-                    Object left = getFromFrame(frame, refEqOpCode.getLeftRegIdx());
-                    Object right = getFromFrame(frame, refEqOpCode.getRightRegIdx());
-                    int regIdx = refEqOpCode.getRegIdx();
-                    writeBooleanToFrame(frame, regIdx, left == right);
+            } else if (bytecode[bci] instanceof EQOpCode eqOpCode) {
+                Object left = getFromFrame(frame, eqOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, eqOpCode.getRightRegIdx());
+                int regIdx = eqOpCode.getRegIdx();
+                writeBooleanToFrame(frame, regIdx, left == right);
+            } else if (bytecode[bci] instanceof RefEqOpCode refEqOpCode) {
+                Object left = getFromFrame(frame, refEqOpCode.getLeftRegIdx());
+                Object right = getFromFrame(frame, refEqOpCode.getRightRegIdx());
+                int regIdx = refEqOpCode.getRegIdx();
+                writeBooleanToFrame(frame, regIdx, left == right);
+            } else if (bytecode[bci] instanceof NegateOpCode negateOpCode) {
+                Object value = getFromFrame(frame, negateOpCode.getReceiverRegIdx());
+                int regIdx = negateOpCode.getRegIdx();
+                switch (value) {
+                    case Long l -> writeLongToFrame(frame, regIdx, -l);
+                    case Double d -> writeDoubleToFrame(frame, regIdx, -d);
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
                 }
-                case NegateOpCode negateOpCode -> {
-                    Object value = getFromFrame(frame, negateOpCode.getReceiverRegIdx());
-                    int regIdx = negateOpCode.getRegIdx();
-                    switch (value) {
-                        case Long l -> writeLongToFrame(frame, regIdx, -l);
-                        case Double d -> writeDoubleToFrame(frame, regIdx, -d);
-                        case null, default -> throw CompilerDirectives.shouldNotReachHere();
-                    }
+            } else if (bytecode[bci] instanceof NotOpCode notOpCode) {
+                Object value = getFromFrame(frame, notOpCode.getReceiverRegIdx());
+                int regIdx = notOpCode.getRegIdx();
+                if (value instanceof Boolean b) {
+                    writeBooleanToFrame(frame, regIdx, !b);
+                } else {
+                    throw CompilerDirectives.shouldNotReachHere("Unsupported not operation");
                 }
-                case NotOpCode notOpCode -> {
-                    Object value = getFromFrame(frame, notOpCode.getReceiverRegIdx());
-                    int regIdx = notOpCode.getRegIdx();
-                    if (value instanceof Boolean b) {
-                        writeBooleanToFrame(frame, regIdx, !b);
-                    } else {
-                        throw CompilerDirectives.shouldNotReachHere("Unsupported not operation");
-                    }
+            } else if (bytecode[bci] instanceof WriteFieldOpCode writeFieldOpCode) {
+                Object receiver = getFromFrame(frame, writeFieldOpCode.getReceiverRegIdx());
+                if (!(receiver instanceof NomObject nomObject)) {
+                    throw CompilerDirectives.shouldNotReachHere("Receiver is not an object");
                 }
-                case WriteFieldOpCode writeFieldOpCode -> {
-                    Object receiver = getFromFrame(frame, writeFieldOpCode.getReceiverRegIdx());
-                    if (!(receiver instanceof NomObject nomObject)) {
-                        throw CompilerDirectives.shouldNotReachHere("Receiver is not an object");
-                    }
-                    Object value = getFromFrame(frame, writeFieldOpCode.getArgRegIdx());
+                Object value = getFromFrame(frame, writeFieldOpCode.getArgRegIdx());
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                TruffleString fieldName = NomContext.constants.GetString(writeFieldOpCode.getNameId()).Value();
+                nomObject.writeMember(fieldName, value);
+            } else if (bytecode[bci] instanceof ReadFieldOpCode readFieldOpCode) {
+                Object receiver = getFromFrame(frame, readFieldOpCode.getReceiverRegIdx());
+                if (!(receiver instanceof NomObject nomObject)) {
+                    throw CompilerDirectives.shouldNotReachHere("Receiver is not an object");
+                }
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                TruffleString fieldName = NomContext.constants.GetString(readFieldOpCode.getNameId()).Value();
+                Object result;
+                try {
+                    result = nomObject.readMember(fieldName);
+                } catch (UnknownIdentifierException e) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    TruffleString fieldName = NomContext.constants.GetString(writeFieldOpCode.getNameId()).Value();
-                    nomObject.writeMember(fieldName, value);
+                    throw CompilerDirectives.shouldNotReachHere(e);
                 }
-                case ReadFieldOpCode readFieldOpCode -> {
-                    Object receiver = getFromFrame(frame, readFieldOpCode.getReceiverRegIdx());
-                    if (!(receiver instanceof NomObject nomObject)) {
-                        throw CompilerDirectives.shouldNotReachHere("Receiver is not an object");
-                    }
+                if (result == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    TruffleString fieldName = NomContext.constants.GetString(readFieldOpCode.getNameId()).Value();
-                    Object result;
-                    try {
-                        result = nomObject.readMember(fieldName);
-                    } catch (UnknownIdentifierException e) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        throw CompilerDirectives.shouldNotReachHere(e);
-                    }
-                    if (result == null) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        throw CompilerDirectives.shouldNotReachHere("Field not found: " + fieldName);
-                    }
-                    writeToFrame(frame, readFieldOpCode.getRegIdx(), result);
+                    throw CompilerDirectives.shouldNotReachHere("Field not found: " + fieldName);
                 }
-                case BranchOpCode branchOpCode -> {
-                    int exchangeCnt = branchOpCode.getIncomings().length;
+                writeToFrame(frame, readFieldOpCode.getRegIdx(), result);
+            } else if (bytecode[bci] instanceof BranchOpCode branchOpCode) {
+                int exchangeCnt = branchOpCode.getIncomings().length;
+                for (int i = 0; i < exchangeCnt; i++) {
+                    int src = branchOpCode.getIncomings()[i];
+                    int dst = branchOpCode.getOutgoings()[i];
+                    if (src >= argCount) {
+                        frame.copy(src - argCount, dst - argCount);
+                    } else {
+                        writeToFrame(frame, dst, getFromFrame(frame, src));
+                    }
+                }
+
+                nextBCI = branchOpCode.getTarget();
+            } else if (bytecode[bci] instanceof CondBranchOpCode condBranchOpCode) {
+                Object conditionObj = getFromFrame(frame, condBranchOpCode.getCondRegIdx());
+                if (!(conditionObj instanceof Boolean condition)) {
+                    throw CompilerDirectives.shouldNotReachHere("Condition is not a boolean");
+                }
+                if (condition) {
+                    int exchangeCnt = condBranchOpCode.getTrueIncomings().length;
                     for (int i = 0; i < exchangeCnt; i++) {
-                        int src = branchOpCode.getIncomings()[i];
-                        int dst = branchOpCode.getOutgoings()[i];
+                        int src = condBranchOpCode.getTrueIncomings()[i];
+                        int dst = condBranchOpCode.getTrueOutgoings()[i];
                         if (src >= argCount) {
                             frame.copy(src - argCount, dst - argCount);
                         } else {
@@ -467,55 +442,26 @@ public class BytecodeDispatchNode extends Node implements BytecodeOSRNode {
                         }
                     }
 
-                    nextBCI = branchOpCode.getTarget();
-                }
-                case CondBranchOpCode condBranchOpCode -> {
-                    Object conditionObj = getFromFrame(frame, condBranchOpCode.getCondRegIdx());
-                    if (!(conditionObj instanceof Boolean condition)) {
-                        throw CompilerDirectives.shouldNotReachHere("Condition is not a boolean");
-                    }
-                    if (condition) {
-                        int exchangeCnt = condBranchOpCode.getTrueIncomings().length;
-                        for (int i = 0; i < exchangeCnt; i++) {
-                            int src = condBranchOpCode.getTrueIncomings()[i];
-                            int dst = condBranchOpCode.getTrueOutgoings()[i];
-                            if (src >= argCount) {
-                                frame.copy(src - argCount, dst - argCount);
-                            } else {
-                                writeToFrame(frame, dst, getFromFrame(frame, src));
-                            }
+                    nextBCI = condBranchOpCode.getTrueTarget();
+                } else {
+                    int exchangeCnt = condBranchOpCode.getFalseIncomings().length;
+                    for (int i = 0; i < exchangeCnt; i++) {
+                        int src = condBranchOpCode.getFalseIncomings()[i];
+                        int dst = condBranchOpCode.getFalseOutgoings()[i];
+                        if (src >= argCount) {
+                            frame.copy(src - argCount, dst - argCount);
+                        } else {
+                            writeToFrame(frame, dst, getFromFrame(frame, src));
                         }
-
-                        nextBCI = condBranchOpCode.getTrueTarget();
-                    } else {
-                        int exchangeCnt = condBranchOpCode.getFalseIncomings().length;
-                        for (int i = 0; i < exchangeCnt; i++) {
-                            int src = condBranchOpCode.getFalseIncomings()[i];
-                            int dst = condBranchOpCode.getFalseOutgoings()[i];
-                            if (src >= argCount) {
-                                frame.copy(src - argCount, dst - argCount);
-                            } else {
-                                writeToFrame(frame, dst, getFromFrame(frame, src));
-                            }
-                        }
-
-                        nextBCI = condBranchOpCode.getFalseTarget();
                     }
+
+                    nextBCI = condBranchOpCode.getFalseTarget();
                 }
-                case PhiOpCode phiOpCode -> {
-                }
-                case null, default -> CompilerDirectives.shouldNotReachHere();
+            } else if (bytecode[bci] instanceof PhiOpCode) {
+            } else {
+                CompilerDirectives.shouldNotReachHere();
             }
 
-
-            if (nextBCI < bci) { // back-edge
-                if (BytecodeOSRNode.pollOSRBackEdge(this)) { // OSR can be tried
-                    Object result = BytecodeOSRNode.tryOSR(this, nextBCI, null, null, frame);
-                    if (result != null) { // OSR was performed
-                        return result;
-                    }
-                }
-            }
             bci = nextBCI;
         }
 
