@@ -19,9 +19,9 @@ import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
 import com.nom.graalnom.runtime.nodes.expression.binary.*;
 import com.nom.graalnom.runtime.nodes.expression.literal.*;
 import com.nom.graalnom.runtime.nodes.expression.object.NomNewObjectNode;
-import com.nom.graalnom.runtime.nodes.expression.object.NomReadFieldNodeGen;
-import com.nom.graalnom.runtime.nodes.expression.object.NomWriteFieldNodeGen;
 
+import com.nom.graalnom.runtime.nodes.expression.object.NomReadFieldNode;
+import com.nom.graalnom.runtime.nodes.expression.object.NomWriteFieldNode;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNegateNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNotNodeGen;
 import com.nom.graalnom.runtime.nodes.local.*;
@@ -380,10 +380,10 @@ public class ByteCodeReader {
                 int value = s.readInt();//arg
                 long fieldName = GetGlobalId(constants, s.readLong());//stringconstant
                 long receiverType = GetGlobalId(constants, s.readLong());//classconstant
-                return NomWriteFieldNodeGen.create(
+                return new NomWriteFieldNode(
                         ReadFromFrame(curMethodArgCount, receiverRegIndex),
-                        new NomStringLiteralNode(NomContext.constants.GetString(fieldName).Value()),
-                        ReadFromFrame(curMethodArgCount, value));
+                        ReadFromFrame(curMethodArgCount, value),
+                        NomContext.constants.GetString(fieldName).Value());
             }
             case ReadField -> {
                 regIndex = s.readInt();
@@ -391,8 +391,8 @@ public class ByteCodeReader {
                 long fieldName = GetGlobalId(constants, s.readLong());
                 long receiverType = GetGlobalId(constants, s.readLong());
                 return WriteToFrame(curMethodArgCount, regIndex,
-                        NomReadFieldNodeGen.create(ReadFromFrame(curMethodArgCount, receiverRegIndex),
-                                new NomStringLiteralNode(NomContext.constants.GetString(fieldName).Value())));
+                        new NomReadFieldNode(ReadFromFrame(curMethodArgCount, receiverRegIndex),
+                                NomContext.constants.GetString(fieldName).Value()));
             }
             case PhiNode -> {
                 int incoming = s.readInt();// how many branches jumps here
