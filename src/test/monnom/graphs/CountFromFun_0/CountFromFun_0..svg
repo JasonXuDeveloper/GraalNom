@@ -18,15 +18,15 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="244.25,-145.5 97.75,-145.5 97.75,-88 244.25,-88 244.25,-145.5"/>
-<text text-anchor="middle" x="171" y="-128.2" font-family="Times,serif" font-size="14.00">reg[0] = arg[0].N</text>
-<text text-anchor="middle" x="171" y="-111.7" font-family="Times,serif" font-size="14.00">reg[1] = 1</text>
-<text text-anchor="middle" x="171" y="-95.2" font-family="Times,serif" font-size="14.00">reg[2] = reg[0] + reg[1]</text>
+<text text-anchor="middle" x="171" y="-128.2" font-family="Times,serif" font-size="14.00">reg[1] = reg[0].N</text>
+<text text-anchor="middle" x="171" y="-111.7" font-family="Times,serif" font-size="14.00">reg[2] = 1</text>
+<text text-anchor="middle" x="171" y="-95.2" font-family="Times,serif" font-size="14.00">reg[3] = reg[1] + reg[2]</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">
 <title>b0_ret</title>
 <ellipse fill="none" stroke="black" cx="171" cy="-34" rx="155.25" ry="18"/>
-<text text-anchor="middle" x="171" y="-28.95" font-family="Times,serif" font-size="14.00">return SieveTest_0.CountFrom(reg[2])</text>
+<text text-anchor="middle" x="171" y="-28.95" font-family="Times,serif" font-size="14.00">return SieveTest_0.CountFrom(reg[3])</text>
 </g>
 <!-- b0_l0&#45;&gt;b0_ret -->
 <g id="edge1" class="edge">

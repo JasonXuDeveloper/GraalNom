@@ -1,7 +1,7 @@
 digraph {
   rankdir=TB;
   b0_l0 -> b0_ret
-  b0_l0 [label="reg[0] = Base_0.GetX(arg[0])\nreg[1] = 1\nreg[2] = reg[0] + reg[1]\nreg[3] = Base_0.SetX(arg[0], reg[2])\nreg[4] = arg[0].y\nreg[5] = Print(reg[4])\n", shape=box]
+  b0_l0 [label="reg[1] = Base_0.GetX(reg[0])\nreg[2] = 1\nreg[3] = reg[1] + reg[2]\nreg[4] = Base_0.SetX(reg[0], reg[3])\nreg[5] = reg[0].y\nreg[6] = Print(reg[5])\n", shape=box]
   b0_ret [label="return "]
   subgraph cluster_b0 {
     label = "blk0";

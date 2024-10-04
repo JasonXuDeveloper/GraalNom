@@ -18,12 +18,12 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="233.88,-195 16.12,-195 16.12,-88 233.88,-88 233.88,-195"/>
-<text text-anchor="middle" x="125" y="-177.7" font-family="Times,serif" font-size="14.00">reg[0] = Base_0.GetX(arg[0])</text>
-<text text-anchor="middle" x="125" y="-161.2" font-family="Times,serif" font-size="14.00">reg[1] = 1</text>
-<text text-anchor="middle" x="125" y="-144.7" font-family="Times,serif" font-size="14.00">reg[2] = reg[0] + reg[1]</text>
-<text text-anchor="middle" x="125" y="-128.2" font-family="Times,serif" font-size="14.00">reg[3] = Base_0.SetX(arg[0], reg[2])</text>
-<text text-anchor="middle" x="125" y="-111.7" font-family="Times,serif" font-size="14.00">reg[4] = arg[0].y</text>
-<text text-anchor="middle" x="125" y="-95.2" font-family="Times,serif" font-size="14.00">reg[5] = Print(reg[4])</text>
+<text text-anchor="middle" x="125" y="-177.7" font-family="Times,serif" font-size="14.00">reg[1] = Base_0.GetX(reg[0])</text>
+<text text-anchor="middle" x="125" y="-161.2" font-family="Times,serif" font-size="14.00">reg[2] = 1</text>
+<text text-anchor="middle" x="125" y="-144.7" font-family="Times,serif" font-size="14.00">reg[3] = reg[1] + reg[2]</text>
+<text text-anchor="middle" x="125" y="-128.2" font-family="Times,serif" font-size="14.00">reg[4] = Base_0.SetX(reg[0], reg[3])</text>
+<text text-anchor="middle" x="125" y="-111.7" font-family="Times,serif" font-size="14.00">reg[5] = reg[0].y</text>
+<text text-anchor="middle" x="125" y="-95.2" font-family="Times,serif" font-size="14.00">reg[6] = Print(reg[5])</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">

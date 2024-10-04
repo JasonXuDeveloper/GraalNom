@@ -18,7 +18,7 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <ellipse fill="none" stroke="black" cx="148" cy="-34" rx="131.71" ry="18"/>
-<text text-anchor="middle" x="148" y="-28.95" font-family="Times,serif" font-size="14.00">return IInterface_0.GetX(arg[0])</text>
+<text text-anchor="middle" x="148" y="-28.95" font-family="Times,serif" font-size="14.00">return IInterface_0.GetX(reg[0])</text>
 </g>
 </g>
 </svg>

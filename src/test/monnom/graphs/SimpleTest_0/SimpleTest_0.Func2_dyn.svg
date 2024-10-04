@@ -18,17 +18,17 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="317.5,-178.5 16.5,-178.5 16.5,-88 317.5,-88 317.5,-178.5"/>
-<text text-anchor="middle" x="167" y="-161.2" font-family="Times,serif" font-size="14.00">(Int_0) arg[1]</text>
-<text text-anchor="middle" x="167" y="-144.7" font-family="Times,serif" font-size="14.00">(Int_0) arg[2]</text>
-<text text-anchor="middle" x="167" y="-128.2" font-family="Times,serif" font-size="14.00">reg[0] = 0</text>
-<text text-anchor="middle" x="167" y="-111.7" font-family="Times,serif" font-size="14.00">reg[1] = SimpleTest_0.Func3(reg[0], arg[0], arg[1])</text>
-<text text-anchor="middle" x="167" y="-95.2" font-family="Times,serif" font-size="14.00">reg[2] = arg[0] / arg[1]</text>
+<text text-anchor="middle" x="167" y="-161.2" font-family="Times,serif" font-size="14.00">(Int_0) reg[1]</text>
+<text text-anchor="middle" x="167" y="-144.7" font-family="Times,serif" font-size="14.00">(Int_0) reg[2]</text>
+<text text-anchor="middle" x="167" y="-128.2" font-family="Times,serif" font-size="14.00">reg[2] = 0</text>
+<text text-anchor="middle" x="167" y="-111.7" font-family="Times,serif" font-size="14.00">reg[3] = SimpleTest_0.Func3(reg[2], reg[0], reg[1])</text>
+<text text-anchor="middle" x="167" y="-95.2" font-family="Times,serif" font-size="14.00">reg[4] = reg[0] / reg[1]</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">
 <title>b0_ret</title>
 <ellipse fill="none" stroke="black" cx="167" cy="-34" rx="93.83" ry="18"/>
-<text text-anchor="middle" x="167" y="-28.95" font-family="Times,serif" font-size="14.00">return reg[2] % arg[1]</text>
+<text text-anchor="middle" x="167" y="-28.95" font-family="Times,serif" font-size="14.00">return reg[4] % reg[1]</text>
 </g>
 <!-- b0_l0&#45;&gt;b0_ret -->
 <g id="edge1" class="edge">

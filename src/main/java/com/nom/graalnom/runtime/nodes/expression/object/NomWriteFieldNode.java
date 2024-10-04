@@ -19,10 +19,6 @@ public abstract class NomWriteFieldNode extends NomExpressionNode {
 
     public abstract NomExpressionNode getValueNode();
 
-    static final int LIBRARY_LIMIT = 100;
-
-
-    @Specialization(limit = "LIBRARY_LIMIT")
     protected static Object writeNomObject(NomObject receiver, String name, Object value) {
         receiver.writeMember(name, value);
         return receiver;

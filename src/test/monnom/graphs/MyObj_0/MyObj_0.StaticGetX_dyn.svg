@@ -18,13 +18,13 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="211.88,-124 84.12,-124 84.12,-88 211.88,-88 211.88,-124"/>
-<text text-anchor="middle" x="148" y="-100.95" font-family="Times,serif" font-size="14.00">(IInterface_0) arg[1]</text>
+<text text-anchor="middle" x="148" y="-100.95" font-family="Times,serif" font-size="14.00">(IInterface_0) reg[1]</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">
 <title>b0_ret</title>
 <ellipse fill="none" stroke="black" cx="148" cy="-34" rx="131.71" ry="18"/>
-<text text-anchor="middle" x="148" y="-28.95" font-family="Times,serif" font-size="14.00">return IInterface_0.GetX(arg[0])</text>
+<text text-anchor="middle" x="148" y="-28.95" font-family="Times,serif" font-size="14.00">return IInterface_0.GetX(reg[0])</text>
 </g>
 <!-- b0_l0&#45;&gt;b0_ret -->
 <g id="edge1" class="edge">

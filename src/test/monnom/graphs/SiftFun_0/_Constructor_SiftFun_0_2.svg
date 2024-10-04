@@ -18,14 +18,14 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="136,-129 24.75,-129 24.75,-88 136,-88 136,-129"/>
-<text text-anchor="middle" x="80.38" y="-111.7" font-family="Times,serif" font-size="14.00">arg[0].N = arg[1]</text>
-<text text-anchor="middle" x="80.38" y="-95.2" font-family="Times,serif" font-size="14.00">arg[0].S = arg[2]</text>
+<text text-anchor="middle" x="80.38" y="-111.7" font-family="Times,serif" font-size="14.00">reg[0].N = reg[1]</text>
+<text text-anchor="middle" x="80.38" y="-95.2" font-family="Times,serif" font-size="14.00">reg[0].S = reg[2]</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">
 <title>b0_ret</title>
 <ellipse fill="none" stroke="black" cx="80.38" cy="-34" rx="58" ry="18"/>
-<text text-anchor="middle" x="80.38" y="-28.95" font-family="Times,serif" font-size="14.00">return arg[0]</text>
+<text text-anchor="middle" x="80.38" y="-28.95" font-family="Times,serif" font-size="14.00">return reg[0]</text>
 </g>
 <!-- b0_l0&#45;&gt;b0_ret -->
 <g id="edge1" class="edge">

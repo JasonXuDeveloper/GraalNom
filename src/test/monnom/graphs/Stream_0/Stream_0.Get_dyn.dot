@@ -2,20 +2,20 @@ digraph {
   rankdir=TB;
   b0_l0 -> b0_jmp
   b0_jmp -> b1_l0
-  b0_l0 [label="(Stream_0) arg[1]\n(Int_0) arg[2]\n", shape=box]
-  b0_jmp [label="reg[6] = arg[1]\nreg[7] = arg[0]\n", shape=box]
+  b0_l0 [label="(Stream_0) reg[1]\n(Int_0) reg[2]\n", shape=box]
+  b0_jmp [label="reg[8] = reg[1]\nreg[9] = reg[0]\n", shape=box]
   subgraph cluster_b0 {
     label = "blk0";
     b0_l0;
     b0_jmp;
   }
   b1_l0 -> b1_cond
-  b1_cond [label="reg[6] > reg[0]", shape=diamond]
+  b1_cond [label="reg[8] > reg[2]", shape=diamond]
   b1_cond -> b2_l0 [label="true"]
   b1_cond -> b1_false [label="false"]
   b1_false -> b3_l0 
-  b1_l0 [label="reg[0] = 0\n", shape=box]
-  b1_false [label="reg[8] = reg[6]\nreg[9] = reg[7]\n", shape=box]
+  b1_l0 [label="reg[2] = 0\n", shape=box]
+  b1_false [label="reg[10] = reg[8]\nreg[11] = reg[9]\n", shape=box]
   subgraph cluster_b1 {
     label = "blk1";
     b1_l0;
@@ -24,14 +24,14 @@ digraph {
   }
   b2_l0 -> b2_jmp
   b2_jmp -> b1_l0
-  b2_l0 [label="reg[2] = 1\nreg[3] = reg[6] - reg[2]\nreg[4] = reg[7].Rest\nreg[5] = IFun_1.(reg[4])\n", shape=box]
-  b2_jmp [label="reg[6] = reg[3]\nreg[7] = reg[5]\n", shape=box]
+  b2_l0 [label="reg[4] = 1\nreg[5] = reg[8] - reg[4]\nreg[6] = reg[9].Rest\nreg[7] = IFun_1.(reg[6])\n", shape=box]
+  b2_jmp [label="reg[8] = reg[5]\nreg[9] = reg[7]\n", shape=box]
   subgraph cluster_b2 {
     label = "blk2";
     b2_l0;
     b2_jmp;
   }
-  b3_l0 [label="return reg[9].First"]
+  b3_l0 [label="return reg[11].First"]
   subgraph cluster_b3 {
     label = "blk3";
     b3_l0;

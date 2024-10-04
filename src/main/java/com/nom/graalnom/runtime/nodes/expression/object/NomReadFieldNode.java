@@ -18,9 +18,6 @@ public abstract class NomReadFieldNode extends NomExpressionNode {
 
     public abstract NomStringLiteralNode getNameNode();
 
-    static final int LIBRARY_LIMIT = 3;
-
-    @Specialization(limit = "LIBRARY_LIMIT")
     protected Object readNomObject(NomObject receiver, String name) {
         Object result = null;
         try {

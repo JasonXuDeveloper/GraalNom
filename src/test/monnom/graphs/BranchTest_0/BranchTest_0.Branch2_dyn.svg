@@ -33,15 +33,15 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="402.12,-353 311.88,-353 311.88,-295.5 402.12,-295.5 402.12,-353"/>
-<text text-anchor="middle" x="357" y="-335.7" font-family="Times,serif" font-size="14.00">(Int_0) arg[1]</text>
-<text text-anchor="middle" x="357" y="-319.2" font-family="Times,serif" font-size="14.00">(Int_0) arg[2]</text>
-<text text-anchor="middle" x="357" y="-302.7" font-family="Times,serif" font-size="14.00">(Int_0) arg[3]</text>
+<text text-anchor="middle" x="357" y="-335.7" font-family="Times,serif" font-size="14.00">(Int_0) reg[1]</text>
+<text text-anchor="middle" x="357" y="-319.2" font-family="Times,serif" font-size="14.00">(Int_0) reg[2]</text>
+<text text-anchor="middle" x="357" y="-302.7" font-family="Times,serif" font-size="14.00">(Int_0) reg[3]</text>
 </g>
 <!-- b0_cond -->
 <g id="node2" class="node">
 <title>b0_cond</title>
 <polygon fill="none" stroke="black" points="357,-258.5 262.66,-240.5 357,-222.5 451.34,-240.5 357,-258.5"/>
-<text text-anchor="middle" x="357" y="-235.45" font-family="Times,serif" font-size="14.00">arg[0] &gt; arg[1]</text>
+<text text-anchor="middle" x="357" y="-235.45" font-family="Times,serif" font-size="14.00">reg[0] &gt; reg[1]</text>
 </g>
 <!-- b0_l0&#45;&gt;b0_cond -->
 <g id="edge1" class="edge">
@@ -53,7 +53,7 @@
 <g id="node3" class="node">
 <title>b1_l0</title>
 <polygon fill="none" stroke="black" points="329.5,-147.5 16.5,-147.5 16.5,-111.5 329.5,-111.5 329.5,-147.5"/>
-<text text-anchor="middle" x="173" y="-124.45" font-family="Times,serif" font-size="14.00">reg[1] = BranchTest_0.Branch1(arg[0], arg[1], arg[2])</text>
+<text text-anchor="middle" x="173" y="-124.45" font-family="Times,serif" font-size="14.00">reg[4] = BranchTest_0.Branch1(reg[0], reg[1], reg[2])</text>
 </g>
 <!-- b0_cond&#45;&gt;b1_l0 -->
 <g id="edge2" class="edge">
@@ -79,7 +79,7 @@
 <g id="node5" class="node">
 <title>b1_ret</title>
 <ellipse fill="none" stroke="black" cx="173" cy="-34" rx="61.08" ry="18"/>
-<text text-anchor="middle" x="173" y="-28.95" font-family="Times,serif" font-size="14.00">return !reg[1]</text>
+<text text-anchor="middle" x="173" y="-28.95" font-family="Times,serif" font-size="14.00">return !reg[4]</text>
 </g>
 <!-- b1_l0&#45;&gt;b1_ret -->
 <g id="edge4" class="edge">
@@ -91,7 +91,7 @@
 <g id="node6" class="node">
 <title>b3_l0</title>
 <ellipse fill="none" stroke="black" cx="559" cy="-34" rx="204.89" ry="18"/>
-<text text-anchor="middle" x="559" y="-28.95" font-family="Times,serif" font-size="14.00">return BranchTest_0.Branch1(arg[0], arg[1], arg[2])</text>
+<text text-anchor="middle" x="559" y="-28.95" font-family="Times,serif" font-size="14.00">return BranchTest_0.Branch1(reg[0], reg[1], reg[2])</text>
 </g>
 <!-- b2_l0&#45;&gt;b3_l0 -->
 <g id="edge5" class="edge">

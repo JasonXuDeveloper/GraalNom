@@ -1,7 +1,7 @@
 digraph {
   rankdir=TB;
   b0_l0 -> b0_ret
-  b0_l0 [label="reg[0] = new Timer_0()\nreg[1] = SieveTest_0.GetPrimes()\nreg[2] = 999\nreg[3] = Stream_0.Get(reg[1], reg[2])\nreg[4] = PrintDifference(reg[0])\nreg[5] = '
+  b0_l0 [label="reg[0] = new Timer_0()\nreg[1] = SieveTest_0.GetPrimes()\nreg[2] = 9999\nreg[3] = Stream_0.Get(reg[1], reg[2])\nreg[4] = PrintDifference(reg[0])\nreg[5] = '
 '\nreg[6] = Print(reg[5])\nreg[7] = ToString(reg[3])\nreg[8] = Print(reg[7])\nreg[9] = '
 '\nreg[10] = Print(reg[9])\n", shape=box]
   b0_ret [label="return "]

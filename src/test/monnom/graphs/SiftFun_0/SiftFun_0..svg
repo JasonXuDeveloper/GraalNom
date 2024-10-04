@@ -18,15 +18,15 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="267.75,-145.5 142.25,-145.5 142.25,-88 267.75,-88 267.75,-145.5"/>
-<text text-anchor="middle" x="205" y="-128.2" font-family="Times,serif" font-size="14.00">reg[0] = arg[0].N</text>
-<text text-anchor="middle" x="205" y="-111.7" font-family="Times,serif" font-size="14.00">reg[1] = arg[0].S</text>
-<text text-anchor="middle" x="205" y="-95.2" font-family="Times,serif" font-size="14.00">reg[2] = reg[1].Rest</text>
+<text text-anchor="middle" x="205" y="-128.2" font-family="Times,serif" font-size="14.00">reg[1] = reg[0].N</text>
+<text text-anchor="middle" x="205" y="-111.7" font-family="Times,serif" font-size="14.00">reg[2] = reg[0].S</text>
+<text text-anchor="middle" x="205" y="-95.2" font-family="Times,serif" font-size="14.00">reg[3] = reg[2].Rest</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">
 <title>b0_ret</title>
 <ellipse fill="none" stroke="black" cx="205" cy="-34" rx="188.52" ry="18"/>
-<text text-anchor="middle" x="205" y="-28.95" font-family="Times,serif" font-size="14.00">return SieveTest_0.Sift(reg[0], IFun_1.(reg[2]))</text>
+<text text-anchor="middle" x="205" y="-28.95" font-family="Times,serif" font-size="14.00">return SieveTest_0.Sift(reg[1], IFun_1.(reg[3]))</text>
 </g>
 <!-- b0_l0&#45;&gt;b0_ret -->
 <g id="edge1" class="edge">

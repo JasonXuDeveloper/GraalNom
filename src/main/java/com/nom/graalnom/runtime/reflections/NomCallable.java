@@ -10,8 +10,6 @@ import com.nom.graalnom.runtime.nodes.controlflow.NomBasicBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomEndOfBasicBlockNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.nom.graalnom.runtime.nodes.expression.NomCastNode;
-
-import com.nom.graalnom.runtime.nodes.local.NomReadArgumentNode;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 
 import java.util.ArrayList;
@@ -113,7 +111,7 @@ public class NomCallable {
             for (int j = 0; j < types.size(); j++) {
                 long i = types.get(j);
                 int typeId = (int) i;
-                newNodes[j] = new NomCastNode(new NomReadArgumentNode(1 + j), typeId);
+                newNodes[j] = new NomCastNode(1 + j, typeId);
             }
             //copy the rest of the nodes
             System.arraycopy(firstBlock.bodyNodes, 0, newNodes, types.size(), firstBlock.bodyNodes.length);

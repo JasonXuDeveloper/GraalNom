@@ -18,7 +18,7 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <ellipse fill="none" stroke="black" cx="81" cy="-34" rx="65.17" ry="18"/>
-<text text-anchor="middle" x="81" y="-28.95" font-family="Times,serif" font-size="14.00">return arg[0].x</text>
+<text text-anchor="middle" x="81" y="-28.95" font-family="Times,serif" font-size="14.00">return reg[0].x</text>
 </g>
 </g>
 </svg>

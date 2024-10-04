@@ -373,7 +373,7 @@ public class ByteCodeReader {
                 long typeId = GetGlobalId(constants, s.readLong());
                 //assuming compiler DOES check on the types so that the cast
                 //object is always an instance under the type with typeId
-                return WriteToFrame(curMethodArgCount, regIndex, new NomCastNode(ReadFromFrame(curMethodArgCount, value), (int) typeId));
+                return WriteToFrame(curMethodArgCount, regIndex, new NomCastNode(value, (int) typeId));
             }
             case WriteField -> {
                 receiverRegIndex = s.readInt();//this
@@ -461,16 +461,10 @@ public class ByteCodeReader {
     }
 
     private static NomExpressionNode ReadFromFrame(int methodArgCnt, int index) {
-        if (index < methodArgCnt) {
-            return new NomReadArgumentNode(index);
-        }
-        index -= methodArgCnt;
-
         return NomReadRegisterNodeGen.create(index);
     }
 
     public static NomStatementNode WriteToFrame(int methodArgCnt, int index, NomExpressionNode value) {
-        index -= methodArgCnt;
         return new NomWriteRegisterNode(index, value);
     }
 
@@ -591,9 +585,9 @@ public class ByteCodeReader {
         }
         args.clear();
         if (superArgCount > 0) {
-            args.add(new NomReadArgumentNode(0));
+            args.add(NomReadRegisterNodeGen.create(0));
             while (superArgCount > 0) {
-                args.add(new NomReadArgumentNode(s.readInt()));
+                args.add(NomReadRegisterNodeGen.create(s.readInt()));
                 superArgCount--;
             }
             if (!args.isEmpty()) {
@@ -613,7 +607,7 @@ public class ByteCodeReader {
             instructionCount--;
             ctor.AddInstruction(instr);
         }
-        ctor.AddInstruction(new NomReturnNode(new NomReadArgumentNode(0)));
+        ctor.AddInstruction(new NomReturnNode(NomReadRegisterNodeGen.create(0)));
     }
 
     public static void ReadField(LittleEndianDataInputStream s, NomClass cls, Map<Long, Long> constants) throws Exception {

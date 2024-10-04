@@ -47,6 +47,7 @@ import com.nom.graalnom.runtime.datatypes.NomNull;
 import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -87,19 +88,16 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
     }
 
     public static int depth = -1;
-    public static Object[][] argsMap = new Object[256][];
     public static Object[][] regsMap = new Object[256][];
-
-    public static Object[] getArgs() {
-        return argsMap[depth];
-    }
 
     public static Object[] getRegs() {
         return regsMap[depth];
     }
 
+    @CompilerDirectives.TruffleBoundary
     public static void enterScope(int regSize, Object[] args) {
         depth++;
+        regSize += args.length;
         if (regsMap.length <= depth) {
             Object[][] newRegsMap = new Object[depth * 2][];
             System.arraycopy(regsMap, 0, newRegsMap, 0, depth);
@@ -109,12 +107,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
             Object[] newRegs = new Object[regSize * 2];
             regsMap[depth] = newRegs;
         }
-        if (argsMap.length <= depth) {
-            Object[][] newArgsMap = new Object[depth * 2][];
-            System.arraycopy(argsMap, 0, newArgsMap, 0, depth);
-            argsMap = newArgsMap;
-        }
-        argsMap[depth] = args;
+        System.arraycopy(args, 0, regsMap[depth], 0, args.length);
     }
 
     public record TailResult(NomFunctionBodyNode functionBodyNode, Object[] args) {
@@ -126,7 +119,7 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
     }
 
     @Override
-    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
+    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.MERGE_EXPLODE)
     public Object executeGeneric(VirtualFrame frame) {
         int curIndex = 0;
         /* Execute the function body. */

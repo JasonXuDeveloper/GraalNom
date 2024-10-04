@@ -63,6 +63,10 @@ public class NomObject {
 
     public final Map<String, Object> objectMap = new java.util.HashMap<>();
 
+    public boolean containsMember(String name) {
+        return objectMap.containsKey(name);
+    }
+
     public Object readMember(String name)
             throws UnknownIdentifierException {
         Object result = objectMap.get(name);

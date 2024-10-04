@@ -18,8 +18,8 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="124.12,-129 15.88,-129 15.88,-88 124.12,-88 124.12,-129"/>
-<text text-anchor="middle" x="70" y="-111.7" font-family="Times,serif" font-size="14.00">(Int_0) arg[1]</text>
-<text text-anchor="middle" x="70" y="-95.2" font-family="Times,serif" font-size="14.00">arg[0].x = arg[1]</text>
+<text text-anchor="middle" x="70" y="-111.7" font-family="Times,serif" font-size="14.00">(Int_0) reg[1]</text>
+<text text-anchor="middle" x="70" y="-95.2" font-family="Times,serif" font-size="14.00">reg[0].x = reg[1]</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">

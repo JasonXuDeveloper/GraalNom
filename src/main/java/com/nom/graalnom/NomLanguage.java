@@ -14,7 +14,7 @@ import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.nom.graalnom.runtime.nodes.controlflow.NomReturnNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
-import com.nom.graalnom.runtime.nodes.local.NomReadArgumentNode;
+import com.nom.graalnom.runtime.nodes.local.NomReadRegisterNodeGen;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.oracle.truffle.api.CallTarget;
@@ -250,7 +250,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
          * from this array.
          */
         for (int i = 0; i < argumentCount; i++) {
-            argumentNodes[i] = new NomReadArgumentNode(i);
+            argumentNodes[i] = NomReadRegisterNodeGen.create(i);
         }
         /* Instantiate the builtin node. This node performs the actual functionality. */
         NomBuiltinNode builtinBodyNode = factory.createNode((Object) argumentNodes);

@@ -71,7 +71,6 @@ import java.util.function.Function;
  * target function} can be computed by an arbitrary expression. This node is responsible for
  * evaluating this expression, as well as evaluating the {@link #argumentNodes arguments}. The
  * actual invocation is delegated to a {@link InteropLibrary} instance.
- *
  */
 @NodeInfo(shortName = "invoke")
 @GenerateInline
@@ -131,26 +130,29 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         if (func != null) return func;
 
         if (instanceMethodCall && argumentValues[0] instanceof NomObject obj) {
-            if (funcName.endsWith("."))
-                return obj.thisFunction;
-            NomFunction f;
-            f = obj.GetFunction(Objects.requireNonNullElse(dynName, funcName));
-            if (f == null && obj.GetClass() != null) {
-                Object member;
-                try {
-                    member = obj.readMember(funcName);
-                } catch (UnknownIdentifierException e) {
-                    throw new RuntimeException(e);
-                }
-                if (member instanceof NomObject memObj) {
-                    if(memObj.thisFunction != null){
-                        f = memObj.thisFunction;
-                        argumentValues[0] = memObj;
+            if (!funcName.isEmpty() && funcName.charAt(funcName.length() - 1) == '.') {
+                func = obj.thisFunction;
+                return func;
+            }
+            NomFunction f = obj.GetFunction(Objects.requireNonNullElse(dynName, funcName));
+            if (f == null) {
+                if (obj.GetClass() != null) {
+                    if (obj.containsMember(funcName)) {
+                        try {
+                            Object member = obj.readMember(funcName);
+                            if (member instanceof NomObject memObj) {
+                                if (memObj.thisFunction != null) {
+                                    f = memObj.thisFunction;
+                                    argumentValues[0] = memObj;
+                                    return f;
+                                }
+                            }
+                        } catch (UnknownIdentifierException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 }
-            }
-
-            if (f != null) {
+            } else {
                 return f;
             }
         }

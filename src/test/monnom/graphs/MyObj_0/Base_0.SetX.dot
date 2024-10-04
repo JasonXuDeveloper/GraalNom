@@ -1,7 +1,7 @@
 digraph {
   rankdir=TB;
   b0_l0 -> b0_ret
-  b0_l0 [label="arg[0].x = arg[1]\n", shape=box]
+  b0_l0 [label="reg[0].x = reg[1]\n", shape=box]
   b0_ret [label="return "]
   subgraph cluster_b0 {
     label = "blk0";

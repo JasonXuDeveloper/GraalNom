@@ -18,7 +18,7 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <ellipse fill="none" stroke="black" cx="501" cy="-34" rx="484.85" ry="18"/>
-<text text-anchor="middle" x="501" y="-28.95" font-family="Times,serif" font-size="14.00">return _Constructor_Stream_0_2(new Stream_0(), arg[0], _Constructor_CountFromFun_0_1(new CountFromFun_0(), arg[0]))</text>
+<text text-anchor="middle" x="501" y="-28.95" font-family="Times,serif" font-size="14.00">return _Constructor_Stream_0_2(new Stream_0(), reg[0], _Constructor_CountFromFun_0_1(new CountFromFun_0(), reg[0]))</text>
 </g>
 </g>
 </svg>

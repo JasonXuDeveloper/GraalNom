@@ -18,14 +18,14 @@
 <g id="node1" class="node">
 <title>b0_l0</title>
 <polygon fill="none" stroke="black" points="546.12,-129 419.88,-129 419.88,-88 546.12,-88 546.12,-129"/>
-<text text-anchor="middle" x="483" y="-111.7" font-family="Times,serif" font-size="14.00">(Stream_0) arg[1]</text>
-<text text-anchor="middle" x="483" y="-95.2" font-family="Times,serif" font-size="14.00">reg[0] = arg[0].First</text>
+<text text-anchor="middle" x="483" y="-111.7" font-family="Times,serif" font-size="14.00">(Stream_0) reg[1]</text>
+<text text-anchor="middle" x="483" y="-95.2" font-family="Times,serif" font-size="14.00">reg[1] = reg[0].First</text>
 </g>
 <!-- b0_ret -->
 <g id="node2" class="node">
 <title>b0_ret</title>
 <ellipse fill="none" stroke="black" cx="483" cy="-34" rx="467.45" ry="18"/>
-<text text-anchor="middle" x="483" y="-28.95" font-family="Times,serif" font-size="14.00">return _Constructor_Stream_0_2(new Stream_0(), reg[0], _Constructor_SieveFun_0_2(new SieveFun_0(), reg[0], arg[0]))</text>
+<text text-anchor="middle" x="483" y="-28.95" font-family="Times,serif" font-size="14.00">return _Constructor_Stream_0_2(new Stream_0(), reg[1], _Constructor_SieveFun_0_2(new SieveFun_0(), reg[1], reg[0]))</text>
 </g>
 <!-- b0_l0&#45;&gt;b0_ret -->
 <g id="edge1" class="edge">
