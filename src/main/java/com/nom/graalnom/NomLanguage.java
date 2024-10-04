@@ -18,6 +18,7 @@ import com.nom.graalnom.runtime.nodes.local.NomReadRegisterNodeGen;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.debug.DebuggerTags;
@@ -36,6 +37,7 @@ import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -208,6 +210,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         return mainFunc.getCallTarget();
     }
 
+    @CompilerDirectives.TruffleBoundary
     public static NomStatementNode callCtorNode(NomSuperClassConstant superClass, int curMethodArgCount, int regIndex, int ctorArgLen, NomExpressionNode[] ctorArgs) {
         //check built in
         if (superClass.GetSuperClass().GetName().equals("Timer_0")) {
@@ -228,9 +231,11 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
                         su -> NomContext.ctorFunctions.get(su.GetSuperClass().GetTruffleName()).get(ctorArgLen), ctorArgs));
     }
 
-    private final Map<NodeFactory<? extends NomBuiltinNode>, RootCallTarget> builtinTargets = new ConcurrentHashMap<>();
+    private final Map<NodeFactory<? extends NomBuiltinNode>, RootCallTarget> builtinTargets = new HashMap<>();
 
+    @CompilerDirectives.TruffleBoundary
     public RootCallTarget lookupBuiltin(NodeFactory<? extends NomBuiltinNode> factory) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         RootCallTarget target = builtinTargets.get(factory);
         if (target != null) {
             return target;
@@ -271,6 +276,7 @@ public class NomLanguage extends TruffleLanguage<NomContext> {
         return newTarget;
     }
 
+    @CompilerDirectives.TruffleBoundary
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {
         if (clazz == null) {
             return null;

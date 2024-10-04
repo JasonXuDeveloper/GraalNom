@@ -6,6 +6,7 @@ import com.nom.graalnom.runtime.constants.NomClassConstant;
 import com.nom.graalnom.runtime.constants.NomClassTypeConstant;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomTypedField;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.*;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -38,9 +39,10 @@ public class NomObject {
         this.cls = cls;
         this.Id = nextId++;
         this.methodTable = NomContext.functionsObject.get(cls);
-        if(this.methodTable != null){
+        if (this.methodTable != null) {
             for (NomFunction func : this.methodTable.values()) {
-                if(func.getName().endsWith(".")){
+                String name = func.getName();
+                if (!name.isEmpty() && name.charAt(name.length() - 1) == '.') {
                     this.thisFunction = func;
                     return;
                 }
@@ -52,7 +54,9 @@ public class NomObject {
         return cls;
     }
 
+    @CompilerDirectives.TruffleBoundary
     public NomFunction GetFunction(String name) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         if (methodTable == null) {
             return null;
         }
@@ -67,8 +71,10 @@ public class NomObject {
         return objectMap.containsKey(name);
     }
 
+    @CompilerDirectives.TruffleBoundary
     public Object readMember(String name)
             throws UnknownIdentifierException {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         Object result = objectMap.get(name);
         if (result == null) {
             NomTypedField f = (NomTypedField) cls.GetField(name);
@@ -85,8 +91,7 @@ public class NomObject {
                     objectMap.put(name, false);
                     return false;
                 } else {
-                    System.out.println("Unknown type: " + typeCls.GetName());
-                    return 0;
+                    throw CompilerDirectives.shouldNotReachHere("Unknown type: " + typeCls.GetName());
                 }
             }
             /* Property does not exist. */
@@ -96,7 +101,9 @@ public class NomObject {
         return result;
     }
 
+    @CompilerDirectives.TruffleBoundary
     public void writeMember(String name, Object value) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         objectMap.put(name, value);
     }
 

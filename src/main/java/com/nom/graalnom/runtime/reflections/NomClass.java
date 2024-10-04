@@ -4,6 +4,7 @@ import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.NomClassConstant;
 import com.nom.graalnom.runtime.constants.NomSuperClassConstant;
+import com.oracle.truffle.api.CompilerDirectives;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,6 +68,7 @@ public class NomClass extends NomInterface {
         return null;
     }
 
+    @CompilerDirectives.TruffleBoundary
     public NomField GetField(String name) {
         for (NomTypedField field : Fields) {
             if (name.equals(NomContext.constants.GetString(field.Name).Value())) {

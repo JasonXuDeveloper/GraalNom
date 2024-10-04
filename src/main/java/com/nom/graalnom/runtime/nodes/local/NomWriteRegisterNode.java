@@ -35,6 +35,7 @@ public class NomWriteRegisterNode extends NomStatementNode {
 
     @Override
     public void executeVoid(VirtualFrame frame) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         NomFunctionBodyNode.getRegs()[getRegIndex()] = valueNode.executeGeneric(frame);
     }
 

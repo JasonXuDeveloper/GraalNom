@@ -31,6 +31,7 @@ public class NomWriteFieldNode extends NomExpressionNode {
         if (receiver instanceof NomObject nObj) {
             return writeNomObject(nObj, name, valueNode.executeGeneric(frame));
         } else {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw CompilerDirectives.shouldNotReachHere("Receiver is not a NomObject");
         }
     }

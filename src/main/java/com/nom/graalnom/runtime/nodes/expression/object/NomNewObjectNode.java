@@ -5,6 +5,7 @@ import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.constants.NomSuperClassConstant;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.reflections.NomClass;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
@@ -20,6 +21,7 @@ public class NomNewObjectNode extends NomExpressionNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         String name = superClassConstant.GetSuperClass().GetName();
         //TODO built in lookup
         if (name.equals("Timer_0")) {

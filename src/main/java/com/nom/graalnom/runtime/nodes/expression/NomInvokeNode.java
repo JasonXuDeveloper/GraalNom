@@ -117,6 +117,7 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
     }
 
     public Object[] getArgumentValues(VirtualFrame frame) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         Object[] argumentValues = new Object[argumentNodes.length];
         for (int i = 0; i < argumentNodes.length; i++) {
             argumentValues[i] = argumentNodes[i].executeGeneric(frame);
@@ -125,7 +126,7 @@ public final class NomInvokeNode<T extends NomConstant> extends NomExpressionNod
         return argumentValues;
     }
 
-
+    @CompilerDirectives.TruffleBoundary
     public NomFunction getFunction(Object[] argumentValues) {
         if (func != null) return func;
 

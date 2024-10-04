@@ -1,5 +1,6 @@
 package com.nom.graalnom.runtime.nodes.expression.unary;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -17,6 +18,7 @@ public abstract class NomNegateNode extends NomUnaryNode{
     }
 
     @Fallback
+    @CompilerDirectives.TruffleBoundary
     protected Object typeError(Object value) {
         throw new RuntimeException("Not a number: " + value);
     }

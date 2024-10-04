@@ -39,6 +39,7 @@ public class NomReadFieldNode extends NomExpressionNode {
         try {
             result = receiver.readMember(name);
         } catch (UnknownIdentifierException e) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new RuntimeException(e);
         }
         return result;

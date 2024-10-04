@@ -93,7 +93,9 @@ public class NomContext {
         return output;
     }
 
+    @CompilerDirectives.TruffleBoundary
     public static NomFunction getMethod(NomMethodConstant method) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         String methName = method.MethodName();
         if (method.Class() != null && NomContext.functionsObject.containsKey(method.Class())) {
             Map<String, NomFunction> clsFunctions = NomContext.functionsObject.get(method.Class());

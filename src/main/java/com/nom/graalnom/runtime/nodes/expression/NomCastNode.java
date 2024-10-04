@@ -8,6 +8,7 @@ import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomUnaryNode;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -33,6 +34,7 @@ public class NomCastNode extends NomExpressionNode {
             if (ct.GetClass() == null) {
                 NomInterfaceConstant inter = ct.GetInterface();
                 if (inter == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
                     throw new RuntimeException("Constant is wrong");
                 }
                 cName = inter.GetName();
@@ -70,6 +72,7 @@ public class NomCastNode extends NomExpressionNode {
                         throw new RuntimeException("Unsupported cast");
                     }
 
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
                     NomClass cls = nomObj.GetClass();
                     NomClassConstant cc = ct.GetClass();
                     String name;
@@ -107,6 +110,7 @@ public class NomCastNode extends NomExpressionNode {
             return value;
         }
 
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         throw new RuntimeException("Unsupported cast");
     }
 

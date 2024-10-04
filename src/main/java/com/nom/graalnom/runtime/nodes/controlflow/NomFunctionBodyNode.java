@@ -48,7 +48,6 @@ import com.nom.graalnom.runtime.nodes.NomStatementNode;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
 import com.nom.graalnom.runtime.nodes.expression.NomInvokeNode;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -128,50 +127,48 @@ public final class NomFunctionBodyNode extends NomExpressionNode {
             if (block.bodyNodeCount() > 1)
                 block.executeVoid(frame);
             NomEndOfBasicBlockNode stmt = block.getTerminatingNode();
-            switch (stmt) {
-                case NomBranchNode br -> {
-                    for (NomStatementNode mapStmt : br.mappings) {
+            if (stmt instanceof NomBranchNode br) {
+                for (NomStatementNode mapStmt : br.mappings) {
+                    mapStmt.executeVoid(frame);
+                }
+                curIndex = br.getSuccessor();
+            } else if (stmt instanceof NomIfNode condBr) {
+                if (condBr.cond(frame)) {
+                    for (NomStatementNode mapStmt : condBr.trueBranch.mappings) {
                         mapStmt.executeVoid(frame);
                     }
-                    curIndex = br.getSuccessor();
-                }
-                case NomIfNode condBr -> {
-                    if (condBr.cond(frame)) {
-                        for (NomStatementNode mapStmt : condBr.trueBranch.mappings) {
-                            mapStmt.executeVoid(frame);
-                        }
-                        curIndex = condBr.getTrueSuccessor();
-                    } else {
-                        for (NomStatementNode mapStmt : condBr.falseBranch.mappings) {
-                            mapStmt.executeVoid(frame);
-                        }
-                        curIndex = condBr.getFalseSuccessor();
+                    curIndex = condBr.getTrueSuccessor();
+                } else {
+                    for (NomStatementNode mapStmt : condBr.falseBranch.mappings) {
+                        mapStmt.executeVoid(frame);
                     }
+                    curIndex = condBr.getFalseSuccessor();
                 }
-                case NomReturnNode ret -> {
-                    if (ret.valueNode == null) return 0;
-                    //noinspection rawtypes
-                    if (ret.valueNode instanceof NomInvokeNode invokeNode) {
-                        NomFunction func;
-                        Object[] args = invokeNode.getArgumentValues(frame);
-                        func = invokeNode.getFunction(args);
-                        NomExpressionNode body = func.rootNode.getBodyNode();
+            } else if (stmt instanceof NomReturnNode ret) {
+                if (ret.valueNode == null) return 0;
+                //noinspection rawtypes
+                if (ret.valueNode instanceof NomInvokeNode invokeNode) {
+                    NomFunction func;
+                    Object[] args = invokeNode.getArgumentValues(frame);
+                    func = invokeNode.getFunction(args);
+                    NomExpressionNode body = func.rootNode.getBodyNode();
 
-                        if (body instanceof NomBuiltinNode builtinNode) {
-                            enterScope(0, args);
-                            Object val = builtinNode.executeGeneric(frame);
-                            leaveScope();
-                            return val;
-                        }
+                    if (body instanceof NomBuiltinNode builtinNode) {
+                        enterScope(0, args);
+                        Object val = builtinNode.executeGeneric(frame);
+                        leaveScope();
+                        return val;
+                    }
 
 //                        System.out.println("tail call: " + func.getName());
-                        //begin tail call
-                        NomFunctionBodyNode functionBodyNode = (NomFunctionBodyNode) body;
-                        return new TailResult(functionBodyNode, args);
-                    }
-                    return ret.valueNode.executeGeneric(frame);
+                    //begin tail call
+                    NomFunctionBodyNode functionBodyNode = (NomFunctionBodyNode) body;
+                    return new TailResult(functionBodyNode, args);
                 }
-                case null, default -> throw new RuntimeException("Invalid terminating node");
+
+                return ret.valueNode.executeGeneric(frame);
+            } else {
+                throw new RuntimeException("Invalid terminating node");
             }
         }
     }

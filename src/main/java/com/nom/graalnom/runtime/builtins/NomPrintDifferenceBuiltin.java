@@ -2,6 +2,7 @@ package com.nom.graalnom.runtime.builtins;
 
 import com.nom.graalnom.runtime.datatypes.NomObject;
 import com.nom.graalnom.runtime.datatypes.NomTimer;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -13,7 +14,9 @@ public abstract class NomPrintDifferenceBuiltin extends NomBuiltinNode {
 
     @Specialization
     @Override
+    @CompilerDirectives.TruffleBoundary
     protected Object doNomObject(NomObject obj) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         if (!(obj instanceof NomTimer t)) return super.doNomObject(obj);
         long cur = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
         long diff = cur - t.curMs;
@@ -25,6 +28,7 @@ public abstract class NomPrintDifferenceBuiltin extends NomBuiltinNode {
 
     @Fallback
     protected Object typeError(Object str) {
-        throw new RuntimeException("Type error: " + str.getClass());
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        throw CompilerDirectives.shouldNotReachHere("Type error: " + str.getClass());
     }
 }

@@ -42,8 +42,10 @@ package com.nom.graalnom.runtime.nodes;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.NomContext;
+import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
 import com.nom.graalnom.runtime.nodes.expression.*;
 import com.nom.graalnom.runtime.nodes.controlflow.*;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.*;
@@ -83,7 +85,6 @@ public class NomRootNode extends RootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        assert NomContext.get(this) != null;
         return bodyNode.executeGeneric(frame);
     }
 
@@ -141,7 +142,7 @@ public class NomRootNode extends RootNode {
 
             //branch
             if (basicBlockNode.getTerminatingNode() instanceof NomBranchNode branchNode) {
-                if(!hasL0){
+                if (!hasL0) {
                     nodeBuilder = new StringBuilder();
                     nodeBuilder.append('b')
                             .append(i).append("_l0 [label=\"placeholder\", shape=box]\n");

@@ -3,6 +3,7 @@ package com.nom.graalnom.runtime.constants;
 import com.nom.graalnom.runtime.NomContext;
 import com.nom.graalnom.runtime.reflections.NomClass;
 import com.nom.graalnom.runtime.reflections.NomInterface;
+import com.oracle.truffle.api.CompilerDirectives;
 
 public class NomStaticMethodConstant extends NomMethodConstant {
     public NomStaticMethodConstant(long cls, long methodname, long typeArgs, long argTypes) {
@@ -11,11 +12,13 @@ public class NomStaticMethodConstant extends NomMethodConstant {
     }
 
     @Override
+    @CompilerDirectives.TruffleBoundary
     public String QualifiedMethodName() {
         return Class().GetName() + "." + NomContext.constants.GetString(methodName).Value();
     }
 
     @Override
+    @CompilerDirectives.TruffleBoundary
     public NomInterface Class() {
         NomClassConstant clsConst = this.ClassConstant();
         if (clsConst == null) {

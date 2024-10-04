@@ -1,6 +1,7 @@
 package com.nom.graalnom.runtime.constants;
 
 import com.nom.graalnom.runtime.NomContext;
+import com.oracle.truffle.api.CompilerDirectives;
 
 public class NomInterfaceConstant extends NomConstant {
     private final long Library;
@@ -12,10 +13,12 @@ public class NomInterfaceConstant extends NomConstant {
         this.Name = name;
     }
 
+    @CompilerDirectives.TruffleBoundary
     public String GetName() {
         return NomContext.constants.GetString(Name).Value();
     }
 
+    @CompilerDirectives.TruffleBoundary
     public String GetTruffleName() {
         return NomContext.constants.GetString(Name).Value();
     }
