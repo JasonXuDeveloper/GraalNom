@@ -21,7 +21,7 @@ import com.nom.graalnom.runtime.nodes.expression.literal.*;
 import com.nom.graalnom.runtime.nodes.expression.object.NomNewObjectNode;
 import com.nom.graalnom.runtime.nodes.expression.object.NomReadFieldNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.object.NomWriteFieldNodeGen;
-import com.nom.graalnom.runtime.nodes.expression.unary.NomCastNodeGen;
+
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNegateNodeGen;
 import com.nom.graalnom.runtime.nodes.expression.unary.NomNotNodeGen;
 import com.nom.graalnom.runtime.nodes.local.*;
