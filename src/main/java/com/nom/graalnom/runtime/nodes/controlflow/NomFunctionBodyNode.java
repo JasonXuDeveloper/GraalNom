@@ -40,8 +40,6 @@
  */
 package com.nom.graalnom.runtime.nodes.controlflow;
 
-import com.nom.graalnom.runtime.builtins.NomBuiltinNode;
-import com.nom.graalnom.runtime.datatypes.NomFunction;
 import com.nom.graalnom.runtime.nodes.*;
 import com.nom.graalnom.runtime.datatypes.NomNull;
 import com.nom.graalnom.runtime.nodes.expression.NomExpressionNode;
@@ -50,9 +48,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import org.graalvm.collections.Pair;
-
-import java.util.ArrayList;
 
 /**
  * The body of a user-defined Nom function. This is the node referenced by a {@link NomRootNode} for

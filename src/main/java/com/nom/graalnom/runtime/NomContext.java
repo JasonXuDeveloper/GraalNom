@@ -66,7 +66,7 @@ public class NomContext {
     public void installBuiltin(NodeFactory<? extends NomBuiltinNode> factory) {
         /* Register the builtin function in our function registry. */
         RootCallTarget target = language.lookupBuiltin(factory);
-        NomFunction function = new NomFunction(TruffleString.fromJavaStringUncached(target.getRootNode().getName(), TruffleString.Encoding.UTF_8), (NomRootNode) target.getRootNode(), target,0);
+        NomFunction function = new NomFunction(TruffleString.fromJavaStringUncached(target.getRootNode().getName(), TruffleString.Encoding.UTF_8), null, target,0);
         builtinFunctions.put(function.getName(), function);
     }
 

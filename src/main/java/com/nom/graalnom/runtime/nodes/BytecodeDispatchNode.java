@@ -37,32 +37,28 @@ public class BytecodeDispatchNode extends Node {
         this.argCount = argCount;
     }
 
-
     private Object getFromFrame(VirtualFrame frame, int regIndex) {
-        if (regIndex >= argCount) {
-            return frame.getValue(regIndex - argCount);
-        }
-        return frame.getArguments()[regIndex];
+        return frame.getValue(regIndex);
     }
 
     private void writeLongToFrame(VirtualFrame frame, int regIndex, long value) {
-        frame.setLong(regIndex - argCount, value);
+        frame.setLong(regIndex, value);
     }
 
     private void writeDoubleToFrame(VirtualFrame frame, int regIndex, double value) {
-        frame.setDouble(regIndex - argCount, value);
+        frame.setDouble(regIndex, value);
     }
 
     private void writeBooleanToFrame(VirtualFrame frame, int regIndex, boolean value) {
-        frame.setBoolean(regIndex - argCount, value);
+        frame.setBoolean(regIndex, value);
     }
 
     private void writeNullToFrame(VirtualFrame frame, int regIndex) {
-        frame.setObject(regIndex - argCount, NomNull.SINGLETON);
+        frame.setObject(regIndex, NomNull.SINGLETON);
     }
 
     private void writeStringToFrame(VirtualFrame frame, int regIndex, TruffleString value) {
-        frame.setObject(regIndex - argCount, value);
+        frame.setObject(regIndex, value);
     }
 
     private void writeToFrame(VirtualFrame frame, int regIndex, Object value) {
@@ -72,13 +68,55 @@ public class BytecodeDispatchNode extends Node {
             case Boolean b -> writeBooleanToFrame(frame, regIndex, b);
             case NomNull ignored -> writeNullToFrame(frame, regIndex);
             case TruffleString s -> writeStringToFrame(frame, regIndex, s);
-            default -> frame.setObject(regIndex - argCount, value);
+            default -> frame.setObject(regIndex, value);
         }
     }
 
-    @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.MERGE_EXPLODE)
+    private boolean isTail(int bci) {
+        if (bci >= bytecode.length) {
+            return false;
+        }
+
+        if (bci == bytecode.length - 1) {
+            return true;
+        }
+
+        int nextBCI = bci + 1;
+        switch (bytecode[bci]) {
+            case ReturnOpCode ret -> {
+                return true;
+            }
+            case ReturnVoidOpCode voidOpCode -> {
+                return true;
+            }
+            case null -> {
+                return false;
+            }
+            default -> {
+                switch (bytecode[nextBCI]) {
+                    case ReturnOpCode ret -> {
+                        return true;
+                    }
+                    case ReturnVoidOpCode returnVoidOpCode -> {
+                        return true;
+                    }
+                    case null, default -> {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
+    @HostCompilerDirectives.BytecodeInterpreterSwitch
     public Object execute(VirtualFrame frame) {
         int bci = 0;
+        //copy arguments to frame
+        if (argCount == frame.getArguments().length) {
+            for (int i = 0; i < argCount; i++) {
+                frame.setObject(i, frame.getArguments()[i]);
+            }
+        }
         while (bci < bytecode.length) {
             int nextBCI = bci + 1;
             if (bytecode[bci] instanceof ReturnOpCode ret) {
@@ -104,8 +142,18 @@ public class BytecodeDispatchNode extends Node {
                 for (int i = 0; i < argIdxs.length; i++) {
                     args[i + 1] = getFromFrame(frame, argIdxs[i]);
                 }
-                Object methRet = invokeInstanceMethod(invokeInstanceMethod, instance, args);
-                writeToFrame(frame, invokeInstanceMethod.getRegIdx(), methRet);
+                NomFunction function = getInstanceMethod(invokeInstanceMethod, instance, args);
+                if (isTail(bci) && function.functionBodyNode != null) {
+                    //copy arguments to frame
+                    for (int i = 0; i < args.length; i++) {
+                        frame.setObject(i, args[i]);
+                    }
+                    Object methRet = function.functionBodyNode.executeGeneric(frame);
+                    writeToFrame(frame, invokeInstanceMethod.getRegIdx(), methRet);
+                } else {
+                    Object methRet = invokeInstanceMethod(invokeInstanceMethod, instance, args);
+                    writeToFrame(frame, invokeInstanceMethod.getRegIdx(), methRet);
+                }
             } else if (bytecode[bci] instanceof InvokeStaticMethodOpCode invokeStaticMethod) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 int[] argIdxs = invokeStaticMethod.getArgIdxs();
@@ -113,8 +161,20 @@ public class BytecodeDispatchNode extends Node {
                 for (int i = 0; i < argIdxs.length; i++) {
                     args[i] = getFromFrame(frame, argIdxs[i]);
                 }
-                Object ret = invokeStaticMethod(invokeStaticMethod, args);
-                writeToFrame(frame, invokeStaticMethod.getRegIdx(), ret);
+                NomFunction function = getStaticMethod(invokeStaticMethod);
+                //TODO some reason this makes frame value wrong, currently assume this is due to graal's cache
+                if (isTail(bci) && function.functionBodyNode != null) {
+                    //copy arguments to frame
+                    for (int i = 0; i < args.length; i++) {
+                        frame.setObject(i, args[i]);
+                    }
+                    Object ret = function.functionBodyNode.executeGeneric(frame);
+                    writeToFrame(frame, invokeStaticMethod.getRegIdx(), ret);
+                } else
+                {
+                    Object ret = invokeStaticMethod(invokeStaticMethod, args);
+                    writeToFrame(frame, invokeStaticMethod.getRegIdx(), ret);
+                }
             } else if (bytecode[bci] instanceof InvokeCtorOpCode invokeCtorOpCode) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 int[] argIdxs = invokeCtorOpCode.getArgIdxs();
@@ -294,7 +354,10 @@ public class BytecodeDispatchNode extends Node {
                     case Double d1 when right instanceof Double d2 -> writeDoubleToFrame(frame, regIdx, d1 % d2);
                     case Long l when right instanceof Double d -> writeDoubleToFrame(frame, regIdx, l % d);
                     case Double d when right instanceof Long l -> writeDoubleToFrame(frame, regIdx, d % l);
-                    case null, default -> throw CompilerDirectives.shouldNotReachHere();
+                    case null, default -> throw CompilerDirectives.shouldNotReachHere(
+                            "method name: " + this.getRootNode().getName() +" bci: " + bci
+                            + " left: " + left + " right: " + right
+                    );
                 }
             } else if (bytecode[bci] instanceof AndOpCode andOpCode) {
                 Object left = getFromFrame(frame, andOpCode.getLeftRegIdx());
@@ -481,14 +544,28 @@ public class BytecodeDispatchNode extends Node {
 
     @CompilerDirectives.TruffleBoundary
     private Object invokeStaticMethod(InvokeStaticMethodOpCode invokeStaticMethod, Object[] args) {
-        NomMethodConstant method = NomContext.constants.GetStaticMethod(invokeStaticMethod.getNameId());
-        NomFunction function = NomContext.getMethod(method);
+        NomFunction function = getStaticMethod(invokeStaticMethod);
         assert function != null;
         return function.getCallTarget().call(args);
     }
 
+    private NomFunction getStaticMethod(InvokeStaticMethodOpCode invokeStaticMethod) {
+        NomMethodConstant method = NomContext.constants.GetStaticMethod(invokeStaticMethod.getNameId());
+        return NomContext.getMethod(method);
+    }
+
     @CompilerDirectives.TruffleBoundary
-    private Object invokeInstanceMethod(InvokeInstanceMethodOpCode invokeInstanceMethod, Object instance, Object[] args) {
+    private Object invokeInstanceMethod(InvokeInstanceMethodOpCode invokeInstanceMethod,
+                                        Object instance, Object[] args) {
+        NomFunction function = getInstanceMethod(invokeInstanceMethod, instance, args);
+        if (function == null) {
+            throw CompilerDirectives.shouldNotReachHere("Method not found");
+        }
+        return function.getCallTarget().call(args);
+    }
+
+    private NomFunction getInstanceMethod(InvokeInstanceMethodOpCode invokeInstanceMethod,
+                                          Object instance, Object[] args) {
         NomMethodConstant method = NomContext.constants.GetMethod(invokeInstanceMethod.getNameId());
         NomFunction function = NomContext.getMethod(method);
         if_branch:
@@ -516,8 +593,7 @@ public class BytecodeDispatchNode extends Node {
                 }
             }
         }
-        assert function != null;
-        return function.getCallTarget().call(args);
+        return function;
     }
 
 

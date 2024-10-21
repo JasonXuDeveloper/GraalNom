@@ -42,6 +42,8 @@ package com.nom.graalnom.runtime.datatypes;
 
 import com.nom.graalnom.NomLanguage;
 import com.nom.graalnom.runtime.nodes.NomRootNode;
+import com.nom.graalnom.runtime.nodes.NomStatementNode;
+import com.nom.graalnom.runtime.nodes.controlflow.NomFunctionBodyNode;
 import com.nom.graalnom.runtime.reflections.NomType;
 import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -84,15 +86,15 @@ public final class NomFunction {
      */
     private RootCallTarget callTarget;
 
-    public NomRootNode rootNode;
+    public final NomFunctionBodyNode functionBodyNode;
 
-    public int regCount;
+    public final int regCount;
 
 
-    public NomFunction(TruffleString name, NomRootNode rootNode, RootCallTarget callTarget, int regCount) {
+    public NomFunction(TruffleString name, NomFunctionBodyNode functionBodyNode, RootCallTarget callTarget, int regCount) {
         this.name = name;
         this.regCount = regCount;
-        this.rootNode = rootNode;
+        this.functionBodyNode = functionBodyNode;
         setCallTarget(callTarget);
     }
 

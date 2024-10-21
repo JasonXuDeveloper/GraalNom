@@ -111,9 +111,9 @@ public class NomCallable {
             }
             NomFunctionBodyNode body = new NomFunctionBodyNode(bytecodeNodes, regCount);
             FrameDescriptor.Builder builder = FrameDescriptor.newBuilder();
-            builder.addSlots(regCount, FrameSlotKind.Illegal);
+            builder.addSlots(100, FrameSlotKind.Illegal);
             NomRootNode root = new NomRootNode(language, builder.build(), body, qName, GetArgCount());
-            function = new NomFunction(qName, root, root.getCallTarget(), regCount);
+            function = new NomFunction(qName, body, root.getCallTarget(), regCount);
         }
 
         return function;
@@ -144,9 +144,9 @@ public class NomCallable {
             NomFunctionBodyNode body = new NomFunctionBodyNode(bytecodeNodes, regCount);
             TruffleString dynName = TruffleString.fromJavaStringUncached(qName.toString() + "_dyn", TruffleString.Encoding.UTF_8);
             FrameDescriptor.Builder builder = FrameDescriptor.newBuilder();
-            builder.addSlots(regCount, FrameSlotKind.Illegal);
+            builder.addSlots(100, FrameSlotKind.Illegal);
             NomRootNode root = new NomRootNode(language, builder.build(), body, dynName, GetArgCount());
-            dynFunction = new NomFunction(dynName, root, root.getCallTarget(), regCount);
+            dynFunction = new NomFunction(dynName, body, root.getCallTarget(), regCount);
         }
 
         return dynFunction;
